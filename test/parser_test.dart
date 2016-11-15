@@ -149,5 +149,20 @@ void main() {
         ])
       ]);
     });
+
+    test('should parse a binding with and without a value', () {
+      expect(
+          parse('<div #foo>Hello, World<my-app #focus="testDirective">'
+              '</my-app></div>'),
+          [
+            new NgElement.unknown('div', childNodes: [
+              new NgBinding('foo'),
+              new NgText('Hello, World'),
+              new NgElement.unknown('my-app', childNodes: [
+                new NgBinding('focus', value: 'testDirective'),
+              ])
+            ])
+          ]);
+    });
   });
 }

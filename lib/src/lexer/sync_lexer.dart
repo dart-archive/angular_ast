@@ -144,11 +144,20 @@ class _SyncNgTemplateLexer extends NgTemplateLexerBase {
   void _scanBinding() {
     addToken(NgTokenType.startBinding);
     var char = peek();
-    while (!isWhiteSpace(char) && char != $gt && char != $slash) {
+    while (!isWhiteSpace(char) && char != $gt && char != $slash && char != $equal) {
       advance();
       char = peek();
     }
     addToken(NgTokenType.bindingName);
+    if (char == $equal) {
+      _consumeUntil($double_quote);
+      advance();
+      addToken(NgTokenType.beforeDecoratorValue);
+      _consumeUntil($double_quote);
+      addToken(NgTokenType.bindingValue);
+      advance();
+      addToken(NgTokenType.endBinding);
+    }
     _scanAfterDecorator();
   }
 

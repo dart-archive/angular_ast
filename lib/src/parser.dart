@@ -108,8 +108,14 @@ class _ScannerParser extends NgTemplateScanner<NgAstNode> {
   @override
   void scanBinding(NgToken before, NgToken start) {
     var name = next();
-    var end = next();
-    addChild(new NgBinding.fromTokens(before, start, name, end));
+    var endOrEquals = next();
+    if (endOrEquals.type == NgTokenType.beforeDecoratorValue) {
+      var value = next();
+      var end = next();
+      addChild(new NgBinding.fromTokensWithValue(before, start, name, endOrEquals, value, end));
+    } else {
+      addChild(new NgBinding.fromTokens(before, start, name, endOrEquals));
+    }
   }
 
   @override
