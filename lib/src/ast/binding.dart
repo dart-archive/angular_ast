@@ -8,8 +8,11 @@ class NgBinding extends NgAstNode with NgAstSourceTokenMixin {
   /// Name of the binding.
   final String name;
 
+  /// Value of the binding (Optional).
+  final String value;
+
   /// Create a new [NgBinding] with a [name].
-  NgBinding(this.name) : super._(const []);
+  NgBinding(this.name, {this.value}) : super._(const []);
 
   /// Create a new [NgBinding] from tokenized HTML.
   NgBinding.fromTokens(
@@ -19,7 +22,20 @@ class NgBinding extends NgAstNode with NgAstSourceTokenMixin {
     NgToken end,
   )
       : this.name = name.text,
+        this.value = null,
         super._([before, start, name, end]);
+
+  NgBinding.fromTokensWithValue(
+    NgToken before,
+    NgToken start,
+    NgToken name,
+    NgToken equals,
+    NgToken value,
+    NgToken end
+  )
+      : this.name = name.text,
+        this.value = value.text,
+        super._([before, start, name, equals, value, end]);
 
   @override
   int get hashCode => name.hashCode;
@@ -27,7 +43,7 @@ class NgBinding extends NgAstNode with NgAstSourceTokenMixin {
   @override
   bool operator ==(Object o) {
     if (o is NgBinding) {
-      return o.name == name;
+      return o.name == name && o.value == value;
     }
     return false;
   }
