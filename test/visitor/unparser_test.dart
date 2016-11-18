@@ -9,7 +9,7 @@ void main() {
   NgAstNode parse(String text) =>
       const NgTemplateParser().parse(text, onError: (_) => null).first;
 
-  test('produces a desugared template', () {
+  test('produces a template', () {
     var ast = parse('<panel><div *ngIf="isTrue">Foo Bar</div><button '
         'class="fancy" disabled>Hello</button></panel>');
     var printer = new Unparser();
@@ -17,11 +17,9 @@ void main() {
     expect(
         printer.toString(),
         equals('<panel>\n'
-            '  <template [ngIf]="isTrue">\n'
-            '    <div>\n'
-            '      Foo Bar\n'
-            '    </div>\n'
-            '  </template>\n'
+            '  <div *ngIf="isTrue">\n'
+            '    Foo Bar\n'
+            '  </div>\n'
             '  <button class="fancy" disabled>\n'
             '    Hello\n'
             '  </button>\n'
