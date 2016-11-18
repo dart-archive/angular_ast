@@ -20,6 +20,8 @@ part 'ast/event.dart';
 part 'ast/interpolation.dart';
 part 'ast/property.dart';
 part 'ast/text.dart';
+part 'ast/structure.dart';
+part 'ast/banana.dart';
 
 String stringifyAstTree(NgAstNode node, {int indent: 0}) {
   var buffer = new StringBuffer(' ' * indent);

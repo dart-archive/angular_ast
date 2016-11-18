@@ -93,5 +93,15 @@ class Unparser implements Visitor {
   }
 
   @override
+  void visitStructure(NgStructure node) {
+    _buffer.write(' *${node.name}="${node.value}"');
+  }
+
+  @override
+  void visitBanana(NgBanana node){
+    _buffer.write(' [(${node.name})]="${node.value}"');
+  }
+
+  @override
   String toString() => _buffer.toString();
 }

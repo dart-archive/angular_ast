@@ -29,4 +29,8 @@ abstract class Visitor {
   void visitEvent(NgEvent node);
 
   void visitText(NgText node);
+
+  void visitStructure(NgStructure node);
+
+  void visitBanana(NgBanana node);
 }
