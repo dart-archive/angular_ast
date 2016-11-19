@@ -4,6 +4,8 @@
 import 'package:angular_template_parser/angular_template_parser.dart';
 import 'package:test/test.dart';
 
+final html5Schema = generateHtml5Schema();
+
 void main() {
   group('div', () {
     test('should be supported', () {

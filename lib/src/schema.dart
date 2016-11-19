@@ -60,8 +60,6 @@ abstract class NgElementDefinition {
     String tagName, {
     Map<String, NgEventDefinition> events,
     Map<String, NgPropertyDefinition> properties,
-    Map<String, NgEventDefinition> globalEvents,
-    Map<String, NgPropertyDefinition> globalProperties,
   }) = _NgElementSchema;
 
   /// Known events on the element.

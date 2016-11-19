@@ -13,7 +13,7 @@ export 'src/ast.dart'
 export 'src/parser.dart' show NgTemplateParser;
 export 'src/schema.dart'
     show
-        html5Schema,
+        generateHtml5Schema,
         NgElementDefinition,
         NgEventDefinition,
         NgPropertyDefinition,
