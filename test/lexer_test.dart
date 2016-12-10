@@ -1,316 +1,154 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'package:angular_template_parser/src/lexer.dart';
+import 'package:angular_ast/angular_ast.dart';
 import 'package:test/test.dart';
 
-void main() {
-  NgTemplateLexer lexer;
+main() {
+  // Returns the html parsed as a series of tokens.
+  Iterable<NgToken> tokenize(String html) => const NgLexer().tokenize(html);
 
-  test('should lex a simple text node', () async {
-    lexer = new NgTemplateLexer('Hello World');
+  // Returns the html parsed as a series of tokens, then back to html.
+  String untokenize(Iterable<NgToken> tokens) => tokens
+      .fold(new StringBuffer(), (buffer, token) => buffer..write(token.lexeme))
+      .toString();
+
+  test('should tokenize plain text', () {
     expect(
-      lexer.tokenize().toList(),
+      tokenize('Hello World'),
       [
-        new NgToken(NgTokenType.textNode, 'Hello World'),
+        new NgToken.text(0, 'Hello World'),
       ],
     );
   });
 
-  test('should lex a simple text node and elements', () async {
-    lexer = new NgTemplateLexer('<span>Hello World</span>');
+  test('should tokenize mulitline text', () {
     expect(
-      lexer.tokenize().toList(),
+      tokenize('Hello\nWorld'),
       [
-        new NgToken(NgTokenType.startOpenElement, '<'),
-        new NgToken(NgTokenType.elementName, 'span'),
-        new NgToken(NgTokenType.endOpenElement, '>'),
-        new NgToken(NgTokenType.textNode, 'Hello World'),
-        new NgToken(NgTokenType.startCloseElement, '</'),
-        new NgToken(NgTokenType.elementName, 'span'),
-        new NgToken(NgTokenType.endCloseElement, '>'),
+        new NgToken.text(0, 'Hello\nWorld'),
       ],
     );
   });
 
-  test('should lex a set of text and element nodes', () async {
-    lexer = new NgTemplateLexer('<div>\n'
-        '  <span>Hello<em>World</em>!</span>\n'
-        '</div>');
+  test('should tokenize an HTML element', () {
     expect(
-      lexer.tokenize().toList(),
+      tokenize('<div></div>'),
       [
-        new NgToken(NgTokenType.startOpenElement, '<'),
-        new NgToken(NgTokenType.elementName, 'div'),
-        new NgToken(NgTokenType.endOpenElement, '>'),
-        new NgToken(NgTokenType.textNode, '\n  '),
-        new NgToken(NgTokenType.startOpenElement, '<'),
-        new NgToken(NgTokenType.elementName, 'span'),
-        new NgToken(NgTokenType.endOpenElement, '>'),
-        new NgToken(NgTokenType.textNode, 'Hello'),
-        new NgToken(NgTokenType.startOpenElement, '<'),
-        new NgToken(NgTokenType.elementName, 'em'),
-        new NgToken(NgTokenType.endOpenElement, '>'),
-        new NgToken(NgTokenType.textNode, 'World'),
-        new NgToken(NgTokenType.startCloseElement, '</'),
-        new NgToken(NgTokenType.elementName, 'em'),
-        new NgToken(NgTokenType.endCloseElement, '>'),
-        new NgToken(NgTokenType.textNode, '!'),
-        new NgToken(NgTokenType.startCloseElement, '</'),
-        new NgToken(NgTokenType.elementName, 'span'),
-        new NgToken(NgTokenType.endCloseElement, '>'),
-        new NgToken(NgTokenType.textNode, '\n'),
-        new NgToken(NgTokenType.startCloseElement, '</'),
-        new NgToken(NgTokenType.elementName, 'div'),
-        new NgToken(NgTokenType.endCloseElement, '>'),
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(4),
+        new NgToken.closeElementStart(5),
+        new NgToken.elementIdentifier(7, 'div'),
+        new NgToken.closeElementEnd(10),
       ],
     );
   });
 
-  test('should lex attributes with and without a value separate', () async {
-    lexer = new NgTemplateLexer(
-      '<div class="fancy" title="Hello"><button disabled></button></div>',
+  test('should tokenize nested HTML elements', () {
+    expect(
+      tokenize('<div><span></span></div>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(4),
+        new NgToken.openElementStart(5),
+        new NgToken.elementIdentifier(6, 'span'),
+        new NgToken.openElementEnd(10),
+        new NgToken.closeElementStart(11),
+        new NgToken.elementIdentifier(13, 'span'),
+        new NgToken.closeElementEnd(17),
+        new NgToken.closeElementStart(18),
+        new NgToken.elementIdentifier(20, 'div'),
+        new NgToken.closeElementEnd(23),
+      ],
     );
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'div'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.attributeName, 'class'),
-      new NgToken(NgTokenType.beforeDecoratorValue, '="'),
-      new NgToken(NgTokenType.attributeValue, 'fancy'),
-      new NgToken(NgTokenType.endAttribute, '"'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.attributeName, 'title'),
-      new NgToken(NgTokenType.beforeDecoratorValue, '="'),
-      new NgToken(NgTokenType.attributeValue, 'Hello'),
-      new NgToken(NgTokenType.endAttribute, '"'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.attributeName, 'disabled'),
-      new NgToken(NgTokenType.endAttribute, ''),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'div'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-    ]);
   });
 
-  test('should lex attributes with and without a value', () {
-    lexer = new NgTemplateLexer(
-      '<button disabled title="Hello"></button>',
+  test('should tokenize HTML elements mixed with plain text', () {
+    expect(
+      tokenize('<div>Hello</div>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(4),
+        new NgToken.text(5, 'Hello'),
+        new NgToken.closeElementStart(10),
+        new NgToken.elementIdentifier(12, 'div'),
+        new NgToken.closeElementEnd(15),
+      ],
     );
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.attributeName, 'disabled'),
-      new NgToken(NgTokenType.endAttribute, ''),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.attributeName, 'title'),
-      new NgToken(NgTokenType.beforeDecoratorValue, '="'),
-      new NgToken(NgTokenType.attributeValue, 'Hello'),
-      new NgToken(NgTokenType.endAttribute, '"'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-    ]);
   });
 
-  test('should lex attributes with indenting whitespace', () async {
-    lexer = new NgTemplateLexer('<div \n'
-        '  title="Hello"\n'
-        '  class="fancy">\n'
-        '    Hello World\n'
-        '</div>');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'div'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' \n  '),
-      new NgToken(NgTokenType.attributeName, 'title'),
-      new NgToken(NgTokenType.beforeDecoratorValue, '="'),
-      new NgToken(NgTokenType.attributeValue, 'Hello'),
-      new NgToken(NgTokenType.endAttribute, '"'),
-      new NgToken(NgTokenType.beforeElementDecorator, '\n  '),
-      new NgToken(NgTokenType.attributeName, 'class'),
-      new NgToken(NgTokenType.beforeDecoratorValue, '="'),
-      new NgToken(NgTokenType.attributeValue, 'fancy'),
-      new NgToken(NgTokenType.endAttribute, '"'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.textNode, '\n    Hello World\n'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'div'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-    ]);
+  // This is both easier to write than a large Iterable<NgToken> assertion and
+  // also verifies that the tokenizing is stable - that is, you can reproduce
+  // the original parsed string from the tokens.
+  test('should tokenize a large HTML template and untokenize back', () {
+    const html = r'''
+      <div>
+        <span>Hello World</span>
+        <ul>
+          <li>1</li>
+          <li>2</li>
+          <li>
+            <strong>3</strong>
+          </li>
+        </ul>
+      </div>
+    ''';
+    expect(untokenize(tokenize(html)), html);
   });
 
-  test('should lex properties', () async {
-    lexer = new NgTemplateLexer('<button [title]="value"></button>');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.startProperty, '['),
-      new NgToken(NgTokenType.propertyName, 'title'),
-      new NgToken(NgTokenType.beforeDecoratorValue, ']="'),
-      new NgToken(NgTokenType.propertyValue, 'value'),
-      new NgToken(NgTokenType.endProperty, '"'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-    ]);
+  test('should tokenize an element with a value-less decorator', () {
+    expect(
+      tokenize('<button disabled></button>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'button'),
+        new NgToken.beforeElementDecorator(7, ' '),
+        new NgToken.elementDecorator(8, 'disabled'),
+        new NgToken.openElementEnd(16),
+        new NgToken.closeElementStart(17),
+        new NgToken.elementIdentifier(19, 'button'),
+        new NgToken.closeElementEnd(25),
+      ],
+    );
   });
 
-  test('should lex events', () {
-    lexer = new NgTemplateLexer('<button (click)="onClick()"></button>');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.startEvent, '('),
-      new NgToken(NgTokenType.eventName, 'click'),
-      new NgToken(NgTokenType.beforeDecoratorValue, ')="'),
-      new NgToken(NgTokenType.eventValue, 'onClick()'),
-      new NgToken(NgTokenType.endEvent, '"'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-    ]);
+  test('should tokenize an element with multiple value-less decorators', () {
+    expect(
+      tokenize('<button disabled hidden></button>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'button'),
+        new NgToken.beforeElementDecorator(7, ' '),
+        new NgToken.elementDecorator(8, 'disabled'),
+        new NgToken.beforeElementDecorator(16, ' '),
+        new NgToken.elementDecorator(17, 'hidden'),
+        new NgToken.openElementEnd(23),
+        new NgToken.closeElementStart(24),
+        new NgToken.elementIdentifier(26, 'button'),
+        new NgToken.closeElementEnd(32),
+      ],
+    );
   });
 
-  test('should lex properties and events', () {
-    lexer = new NgTemplateLexer(
-        '<button (click)="onClick()" [title]="name"></button>');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.startEvent, '('),
-      new NgToken(NgTokenType.eventName, 'click'),
-      new NgToken(NgTokenType.beforeDecoratorValue, ')="'),
-      new NgToken(NgTokenType.eventValue, 'onClick()'),
-      new NgToken(NgTokenType.endEvent, '"'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.startProperty, '['),
-      new NgToken(NgTokenType.propertyName, 'title'),
-      new NgToken(NgTokenType.beforeDecoratorValue, ']="'),
-      new NgToken(NgTokenType.propertyValue, 'name'),
-      new NgToken(NgTokenType.endProperty, '"'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-    ]);
-  });
-
-  test('should lex bindings', () {
-    lexer = new NgTemplateLexer('<button #input></button>');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.startBinding, '#'),
-      new NgToken(NgTokenType.bindingName, 'input'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-    ]);
-  });
-
-  test('should lex binding with a value', () {
-    lexer = new NgTemplateLexer('<div #autoFocus="myDirective"></div>');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'div'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.startBinding, '#'),
-      new NgToken(NgTokenType.bindingName, 'autoFocus'),
-      new NgToken(NgTokenType.beforeDecoratorValue, '="'),
-      new NgToken(NgTokenType.bindingValue, 'myDirective'),
-      new NgToken(NgTokenType.endBinding, '"'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'div'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-    ]);
-  });
-
-  test('should lex bananas', () {
-    lexer = new NgTemplateLexer('<button [(banana)]="someValue"></button>');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.startBanana, '[('),
-      new NgToken(NgTokenType.bananaName, 'banana'),
-      new NgToken(NgTokenType.beforeDecoratorValue, ')]="'),
-      new NgToken(NgTokenType.bananaValue, 'someValue'),
-      new NgToken(NgTokenType.endBanana, '"'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'button'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-    ]);
-  });
-
-  test('should lex comments', () {
-    lexer = new NgTemplateLexer('<h1>test <!-- This a comment --></h1>');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'h1'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.textNode, 'test '),
-      new NgToken(NgTokenType.beginComment, '<!--'),
-      new NgToken(NgTokenType.commentNode, ' This a comment '),
-      new NgToken(NgTokenType.endComment, '-->'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'h1'),
-      new NgToken(NgTokenType.endCloseElement, '>'),
-    ]);
-  });
-
-  test('should lex structural directives', () {
-    lexer = new NgTemplateLexer('<div *ngIf="bar"></div>');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startOpenElement, '<'),
-      new NgToken(NgTokenType.elementName, 'div'),
-      new NgToken(NgTokenType.beforeElementDecorator, ' '),
-      new NgToken(NgTokenType.startStructural, '*'),
-      new NgToken(NgTokenType.structuralName, 'ngIf'),
-      new NgToken(NgTokenType.beforeDecoratorValue, '="'),
-      new NgToken(NgTokenType.structuralValue, 'bar'),
-      new NgToken(NgTokenType.endStructural, '"'),
-      new NgToken(NgTokenType.endOpenElement, '>'),
-      new NgToken(NgTokenType.startCloseElement, '</'),
-      new NgToken(NgTokenType.elementName, 'div'),
-      new NgToken(NgTokenType.endCloseElement, '>')
-    ]);
-  });
-  test('should lex just an interpolation', () {
-    lexer = new NgTemplateLexer('{{value}}');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.startInterpolate, '{{'),
-      new NgToken(NgTokenType.interpolation, 'value'),
-      new NgToken(NgTokenType.endInterpolate, '}}'),
-    ]);
-  });
-
-  test('should lex interpolated text', () {
-    lexer = new NgTemplateLexer('Hello {{place}}!');
-    expect(lexer.tokenize().toList(), [
-      new NgToken(NgTokenType.textNode, 'Hello '),
-      new NgToken(NgTokenType.startInterpolate, '{{'),
-      new NgToken(NgTokenType.interpolation, 'place'),
-      new NgToken(NgTokenType.endInterpolate, '}}'),
-      new NgToken(NgTokenType.textNode, '!'),
-    ]);
+  // This is both easier to write than a large Iterable<NgToken> assertion and
+  // also verifies that the tokenizing is stable - that is, you can reproduce
+  // the original parsed string from the tokens.
+  test('should tokenize a large HTML template with decorators and back', () {
+    const html = r'''
+      <div>
+        <span hidden>Hello World</span>
+        <ul>
+          <li>1</li>
+          <li>2</li>
+          <li>
+            <button disabled>3</button>
+          </li>
+        </ul>
+      </div>
+    ''';
+    expect(untokenize(tokenize(html)), html);
   });
 }
