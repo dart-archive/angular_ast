@@ -7,9 +7,21 @@ part of angular_ast.src.token;
 ///
 /// Clients may not extend, implement, or mix-in this class.
 class NgTokenType {
+  /// Represents `"`.
+  static const afterElementDecoratorValue = const NgTokenType._(
+    'afterElementDecoratorValue',
+    lexeme: '"',
+  );
+
   /// Represents whitespace before an attribute, event, or property binding.
   static const beforeElementDecorator = const NgTokenType._(
     'beforeElementDecorator',
+  );
+
+  /// Represents `="`.
+  static const beforeElementDecoratorValue = const NgTokenType._(
+    'beforeElementDecoratorValue',
+    lexeme: '="',
   );
 
   /// Represents ending closing an element declaration.
@@ -26,6 +38,11 @@ class NgTokenType {
 
   /// Represents the name of an element decorator.
   static const elementDecorator = const NgTokenType._('elementDecorator');
+
+  /// Represents the value of an element decorator.
+  static const elementDecoratorValue = const NgTokenType._(
+    'elementDecoratorValue',
+  );
 
   /// Represents the name of an element.
   static const elementIdentifier = const NgTokenType._('elementIdentifier');

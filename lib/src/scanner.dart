@@ -10,12 +10,14 @@ import 'package:string_scanner/string_scanner.dart';
 
 /// A thin wrapper around [StringScanner] that scans tokens from an HTML string.
 class NgScanner {
-  static const _charElementDecoratorValue = $equal;
+  static const _charElementDecoratorWrapper = $double_quote;
   static const _charElementEnd = $gt;
   static const _charElementStart = $lt;
   static const _charElementStartClose = $slash;
 
+  static const _findBeforeElementDecoratorValue = '="';
   static final _findElementDecorator = new RegExp(r'[^(\s|=>)]+');
+  static final _findElementDecoratorValue = new RegExp(r'[^(")]*');
   static final _findElementIdentifier = new RegExp(r'[^(\s|>)]*');
   static final _findTextRegex = new RegExp(r'[^<]+', multiLine: true);
   static final _findWhitespace = new RegExp(r'\s');
@@ -39,12 +41,16 @@ class NgScanner {
         return null;
       case _NgScannerState.scanAfterElementDecorator:
         return scanAfterElementDecorator();
+      case _NgScannerState.scanAfterElementDecoratorValue:
+        return scanAfterElementDecoratorValue();
       case _NgScannerState.scanBeforeElementDecorator:
         return scanBeforeElementDecorator();
       case _NgScannerState.scanCloseElementEnd:
         return scanElementEnd(wasOpenTag: false);
       case _NgScannerState.scanElementDecorator:
         return scanElementDecorator();
+      case _NgScannerState.scanElementDecoratorValue:
+        return scanElementDecoratorValue();
       case _NgScannerState.scanElementIdentifierClose:
         return scanElementIdentifier(wasOpenTag: false);
       case _NgScannerState.scanElementIdentifierOpen:
@@ -69,16 +75,27 @@ class NgScanner {
 
   @protected
   NgToken scanAfterElementDecorator() {
-    final peek = _scanner.peekChar();
-    if (peek == _charElementDecoratorValue) {
-      throw new UnimplementedError();
-    } else if (peek == _charElementEnd) {
+    final offset = _scanner.position;
+    if (_scanner.scan(_findBeforeElementDecoratorValue)) {
+      _state = _NgScannerState.scanElementDecoratorValue;
+      return new NgToken.beforeElementDecoratorValue(offset);
+    } else if (_scanner.peekChar() == _charElementEnd) {
       return scanElementEnd(wasOpenTag: true);
     } else if (_scanner.matches(_findWhitespace)) {
       return scanBeforeElementDecorator();
     } else {
       throw _unexpected();
     }
+  }
+
+  @protected
+  NgToken scanAfterElementDecoratorValue() {
+    final offset = _scanner.position;
+    if (_scanner.scanChar(_charElementDecoratorWrapper)) {
+      _state = _NgScannerState.scanAfterElementDecorator;
+      return new NgToken.afterElementDecoratorValue(offset);
+    }
+    throw _unexpected();
   }
 
   @protected
@@ -100,6 +117,19 @@ class NgScanner {
     if (_scanner.scan(_findElementDecorator)) {
       _state = _NgScannerState.scanAfterElementDecorator;
       return new NgToken.elementDecorator(offset, _scanner.substring(offset));
+    }
+    throw _unexpected();
+  }
+
+  @protected
+  NgToken scanElementDecoratorValue() {
+    final offset = _scanner.position;
+    if (_scanner.scan(_findElementDecoratorValue)) {
+      _state = _NgScannerState.scanAfterElementDecoratorValue;
+      return new NgToken.elementDecoratorValue(
+        offset,
+        _scanner.substring(offset),
+      );
     }
     throw _unexpected();
   }
@@ -178,9 +208,11 @@ enum _NgScannerState {
   hasError,
   isEndOfFile,
   scanAfterElementDecorator,
+  scanAfterElementDecoratorValue,
   scanBeforeElementDecorator,
   scanCloseElementEnd,
   scanElementDecorator,
+  scanElementDecoratorValue,
   scanElementIdentifierClose,
   scanElementIdentifierOpen,
   scanOpenElementEnd,

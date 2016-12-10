@@ -83,7 +83,7 @@ main() {
   // This is both easier to write than a large Iterable<NgToken> assertion and
   // also verifies that the tokenizing is stable - that is, you can reproduce
   // the original parsed string from the tokens.
-  test('should tokenize a large HTML template and untokenize back', () {
+  test('should tokenize a HTML template and untokenize back', () {
     const html = r'''
       <div>
         <span>Hello World</span>
@@ -136,13 +136,53 @@ main() {
   // This is both easier to write than a large Iterable<NgToken> assertion and
   // also verifies that the tokenizing is stable - that is, you can reproduce
   // the original parsed string from the tokens.
-  test('should tokenize a large HTML template with decorators and back', () {
+  test('should tokenize a HTML template with decorators and back', () {
     const html = r'''
       <div>
         <span hidden>Hello World</span>
         <ul>
           <li>1</li>
           <li>2</li>
+          <li>
+            <button disabled>3</button>
+          </li>
+        </ul>
+      </div>
+    ''';
+    expect(untokenize(tokenize(html)), html);
+  });
+
+  test('should tokenize an element with a decorator with a value', () {
+    expect(
+      tokenize('<button title="Submit"></button>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'button'),
+        new NgToken.beforeElementDecorator(7, ' '),
+        new NgToken.elementDecorator(8, 'title'),
+        new NgToken.beforeElementDecoratorValue(13),
+        new NgToken.elementDecoratorValue(15, 'Submit'),
+        new NgToken.afterElementDecoratorValue(21),
+        new NgToken.openElementEnd(22),
+        new NgToken.closeElementStart(23),
+        new NgToken.elementIdentifier(25, 'button'),
+        new NgToken.closeElementEnd(31),
+      ],
+    );
+  });
+
+  // This is both easier to write than a large Iterable<NgToken> assertion and
+  // also verifies that the tokenizing is stable - that is, you can reproduce
+  // the original parsed string from the tokens.
+  test('should tokenize a HTML template with decorator values and back', () {
+    const html = r'''
+      <div>
+        <span hidden>Hello World</span>
+        <ul>
+          <li>1</li>
+          <li>
+            <textarea disabled name="box" readonly>Test</textarea>
+          </li>
           <li>
             <button disabled>3</button>
           </li>

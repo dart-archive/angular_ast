@@ -13,12 +13,20 @@ part 'token/type.dart';
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class NgToken {
+  factory NgToken.afterElementDecoratorValue(int offset) {
+    return new NgToken._(NgTokenType.afterElementDecoratorValue, offset);
+  }
+
   factory NgToken.beforeElementDecorator(int offset, String string) {
     return new _LexemeNgToken(
       offset,
       string,
       NgTokenType.beforeElementDecorator,
     );
+  }
+
+  factory NgToken.beforeElementDecoratorValue(int offset) {
+    return new NgToken._(NgTokenType.beforeElementDecoratorValue, offset);
   }
 
   factory NgToken.closeElementEnd(int offset) {
@@ -31,6 +39,14 @@ class NgToken {
 
   factory NgToken.elementDecorator(int offset, String string) {
     return new _LexemeNgToken(offset, string, NgTokenType.elementDecorator);
+  }
+
+  factory NgToken.elementDecoratorValue(int offset, String string) {
+    return new _LexemeNgToken(
+      offset,
+      string,
+      NgTokenType.elementDecoratorValue,
+    );
   }
 
   factory NgToken.elementIdentifier(int offset, String string) {
