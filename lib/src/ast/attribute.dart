@@ -1,48 +1,90 @@
 import 'package:angular_ast/src/ast.dart';
+import 'package:angular_ast/src/token.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
-/// Represents an HTML attribute assignment.
+/// Represents a static attribute assignment (i.e. not bound to an expression).
 ///
-/// Has an optional [value], which is a simple string.
+/// Clients should not extend, implement, or mix-in this class.
 abstract class AttributeAst implements TemplateAst {
-  /// Name of the attribute.
-  String get name;
+  /// Create a new synthetic [AttributeAst] with a string [value].
+  factory AttributeAst(
+    String name, [
+    String value,
+  ]) = _SyntheticAttributeAst;
 
-  /// Static string value.
-  String get value;
-}
+  /// Create a new synthetic [AttributeAst] that originated from node [origin].
+  factory AttributeAst.from(
+    TemplateAst origin,
+    String name, [
+    String value,
+  ]) = _SyntheticAttributeAst.from;
 
-// Internal.
-abstract class AttributeAstMixin implements AttributeAst {
+  /// Create a new [AttributeAst] parsed from tokens from [sourceFile].
+  factory AttributeAst.parsed(
+    SourceFile sourceFile,
+    NgToken nameToken, [
+    NgToken startValueToken,
+    NgToken valueToken,
+    NgToken endValueToken,
+  ]) = _ParsedAttributeAst;
+
   @override
   bool operator ==(Object o) =>
-      o is AttributeAst && o.name == name && o.value == value;
+      o is AttributeAst && name == o.name && value == o.value;
 
   @override
   int get hashCode => hash2(name, value);
 
+  /// Static attribute name.
+  String get name;
+
+  /// Static attribute value; may be `null` to have no value.
+  String get value;
+
   @override
   String toString() {
-    if (value == null) {
-      return '#$AttributeAst {$name}';
+    if (value != null) {
+      return '$AttributeAst {$name="$value"}';
     }
-    return '#$AttributeAst {$name=$value}';
+    return '$AttributeAst {$name}';
   }
 }
 
-// AST node that was created programmatically.
-class SyntheticAttributeAst extends Object
-    with AttributeAstMixin
-    implements AttributeAst {
+class _ParsedAttributeAst extends TemplateAst with AttributeAst {
+  final NgToken _nameToken;
+  final NgToken _valueToken;
+
+  _ParsedAttributeAst(
+    SourceFile sourceFile,
+    NgToken nameToken, [
+    NgToken startValueToken,
+    this._valueToken,
+    NgToken endValueToken,
+  ])
+      : _nameToken = nameToken,
+        super.parsed(nameToken, endValueToken ?? nameToken, sourceFile);
+
+  @override
+  String get name => _nameToken.lexeme;
+
+  @override
+  String get value => _valueToken.lexeme;
+}
+
+class _SyntheticAttributeAst extends SyntheticTemplateAst with AttributeAst {
   @override
   final String name;
 
   @override
   final String value;
 
-  SyntheticAttributeAst(this.name, [this.value]);
+  _SyntheticAttributeAst(this.name, [this.value]);
 
-  @override
-  SourceSpan sourceSpan(_) => throwUnsupported();
+  _SyntheticAttributeAst.from(
+    TemplateAst origin,
+    this.name, [
+    this.value,
+  ])
+      : super.from(origin);
 }

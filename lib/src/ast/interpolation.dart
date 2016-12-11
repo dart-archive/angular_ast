@@ -1,38 +1,68 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-part of angular2_template_parser.src.ast;
+import 'package:angular_ast/src/ast.dart';
+import 'package:angular_ast/src/token.dart';
+import 'package:source_span/source_span.dart';
 
-/// A simple string value (not an expression).
-class NgInterpolation extends NgAstNode with NgAstSourceTokenMixin {
-  /// Expression value.
-  final String value;
+/// Represents a bound text element to an expression.
+///
+/// Clients should not extend, implement, or mix-in this class.
+abstract class InterpolationAst implements StandaloneTemplateAst {
+  /// Create a new synthetic [InterpolationAst] with a bound [expression].
+  factory InterpolationAst(
+    ExpressionAst expression,
+  ) = _SyntheticInterpolationAst;
 
-  /// A parsed Dart expression.
-  ///
-  /// should be set with parseAngularExpression(...)
-  Expression expression;
+  /// Create a new synthetic [InterpolationAst] that originated from [origin].
+  factory InterpolationAst.from(
+    TemplateAst origin,
+    ExpressionAst expression,
+  ) = _SyntheticInterpolationAst.from;
 
-  /// Create a new [NgInterpolation] node.
-  NgInterpolation(this.value) : super._(const []);
+  /// Create a new [InterpolationAst] parsed from tokens in [sourceFile].
+  factory InterpolationAst.parsed(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    ExpressionAst expressionAst,
+    NgToken endToken,
+  ) = _ParsedInterpolationAst;
 
-  NgInterpolation.fromTokens(
-    NgToken start,
-    NgToken interpolate,
-    NgToken end,
+  /// Bound expression.
+  ExpressionAst get expression;
+
+  @override
+  bool operator ==(Object o) {
+    return o is InterpolationAst && o.expression == expression;
+  }
+
+  @override
+  int get hashCode => expression.hashCode;
+
+  @override
+  String toString() => '$InterpolationAst {$expression}';
+}
+
+class _ParsedInterpolationAst extends TemplateAst with InterpolationAst {
+  @override
+  final ExpressionAst expression;
+
+  _ParsedInterpolationAst(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    this.expression,
+    NgToken endToken,
   )
-      : this.value = interpolate.text,
-        super._([start, interpolate, end]);
+      : super.parsed(beginToken, endToken, sourceFile);
+}
 
+class _SyntheticInterpolationAst extends SyntheticTemplateAst
+    with InterpolationAst {
   @override
-  bool operator ==(Object o) => o is NgInterpolation && value == o.value;
+  final ExpressionAst expression;
 
-  @override
-  int get hashCode => value.hashCode;
+  _SyntheticInterpolationAst(this.expression);
 
-  @override
-  String toString() => '$NgInterpolation $value';
-
-  @override
-  void visit(Visitor visitor) => visitor.visitInterpolation(this);
+  _SyntheticInterpolationAst.from(
+    TemplateAst origin,
+    this.expression,
+  )
+      : super.from(origin);
 }

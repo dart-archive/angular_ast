@@ -1,31 +1,55 @@
 import 'package:angular_ast/src/ast.dart';
+import 'package:angular_ast/src/token.dart';
 import 'package:source_span/source_span.dart';
 
-/// Represents a block of simple text within in the DOM.
+/// Represents a block of static text (i.e. not bound to a directive).
+///
+/// Clients should not extend, implement, or mix-in this class.
 abstract class TextAst implements TemplateAst {
-  /// Text value.
-  String get value;
-}
+  /// Create a new synthetic [TextAst] with a string [value].
+  factory TextAst(String value) = _SyntheticTextAst;
 
-// Internal.
-abstract class TextAstMixin implements TextAst {
+  /// Create a new synthetic [TextAst] that originated from node [origin].
+  factory TextAst.from(
+    TemplateAst origin,
+    String value,
+  ) = _SyntheticTextAst.from;
+
+  /// Create a new [TextAst] parsed from tokens from [sourceFile].
+  factory TextAst.parsed(
+    SourceFile sourceFile,
+    NgToken textToken,
+  ) = _ParsedTextAst;
+
   @override
-  bool operator ==(Object o) => o is TextAst && o.value == value;
+  bool operator ==(Object o) => o is TextAst && value == o.value;
 
   @override
   int get hashCode => value.hashCode;
 
+  /// Static text value.
+  String get value;
+
   @override
-  String toString() => '#$TextAst {$value}';
+  String toString() => '$TextAst {$value}';
 }
 
-// AST node that was created programmatically.
-class SyntheticTextAst extends Object with TextAstMixin implements TextAst {
+class _ParsedTextAst extends TemplateAst with TextAst {
+  _ParsedTextAst(
+    SourceFile sourceFile,
+    NgToken textToken,
+  )
+      : super.parsed(textToken, textToken, sourceFile);
+
+  @override
+  String get value => beginToken.lexeme;
+}
+
+class _SyntheticTextAst extends SyntheticTemplateAst with TextAst {
   @override
   final String value;
 
-  SyntheticTextAst(this.value);
+  _SyntheticTextAst(this.value);
 
-  @override
-  SourceSpan sourceSpan(_) => throwUnsupported();
+  _SyntheticTextAst.from(TemplateAst origin, this.value) : super.from(origin);
 }

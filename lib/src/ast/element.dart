@@ -1,64 +1,176 @@
+import 'dart:convert';
+
 import 'package:angular_ast/src/ast.dart';
+import 'package:angular_ast/src/token.dart';
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
-/// Represents a DOM element.
-abstract class ElementAst implements TemplateAst {
-  /// Attributes.
-  List<AttributeAst> get attributes;
-
-  /// Child nodes.
-  List<TemplateAst> get children;
-
-  /// Element name.
-  String get name;
-}
-
 const _listEquals = const ListEquality();
 
-// Internal.
-abstract class ElementAstMixin implements ElementAst {
-  @override
-  bool operator ==(Object o) =>
-      o is ElementAst &&
-      o.name == name &&
-      _listEquals.equals(o.attributes, attributes) &&
-      _listEquals.equals(o.children, children);
+/// Represents a DOM element that was parsed, that could be upgraded.
+///
+/// Clients should not extend, implement, or mix-in this class.
+abstract class ElementAst implements StandaloneTemplateAst {
+  /// Create a synthetic element AST.
+  factory ElementAst(
+    String name, {
+    List<AttributeAst> attributes,
+    List<StandaloneTemplateAst> childNodes,
+    List<EventAst> events,
+    List<PropertyAst> properties,
+    List<ReferenceAst> references,
+  }) = _SyntheticElementAst;
+
+  /// Create a synthetic element AST from an existing AST node.
+  factory ElementAst.from(
+    TemplateAst origin,
+    String name, {
+    List<AttributeAst> attributes,
+    List<StandaloneTemplateAst> childNodes,
+    List<EventAst> events,
+    List<PropertyAst> properties,
+    List<ReferenceAst> references,
+  }) = _SyntheticElementAst.from;
+
+  /// Create a new element AST from parsed source.
+  factory ElementAst.parsed(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    NgToken nameToken,
+    NgToken endToken, {
+    List<AttributeAst> attributes,
+    List<StandaloneTemplateAst> childNodes,
+    List<EventAst> events,
+    List<PropertyAst> properties,
+    List<ReferenceAst> references,
+  }) = _ParsedElementAst;
 
   @override
-  int get hashCode {
-    return hash3(
-      name,
-      _listEquals.hash(attributes),
-      _listEquals.hash(children),
-    );
+  bool operator ==(Object o) {
+    if (o is ElementAst) {
+      return name == o.name &&
+          _listEquals.equals(attributes, o.attributes) &&
+          _listEquals.equals(childNodes, o.childNodes) &&
+          _listEquals.equals(events, o.events) &&
+          _listEquals.equals(properties, o.properties) &&
+          _listEquals.equals(references, o.references);
+    }
+    return false;
   }
 
   @override
-  String toString() =>
-      '#$ElementAst {$name, attributes: $attributes, children: $children}';
+  int get hashCode {
+    return hashObjects([
+      name,
+      _listEquals.hash(attributes),
+      _listEquals.hash(childNodes),
+      _listEquals.hash(events),
+      _listEquals.hash(properties),
+      _listEquals.hash(references),
+    ]);
+  }
+
+  /// Name (tag) of the element.
+  String get name;
+
+  /// Attributes.
+  List<AttributeAst> get attributes;
+
+  /// Event listeners.
+  List<EventAst> get events;
+
+  /// Property assignments.
+  List<PropertyAst> get properties;
+
+  /// Reference assignments.
+  List<ReferenceAst> get references;
+
+  @override
+  String toString() {
+    return '$ElementAst ' +
+        const JsonEncoder.withIndent(' ').convert({
+          'name': name,
+          'attributes': attributes.map((x) => x.toString()).toList(),
+          'childNodes': childNodes.map((x) => x.toString()).toList(),
+          'events': events.map((x) => x.toString()).toList(),
+          'properties': properties.map((x) => x.toString()).toList(),
+          'references': references.map((x) => x.toString()).toList(),
+        });
+  }
 }
 
-// AST node that was created programmatically.
-class SyntheticElementAst extends Object
-    with ElementAstMixin
-    implements ElementAst {
+class _ParsedElementAst extends TemplateAst with ElementAst {
+  final NgToken _nameToken;
+
+  _ParsedElementAst(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    this._nameToken,
+    NgToken endToken, {
+    this.attributes: const [],
+    this.childNodes: const [],
+    this.events: const [],
+    this.properties: const [],
+    this.references: const [],
+  })
+      : super.parsed(beginToken, endToken, sourceFile);
+
+  @override
+  String get name => _nameToken.lexeme;
+
   @override
   final List<AttributeAst> attributes;
 
   @override
-  final List<TemplateAst> children;
+  final List<StandaloneTemplateAst> childNodes;
+
+  @override
+  final List<EventAst> events;
+
+  @override
+  final List<PropertyAst> properties;
+
+  @override
+  final List<ReferenceAst> references;
+}
+
+class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
+  _SyntheticElementAst(
+    this.name, {
+    this.attributes: const [],
+    this.childNodes: const [],
+    this.events: const [],
+    this.properties: const [],
+    this.references: const [],
+  });
+
+  _SyntheticElementAst.from(
+    TemplateAst origin,
+    this.name, {
+    this.attributes: const [],
+    this.childNodes: const [],
+    this.events: const [],
+    this.properties: const [],
+    this.references: const [],
+  })
+      : super.from(origin);
 
   @override
   final String name;
 
-  SyntheticElementAst(
-    this.name, {
-    this.attributes: const [],
-    this.children: const [],
-  });
+  @override
+  final List<AttributeAst> attributes;
 
   @override
-  SourceSpan sourceSpan(_) => throwUnsupported();
+  final List<StandaloneTemplateAst> childNodes;
+
+  @override
+  final List<EventAst> events;
+
+  @override
+  final List<PropertyAst> properties;
+
+  @override
+  final List<ReferenceAst> references;
 }
