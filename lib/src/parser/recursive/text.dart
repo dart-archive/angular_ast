@@ -1,9 +1,7 @@
 part of angular_ast.src.parser.recursive;
 
 // AST node that originated from token(s).
-class _ParsedTextAst extends Object
-    with TextAstMixin
-    implements TextAst {
+class _ParsedTextAst extends Object with TextAstMixin implements TextAst {
   final NgToken _token;
 
   _ParsedTextAst(this._token);

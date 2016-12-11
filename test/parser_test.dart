@@ -6,7 +6,8 @@ main() {
 
   test('shoud parse a text node', () {
     expect(
-      parse('Hello World'), [
+      parse('Hello World'),
+      [
         new TemplateAst.text('Hello World'),
       ],
     );
@@ -14,7 +15,8 @@ main() {
 
   test('should parse an element', () {
     expect(
-      parse('<div></div>'), [
+      parse('<div></div>'),
+      [
         new TemplateAst.element('div'),
       ],
     );
@@ -22,7 +24,8 @@ main() {
 
   test('should parse an element with text', () {
     expect(
-      parse('<div>Hello World</div>'), [
+      parse('<div>Hello World</div>'),
+      [
         new TemplateAst.element('div', children: [
           new TemplateAst.text('Hello World'),
         ]),
@@ -32,7 +35,8 @@ main() {
 
   test('should parse nested elements', () {
     expect(
-      parse('<div>Click: <button>Save</button></div>'), [
+      parse('<div>Click: <button>Save</button></div>'),
+      [
         new TemplateAst.element('div', children: [
           new TemplateAst.text('Click: '),
           new TemplateAst.element('button', children: [

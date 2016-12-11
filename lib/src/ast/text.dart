@@ -20,9 +20,7 @@ abstract class TextAstMixin implements TextAst {
 }
 
 // AST node that was created programmatically.
-class SyntheticTextAst extends Object
-    with TextAstMixin
-    implements TextAst {
+class SyntheticTextAst extends Object with TextAstMixin implements TextAst {
   @override
   final String value;
 
