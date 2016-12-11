@@ -1,34 +1,33 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-part of angular2_template_parser.src.ast;
+import 'package:angular_ast/src/ast.dart';
+import 'package:source_span/source_span.dart';
 
-/// A simple string value (not an expression).
-class NgText extends NgAstNode with NgAstSourceTokenMixin {
+/// Represents a block of simple text within in the DOM.
+abstract class TextAst implements TemplateAst {
   /// Text value.
-  final String value;
+  String get value;
+}
 
-  /// Create a new [text] node.
-  factory NgText(
-    String text, [
-    NgToken parsedToken,
-  ]) = NgText._;
-
-  NgText._(
-    this.value, [
-    NgToken parsedToken,
-  ])
-      : super._(parsedToken != null ? [parsedToken] : const []);
-
+// Internal.
+abstract class TextAstMixin implements TextAst {
   @override
-  bool operator ==(Object o) => o is NgText && value == o.value;
+  bool operator ==(Object o) => o is TextAst && o.value == value;
 
   @override
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => '$NgText $value';
+  String toString() => '#$TextAst {$value}';
+}
+
+// AST node that was created programmatically.
+class SyntheticTextAst extends Object
+    with TextAstMixin
+    implements TextAst {
+  @override
+  final String value;
+
+  SyntheticTextAst(this.value);
 
   @override
-  void visit(Visitor visitor) => visitor.visitText(this);
+  SourceSpan sourceSpan(_) => throwUnsupported();
 }

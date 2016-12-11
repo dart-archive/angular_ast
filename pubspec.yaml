@@ -12,6 +12,7 @@ environment:
 
 dependencies:
   charcode: '^1.1.0'
+  collection:
   string_scanner: '^1.0.0'
   quiver: '^0.22.0'
 

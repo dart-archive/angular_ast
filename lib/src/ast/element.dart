@@ -1,75 +1,46 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-part of angular2_template_parser.src.ast;
+import 'package:angular_ast/src/ast.dart';
+import 'package:collection/collection.dart';
+import 'package:source_span/source_span.dart';
+import 'package:quiver/core.dart';
 
-/// A parsed element AST.
-///
-/// A [NgElement] represents a browser element, directive, or component, of
-/// which may be determined by looking at the [schema] found when parsing.
-class NgElement extends NgAstNode
-    with NgDefinedNode<NgElementDefinition>, NgAstSourceTokenMixin {
+/// Represents a DOM element.
+abstract class ElementAst implements TemplateAst {
+  /// Child nodes.
+  List<TemplateAst> get children;
+
+  /// Element name.
+  String get name;
+}
+
+const _listEquals = const ListEquality();
+
+// Internal.
+abstract class ElementAstMixin implements ElementAst {
   @override
-  final List<NgAstNode> childNodes;
+  bool operator ==(Object o) =>
+      o is ElementAst &&
+      o.name == name &&
+      _listEquals.equals(o.children, children);
 
-  /// Name of the element parsed.
-  ///
-  /// In HTML, this is referred to as the tag name (`<tag-name>`).
+  @override
+  int get hashCode => hash2(name, _listEquals.hash(children));
+
+  @override
+  String toString() => '#$ElementAst {$name, children: $children}';
+}
+
+// AST node that was created programmatically.
+class SyntheticElementAst extends Object
+    with ElementAstMixin
+    implements ElementAst {
+  @override
+  final List<TemplateAst> children;
+
+  @override
   final String name;
 
-  /// Recognized element definition when this was parsed.
-  ///
-  /// This property may be `null` when [unknown].
-  @override
-  final NgElementDefinition schema;
-
-  /// Create a new [schema] element.
-  factory NgElement(
-    NgElementDefinition schema, {
-    Iterable<NgAstNode> childNodes,
-    List<NgToken> parsedTokens,
-  }) {
-    return new NgElement._(
-      schema.tagName,
-      schema,
-      childNodes,
-      parsedTokens,
-    );
-  }
-
-  /// Create a new [tagName] that was not recogniezd from a schema.
-  factory NgElement.unknown(
-    String tagName, {
-    Iterable<NgAstNode> childNodes,
-    List<NgToken> parsedTokens: const [],
-    SourceSpan source,
-  }) {
-    return new NgElement._(
-      tagName,
-      null,
-      childNodes,
-      parsedTokens,
-    );
-  }
-
-  NgElement._(
-    this.name,
-    this.schema,
-    Iterable<NgAstNode> childNodes,
-    List<NgToken> parsedTokens,
-  )
-      : this.childNodes = (childNodes ?? const []).toList(),
-        super._(parsedTokens);
+  SyntheticElementAst(this.name, {this.children: const []});
 
   @override
-  int get hashCode => hash2(name, super.hashCode);
-
-  @override
-  bool operator ==(Object o) => o is NgElement && name == o.name && super == o;
-
-  @override
-  String toString() => '$NgElement <$name> [${childNodes.join(', ')}]';
-
-  @override
-  void visit(Visitor visitor) => visitor.visitElement(this);
+  SourceSpan sourceSpan(_) => throwUnsupported();
 }

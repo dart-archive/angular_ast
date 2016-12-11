@@ -1,157 +1,45 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-import 'package:angular_template_parser/angular_template_parser.dart';
-import 'package:angular_template_parser/src/ast.dart';
+import 'package:angular_ast/angular_ast.dart';
 import 'package:test/test.dart';
 
-void main() {
-  List<NgAstNode> parse(String text) =>
-      const NgTemplateParser().parse(text, onError: (_) => null).toList();
+main() {
+  List<TemplateAst> parse(String html) => const NgParser().parse(html);
 
-  group('$NgTemplateParser', () {
-    test('should parse text nodes', () {
-      var nodes = parse(r'Hello World');
-      expect(
-        nodes,
-        [
-          new NgText('Hello World'),
-        ],
-      );
-    });
+  test('shoud parse a text node', () {
+    expect(
+      parse('Hello World'), [
+        new TemplateAst.text('Hello World'),
+      ],
+    );
+  });
 
-    test('should parse element nodes', () {
-      var nodes = parse('<div><span>Hello World</span></div>');
-      expect(
-        nodes,
-        [
-          new NgElement.unknown('div', childNodes: [
-            new NgElement.unknown('span', childNodes: [
-              new NgText('Hello World'),
-            ]),
-          ]),
-        ],
-      );
-    });
+  test('should parse an element', () {
+    expect(
+      parse('<div></div>'), [
+        new TemplateAst.element('div'),
+      ],
+    );
+  });
 
-    test('should parse a complex set of element nodes', () {
-      var nodes = parse('<div>\n'
-          '  <div>\n'
-          '    <span>Hello World</span>\n'
-          '  </div>\n'
-          '</div>\n');
-      expect(
-        nodes,
-        [
-          new NgElement.unknown('div', childNodes: [
-            new NgText('\n  '),
-            new NgElement.unknown('div', childNodes: [
-              new NgText('\n    '),
-              new NgElement.unknown('span', childNodes: [
-                new NgText('Hello World'),
-              ]),
-              new NgText('\n  '),
-            ]),
-            new NgText('\n'),
-          ]),
-          new NgText('\n'),
-        ],
-      );
-    });
-
-    test('should parse a comment', () {
-      expect(
-        parse('<!--Hello World-->'),
-        [
-          new NgComment('Hello World'),
-        ],
-      );
-    });
-
-    test('should parse a comment in a nested DOM tree', () {
-      expect(
-        parse('<div>\n'
-            '  <span>Hello<!--World--></span>\n'
-            '</div>'),
-        [
-          new NgElement.unknown('div', childNodes: [
-            new NgText('\n  '),
-            new NgElement.unknown('span', childNodes: [
-              new NgText('Hello'),
-              new NgComment('World'),
-            ]),
-            new NgText('\n'),
-          ])
-        ],
-      );
-    });
-
-    test('should parse an attribute', () {
-      expect(
-        parse('<button class="fancy" disabled>Hello</button>'),
-        [
-          new NgElement.unknown('button', childNodes: [
-            new NgAttribute('class', 'fancy'),
-            new NgAttribute('disabled'),
-            new NgText('Hello'),
-          ]),
-        ],
-      );
-    });
-
-    test('should parse a property', () {
-      expect(
-        parse('<button [title]="hint">Hello</button>'),
-        [
-          new NgElement.unknown('button', childNodes: [
-            new NgProperty('title', 'hint'),
-            new NgText('Hello'),
-          ]),
-        ],
-      );
-    });
-
-    test('should parse an event', () {
-      expect(
-        parse('<button (click)="onClick()">Hello</button>'),
-        [
-          new NgElement.unknown('button', childNodes: [
-            new NgEvent('click', 'onClick()'),
-            new NgText('Hello'),
-          ]),
-        ],
-      );
-    });
-
-    test('should parse a banana', () {
-      expect(parse('<my-select [(input)]="textValue"></my-select>'), [
-        new NgElement.unknown('my-select', childNodes: [
-          new NgBanana('input', 'textValue'),
+  test('should parse an element with text', () {
+    expect(
+      parse('<div>Hello World</div>'), [
+        new TemplateAst.element('div', children: [
+          new TemplateAst.text('Hello World'),
         ]),
-      ]);
-    });
+      ],
+    );
+  });
 
-    test('should parse a structural directive', () {
-      expect(parse('<div *ngIf="foo"></div>'), [
-        new NgElement.unknown('div', childNodes: [
-          new NgStructure('ngIf', 'foo'),
-        ])
-      ]);
-    });
-
-    test('should parse a binding with and without a value', () {
-      expect(
-          parse('<div #foo>Hello, World<my-app #focus="testDirective">'
-              '</my-app></div>'),
-          [
-            new NgElement.unknown('div', childNodes: [
-              new NgBinding('foo'),
-              new NgText('Hello, World'),
-              new NgElement.unknown('my-app', childNodes: [
-                new NgBinding('focus', value: 'testDirective'),
-              ])
-            ])
-          ]);
-    });
+  test('should parse nested elements', () {
+    expect(
+      parse('<div>Click: <button>Save</button></div>'), [
+        new TemplateAst.element('div', children: [
+          new TemplateAst.text('Click: '),
+          new TemplateAst.element('button', children: [
+            new TemplateAst.text('Save'),
+          ]),
+        ]),
+      ],
+    );
   });
 }
