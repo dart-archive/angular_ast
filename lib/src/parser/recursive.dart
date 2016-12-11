@@ -4,6 +4,7 @@ import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token.dart';
 import 'package:source_span/source_span.dart';
 
+part 'recursive/attribute.dart';
 part 'recursive/element.dart';
 part 'recursive/text.dart';
 
@@ -29,6 +30,27 @@ class RecursiveAstParser {
     return _parseStandalone(tokens.iterator);
   }
 
+  // Returns an attribute AST by parsing the iterator.
+  AttributeAst _parseAttribute(Iterator<NgToken> iterator) {
+    // Get the name token and assert the next token type.
+    final nameToken = iterator.current;
+    _expect(nameToken, NgTokenType.elementDecorator);
+    iterator.moveNext();
+
+    // Find value, if any.
+    NgToken valueToken;
+    if (iterator.current.type == NgTokenType.beforeElementDecoratorValue) {
+      iterator.moveNext();
+      valueToken = iterator.current;
+      _expect(valueToken, NgTokenType.elementDecoratorValue);
+      iterator.moveNext();
+      _expect(iterator.current, NgTokenType.afterElementDecoratorValue);
+    }
+
+    // Return the parsed attribute.
+    return new _ParsedAttributeAst(nameToken, valueToken);
+  }
+
   // Returns an element AST by parsing the iterator.
   ElementAst _parseElement(
     NgToken startToken,
@@ -43,8 +65,19 @@ class RecursiveAstParser {
     _expect(nameToken, NgTokenType.elementIdentifier);
 
     // Find decorators.
+    final attributes = <AttributeAst>[];
     while (iterator.current.type != NgTokenType.openElementEnd) {
-      iterator.moveNext();
+      if (iterator.current.type != NgTokenType.beforeElementDecorator) {
+        iterator.moveNext();
+      }
+      if (iterator.current.type == NgTokenType.beforeElementDecorator) {
+        iterator.moveNext();
+        switch (iterator.current.type) {
+          case NgTokenType.elementDecorator:
+            attributes.add(_parseAttribute(iterator));
+            break;
+        }
+      }
     }
 
     // Find children.
@@ -73,6 +106,7 @@ class RecursiveAstParser {
       startToken,
       nameToken,
       endToken,
+      attributes: attributes,
       children: children,
     );
   }

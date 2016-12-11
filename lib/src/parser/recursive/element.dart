@@ -9,12 +9,16 @@ class _ParsedElementAst extends Object
   final NgToken _endToken;
 
   @override
+  final List<AttributeAst> attributes;
+
+  @override
   final List<TemplateAst> children;
 
   _ParsedElementAst(
     this._beginToken,
     this._nameToken,
     this._endToken, {
+    this.attributes: const [],
     this.children: const [],
   });
 

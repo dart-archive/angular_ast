@@ -5,6 +5,9 @@ import 'package:quiver/core.dart';
 
 /// Represents a DOM element.
 abstract class ElementAst implements TemplateAst {
+  /// Attributes.
+  List<AttributeAst> get attributes;
+
   /// Child nodes.
   List<TemplateAst> get children;
 
@@ -20,13 +23,21 @@ abstract class ElementAstMixin implements ElementAst {
   bool operator ==(Object o) =>
       o is ElementAst &&
       o.name == name &&
+      _listEquals.equals(o.attributes, attributes) &&
       _listEquals.equals(o.children, children);
 
   @override
-  int get hashCode => hash2(name, _listEquals.hash(children));
+  int get hashCode {
+    return hash3(
+      name,
+      _listEquals.hash(attributes),
+      _listEquals.hash(children),
+    );
+  }
 
   @override
-  String toString() => '#$ElementAst {$name, children: $children}';
+  String toString() =>
+      '#$ElementAst {$name, attributes: $attributes, children: $children}';
 }
 
 // AST node that was created programmatically.
@@ -34,12 +45,19 @@ class SyntheticElementAst extends Object
     with ElementAstMixin
     implements ElementAst {
   @override
+  final List<AttributeAst> attributes;
+
+  @override
   final List<TemplateAst> children;
 
   @override
   final String name;
 
-  SyntheticElementAst(this.name, {this.children: const []});
+  SyntheticElementAst(
+    this.name, {
+    this.attributes: const [],
+    this.children: const [],
+  });
 
   @override
   SourceSpan sourceSpan(_) => throwUnsupported();

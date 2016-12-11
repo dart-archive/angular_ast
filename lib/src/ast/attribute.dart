@@ -1,53 +1,48 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-part of angular2_template_parser.src.ast;
+import 'package:angular_ast/src/ast.dart';
+import 'package:source_span/source_span.dart';
+import 'package:quiver/core.dart';
 
-/// A parsed attribute AST.
+/// Represents an HTML attribute assignment.
 ///
-/// An attribute is static property [name] defined at compile-time that
-/// decorates an [NgElement] or a directive attached to an element.
-/// A non-null [value] means the attribute also
-/// receives a value, otherwise it is considered standalone.
-class NgAttribute extends NgAstNode with NgAstSourceTokenMixin {
+/// Has an optional [value], which is a simple string.
+abstract class AttributeAst implements TemplateAst {
   /// Name of the attribute.
-  final String name;
+  String get name;
 
-  /// Value of the attribute.
-  ///
-  /// If `null`, the attribute is considered value-less.
-  final String value;
+  /// Static string value.
+  String get value;
+}
 
-  /// Create a new [NgAttribute] with a [name] and [value].
-  NgAttribute(this.name, [this.value]) : super._(const []);
-
-  /// Create a new [NgAttribute] from tokenized HTML.
-  NgAttribute.fromTokens(NgToken begin, NgToken name, NgToken end)
-      : this.name = name.text,
-        this.value = null,
-        super._([begin, name, end]);
-
-  /// Create a new [NgAttribute] with a [value] from tokenized HTML.
-  NgAttribute.fromTokensWithValue(
-      NgToken before, NgToken name, NgToken space, NgToken value, NgToken end)
-      : this.name = name.text,
-        this.value = value.text,
-        super._([before, name, value, end]);
+// Internal.
+abstract class AttributeAstMixin implements AttributeAst {
+  @override
+  bool operator ==(Object o) =>
+      o is AttributeAst && o.name == name && o.value == value;
 
   @override
   int get hashCode => hash2(name, value);
 
   @override
-  bool operator ==(Object o) {
-    if (o is NgAttribute) {
-      return o.name == name && o.value == value;
+  String toString() {
+    if (value == null) {
+      return '#$AttributeAst {$name}';
     }
-    return false;
+    return '#$AttributeAst {$name=$value}';
   }
+}
+
+// AST node that was created programmatically.
+class SyntheticAttributeAst extends Object
+    with AttributeAstMixin
+    implements AttributeAst {
+  @override
+  final String name;
 
   @override
-  String toString() => '$NgAttribute $name="$value"';
+  final String value;
+
+  SyntheticAttributeAst(this.name, [this.value]);
 
   @override
-  void visit(Visitor visitor) => visitor.visitAttribute(this);
+  SourceSpan sourceSpan(_) => throwUnsupported();
 }

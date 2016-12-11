@@ -46,4 +46,17 @@ main() {
       ],
     );
   });
+
+  test('should parse elements with an attribute', () {
+    expect(
+      parse('<button hidden title="Hello" disabled></button>'),
+      [
+        new TemplateAst.element('button', attributes: <AttributeAst> [
+          new TemplateAst.attribute('hidden'),
+          new TemplateAst.attribute('title', 'Hello'),
+          new TemplateAst.attribute('disabled'),
+        ]),
+      ],
+    );
+  });
 }
