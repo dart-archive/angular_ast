@@ -203,6 +203,23 @@ main() {
     );
   });
 
+  test('should tokenize copyright comments', () {
+    expect(
+      tokenize(''
+          '<!--\n'
+          '  Copyright (c) 2016, the Dart project authors.\n'
+          '-->'),
+      [
+        new NgToken.commentStart(0),
+        new NgToken.commentValue(
+          4,
+          '\n  Copyright (c) 2016, the Dart project authors.\n',
+        ),
+        new NgToken.commentEnd(53),
+      ],
+    );
+  });
+
   test('should tokenize interpolation', () {
     expect(
       tokenize('{{name}}'),

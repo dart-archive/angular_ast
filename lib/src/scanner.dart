@@ -20,12 +20,11 @@ class NgScanner {
   static const _findBeforeComment = '<!--';
   static const _findBeforeInterpolation = '{{';
   static const _findBeforeElementDecoratorValue = '="';
-  static final _findCommentValue = new RegExp(r'[^-->]*');
-  static final _findElementDecorator = new RegExp(r'[^\s=>]+');
+  static final _findElementDecorator = new RegExp(r'[^\s=>]+', multiLine: true);
   static final _findElementDecoratorValue = new RegExp(r'[^"]*');
   static final _findElementIdentifier = new RegExp(r'[^\s|>]*');
   static final _findInterpolationValue = new RegExp(r'[^}{2,}]*');
-  static final _findWhitespace = new RegExp(r'\s');
+  static final _findWhitespace = new RegExp(r'\s+', multiLine: true);
 
   final StringScanner _scanner;
 
@@ -175,12 +174,19 @@ class NgScanner {
   @protected
   NgToken scanComment() {
     final offset = _scanner.position;
-    if (_scanner.scan(_findCommentValue)) {
-      _state = _NgScannerState.scanAfterComment;
-      return new NgToken.commentValue(offset, _scanner.substring(offset));
-    } else {
-      throw _unexpected();
+    while (true) {
+      if (_scanner.peekChar() == $dash &&
+          _scanner.peekChar(1) == $dash &&
+          _scanner.peekChar(2) == $gt) {
+        break;
+      }
+      _scanner.position++;
+      if (_scanner.isDone) {
+        throw _unexpected();
+      }
     }
+    _state = _NgScannerState.scanAfterComment;
+    return new NgToken.commentValue(offset, _scanner.substring(offset));
   }
 
   @protected
