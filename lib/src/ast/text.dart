@@ -5,7 +5,7 @@ import 'package:source_span/source_span.dart';
 /// Represents a block of static text (i.e. not bound to a directive).
 ///
 /// Clients should not extend, implement, or mix-in this class.
-abstract class TextAst implements TemplateAst {
+abstract class TextAst implements StandaloneTemplateAst {
   /// Create a new synthetic [TextAst] with a string [value].
   factory TextAst(String value) = _SyntheticTextAst;
 

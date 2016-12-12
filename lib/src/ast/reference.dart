@@ -24,7 +24,6 @@ abstract class ReferenceAst implements TemplateAst {
   factory ReferenceAst.parsed(
     SourceFile sourceFile,
     NgToken nameToken, [
-    NgToken startValueToken,
     NgToken identifierToken,
     NgToken endValueToken,
   ]) = _ParsedReferenceAst;
@@ -64,7 +63,6 @@ class _ParsedReferenceAst extends TemplateAst with ReferenceAst {
   _ParsedReferenceAst(
     SourceFile sourceFile,
     NgToken nameToken, [
-    NgToken startValueToken,
     this._identifierToken,
     NgToken endValueToken,
   ])

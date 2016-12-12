@@ -191,4 +191,26 @@ main() {
     ''';
     expect(untokenize(tokenize(html)), html);
   });
+
+  test('should tokenize a comment', () {
+    expect(
+      tokenize('<!--Hello World-->'),
+      [
+        new NgToken.commentStart(0),
+        new NgToken.commentValue(4, 'Hello World'),
+        new NgToken.commentEnd(15),
+      ],
+    );
+  });
+
+  test('should tokenize interpolation', () {
+    expect(
+      tokenize('{{name}}'),
+      [
+        new NgToken.interpolationStart(0),
+        new NgToken.interpolationValue(2, 'name'),
+        new NgToken.interpolationEnd(6),
+      ],
+    );
+  });
 }

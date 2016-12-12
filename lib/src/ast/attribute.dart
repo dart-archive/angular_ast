@@ -24,7 +24,6 @@ abstract class AttributeAst implements TemplateAst {
   factory AttributeAst.parsed(
     SourceFile sourceFile,
     NgToken nameToken, [
-    NgToken startValueToken,
     NgToken valueToken,
     NgToken endValueToken,
   ]) = _ParsedAttributeAst;
@@ -58,7 +57,6 @@ class _ParsedAttributeAst extends TemplateAst with AttributeAst {
   _ParsedAttributeAst(
     SourceFile sourceFile,
     NgToken nameToken, [
-    NgToken startValueToken,
     this._valueToken,
     NgToken endValueToken,
   ])
@@ -69,7 +67,7 @@ class _ParsedAttributeAst extends TemplateAst with AttributeAst {
   String get name => _nameToken.lexeme;
 
   @override
-  String get value => _valueToken.lexeme;
+  String get value => _valueToken?.lexeme;
 }
 
 class _SyntheticAttributeAst extends SyntheticTemplateAst with AttributeAst {

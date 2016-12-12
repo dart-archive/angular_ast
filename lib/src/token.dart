@@ -37,6 +37,18 @@ class NgToken {
     return new NgToken._(NgTokenType.closeElementStart, offset);
   }
 
+  factory NgToken.commentEnd(int offset) {
+    return new NgToken._(NgTokenType.commentEnd, offset);
+  }
+
+  factory NgToken.commentStart(int offset) {
+    return new NgToken._(NgTokenType.commentStart, offset);
+  }
+
+  factory NgToken.commentValue(int offset, String string) {
+    return new _LexemeNgToken(offset, string, NgTokenType.commentValue);
+  }
+
   factory NgToken.elementDecorator(int offset, String string) {
     return new _LexemeNgToken(offset, string, NgTokenType.elementDecorator);
   }
@@ -51,6 +63,18 @@ class NgToken {
 
   factory NgToken.elementIdentifier(int offset, String string) {
     return new _LexemeNgToken(offset, string, NgTokenType.elementIdentifier);
+  }
+
+  factory NgToken.interpolationEnd(int offset) {
+    return new NgToken._(NgTokenType.interpolationEnd, offset);
+  }
+
+  factory NgToken.interpolationStart(int offset) {
+    return new NgToken._(NgTokenType.interpolationStart, offset);
+  }
+
+  factory NgToken.interpolationValue(int offset, String string) {
+    return new _LexemeNgToken(offset, string, NgTokenType.interpolationValue);
   }
 
   factory NgToken.openElementEnd(int offset) {

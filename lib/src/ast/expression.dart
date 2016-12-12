@@ -9,4 +9,14 @@ class ExpressionAst {
   final String expression;
 
   const ExpressionAst(this.expression);
+
+  @override
+  bool operator ==(Object o) =>
+      o is ExpressionAst && o.expression == expression;
+
+  @override
+  int get hashCode => expression.hashCode;
+
+  @override
+  String toString() => '$ExpressionAst {$expression}';
 }

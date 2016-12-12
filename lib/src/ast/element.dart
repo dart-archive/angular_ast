@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token.dart';
 import 'package:collection/collection.dart';
@@ -71,6 +69,9 @@ abstract class ElementAst implements StandaloneTemplateAst {
     ]);
   }
 
+  /// Whether this is a `<template>` tag and should not be directly rendered.
+  bool get isEmbeddedTemplate => name == 'template';
+
   /// Name (tag) of the element.
   String get name;
 
@@ -88,15 +89,38 @@ abstract class ElementAst implements StandaloneTemplateAst {
 
   @override
   String toString() {
-    return '$ElementAst ' +
-        const JsonEncoder.withIndent(' ').convert({
-          'name': name,
-          'attributes': attributes.map((x) => x.toString()).toList(),
-          'childNodes': childNodes.map((x) => x.toString()).toList(),
-          'events': events.map((x) => x.toString()).toList(),
-          'properties': properties.map((x) => x.toString()).toList(),
-          'references': references.map((x) => x.toString()).toList(),
-        });
+    final buffer = new StringBuffer('$ElementAst <$name> { ');
+    if (attributes.isNotEmpty) {
+      buffer
+        ..write('attributes=')
+        ..writeAll(attributes, ', ')
+        ..write(' ');
+    }
+    if (events.isNotEmpty) {
+      buffer
+        ..write('events=')
+        ..writeAll(events, ', ')
+        ..write(' ');
+    }
+    if (properties.isNotEmpty) {
+      buffer
+        ..write('properties=')
+        ..writeAll(properties, ', ')
+        ..write(' ');
+    }
+    if (references.isNotEmpty) {
+      buffer
+        ..write('references=')
+        ..writeAll(references, ', ')
+        ..write(' ');
+    }
+    if (childNodes.isNotEmpty) {
+      buffer
+        ..write('childNodes=')
+        ..writeAll(childNodes, ', ')
+        ..write(' ');
+    }
+    return (buffer..write('}')).toString();
   }
 }
 

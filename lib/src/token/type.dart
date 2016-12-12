@@ -36,6 +36,21 @@ class NgTokenType {
     lexeme: '</',
   );
 
+  /// Represents ending a comment.
+  static const commentEnd = const NgTokenType._(
+    'commentEnd',
+    lexeme: '-->',
+  );
+
+  /// Represents starting a comment.
+  static const commentStart = const NgTokenType._(
+    'commentStart',
+    lexeme: '<!--',
+  );
+
+  /// Represents a comment value.
+  static const commentValue = const NgTokenType._('commentValue');
+
   /// Represents the name of an element decorator.
   static const elementDecorator = const NgTokenType._('elementDecorator');
 
@@ -46,6 +61,23 @@ class NgTokenType {
 
   /// Represents the name of an element.
   static const elementIdentifier = const NgTokenType._('elementIdentifier');
+
+  /// Represents ending an interpolated text block.
+  static const interpolationEnd = const NgTokenType._(
+    'interpolationEnd',
+    lexeme: '}}',
+  );
+
+  /// Represents starting an interpolated text block.
+  static const interpolationStart = const NgTokenType._(
+    'interpolationStart',
+    lexeme: '{{',
+  );
+
+  /// Represnts an interpolated text block.
+  static const interpolationValue = const NgTokenType._(
+    'interpolationValue',
+  );
 
   /// Represents ending opening an element declaration.
   static const openElementEnd = const NgTokenType._(
