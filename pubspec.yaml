@@ -1,6 +1,6 @@
 name: angular_ast
 homepage: https://github.com/dart-lang/angular_ast
-description: Represents Angular templates as an AST
+description: Parser and utilities for AngularDart templates
 version: 0.1.0-dev
 
 authors:
@@ -12,7 +12,7 @@ environment:
 
 dependencies:
   charcode: '^1.1.0'
-  collection:
+  collection: '^1.12.0'
   string_scanner: '^1.0.0'
   quiver: '^0.22.0'
 
