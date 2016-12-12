@@ -5,7 +5,6 @@ import 'package:path/path.dart' as p;
 
 import 'package:test/test.dart';
 
-@Skip('FAILING: We need to support void (non-closing) elements')
 main() {
   final parse = const NgParser().parse;
   final templatesDir = p.join('test', 'e2e', 'templates');

@@ -8,8 +8,13 @@ import 'package:source_span/source_span.dart';
 class RecursiveAstParser {
   final NgTokenReader _reader;
   final SourceFile _source;
+  final List<String> _voidElements;
 
-  RecursiveAstParser(SourceFile sourceFile, Iterable<NgToken> tokens)
+  RecursiveAstParser(
+    SourceFile sourceFile,
+    Iterable<NgToken> tokens,
+    this._voidElements,
+  )
       : _reader = new NgTokenReader(sourceFile, tokens),
         _source = sourceFile;
 
@@ -111,6 +116,7 @@ class RecursiveAstParser {
     } else if (nameToken.lexeme == 'template') {
       return parseEmbeddedTemplate(beginToken);
     }
+    final isVoidElement = _voidElements.contains(nameToken.lexeme);
 
     // Start collecting decorators.
     final attributes = <AttributeAst>[];
@@ -151,18 +157,23 @@ class RecursiveAstParser {
       }
     } while (nextToken.type != NgTokenType.openElementEnd);
 
-    // Collect child nodes.
-    while ((nextToken = _reader.next()).type != NgTokenType.closeElementStart) {
-      childNodes.add(parseStandalone(nextToken));
+    // If this is a void element, skip this part
+    var endToken = nextToken;
+    if (!isVoidElement) {
+      // Collect child nodes.
+      nextToken = _reader.next();
+      while (nextToken.type != NgTokenType.closeElementStart) {
+        childNodes.add(parseStandalone(nextToken));
+        nextToken = _reader.next();
+      }
+      // Finally return the element.
+      final closeName = _reader.expect(NgTokenType.elementIdentifier);
+      if (closeName.lexeme != nameToken.lexeme) {
+        _reader.error('Invalid closing tag: $closeName (expected $nameToken)');
+      }
+      endToken = _reader.expect(NgTokenType.closeElementEnd);
     }
 
-    // Finally return the element.
-    final closeName = _reader.expect(NgTokenType.elementIdentifier);
-    if (closeName.lexeme != nameToken.lexeme) {
-      _reader.error('Invalid closing tag: $closeName (expected $nameToken)');
-    }
-
-    final endToken = _reader.expect(NgTokenType.closeElementEnd);
     final element = new ElementAst.parsed(
       _source,
       beginToken,

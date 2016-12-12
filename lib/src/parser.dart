@@ -8,6 +8,28 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 class NgParser {
+  // Elements that explicitly don't have a closing tag.
+  //
+  // https://www.w3.org/TR/html/syntax.html#void-elements
+  static const _voidElements = const <String>[
+    'area',
+    'base',
+    'br',
+    'col',
+    'command',
+    'embed',
+    'hr',
+    'img',
+    'input',
+    'keygen',
+    'link',
+    'meta',
+    'param',
+    'source',
+    'track',
+    'wbr',
+  ];
+
   @literal
   const factory NgParser() = NgParser._;
 
@@ -17,6 +39,11 @@ class NgParser {
   /// Return a series of tokens by incrementally scanning [template].
   List<StandaloneTemplateAst> parse(String template) {
     final tokens = const NgLexer().tokenize(template);
-    return new RecursiveAstParser(new SourceFile(template), tokens).parse();
+    final parser = new RecursiveAstParser(
+      new SourceFile(template),
+      tokens,
+      _voidElements,
+    );
+    return parser.parse();
   }
 }

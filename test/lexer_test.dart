@@ -230,4 +230,18 @@ main() {
       ],
     );
   });
+
+  test('should tokenize function call interpolations', () {
+    expect(
+      tokenize('{{msgCharacterCounter(inputTextLength, maxCount)}}'),
+      [
+        new NgToken.interpolationStart(0),
+        new NgToken.interpolationValue(
+          2,
+          'msgCharacterCounter(inputTextLength, maxCount)',
+        ),
+        new NgToken.interpolationEnd(48),
+      ],
+    );
+  });
 }

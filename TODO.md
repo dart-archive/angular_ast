@@ -3,6 +3,6 @@
 - [x] Parse interpolation
 - [x] Parse embedded templates
 - [x] Parse embedded content
-- [ ] Support void elements (no closing tag)
+- [x] Support void elements (no closing tag)
 - [ ] Lex expressions
 - [ ] Parse expressions

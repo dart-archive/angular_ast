@@ -19,11 +19,11 @@ class NgScanner {
   static const _findAfterInterpolation = '}}';
   static const _findBeforeComment = '<!--';
   static const _findBeforeInterpolation = '{{';
-  static const _findBeforeElementDecoratorValue = '="';
+  static final _findBeforeElementDecoratorValue = new RegExp(r'\s*=\s*"');
   static final _findElementDecorator = new RegExp(r'[^\s=>]+', multiLine: true);
   static final _findElementDecoratorValue = new RegExp(r'[^"]*');
   static final _findElementIdentifier = new RegExp(r'[^\s|>]*');
-  static final _findInterpolationValue = new RegExp(r'[^}{2,}]*');
+  static final _findInterpolationValue = new RegExp(r'[^}}]*');
   static final _findWhitespace = new RegExp(r'\s+', multiLine: true);
 
   final StringScanner _scanner;
