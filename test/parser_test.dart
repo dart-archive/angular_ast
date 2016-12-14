@@ -233,4 +233,31 @@ main() {
       parse('<template [ngIf]="someValue"><div>Hello World</div></template>'),
     );
   });
+
+  test('should parse a void element (implicit)', () {
+    expect(
+      parse('<input><div></div>'),
+      [
+        new ElementAst('input'),
+        new ElementAst('div'),
+      ],
+    );
+  });
+
+  test('should parse a banana syntax', () {
+    expect(
+      parse('<custom [(name)]="myName"></custom>'),
+      [
+        new ElementAst(
+          'custom',
+          events: [
+            new EventAst('nameChanged', new ExpressionAst('myName = \$event')),
+          ],
+          properties: [
+            new PropertyAst('name', new ExpressionAst('myName')),
+          ],
+        )
+      ],
+    );
+  });
 }

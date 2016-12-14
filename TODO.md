@@ -9,7 +9,7 @@ These are blocking the package from replacing the current parser
 - [x] Parse embedded content
 - [x] Support implicitly void elements (`<input>`)
 - [ ] Support explicitly void elements (`<foo />`)
-- [ ] Support banana syntax (event and property setter)
+- [x] Support banana syntax (event and property setter)
 - [ ] Support interpolated property setters
 - [ ] Lex expressions
 - [ ] Parse expressions

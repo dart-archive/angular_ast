@@ -148,7 +148,28 @@ class RecursiveAstParser {
         } else if (decoratorAst is EventAst) {
           events.add(decoratorAst);
         } else if (decoratorAst is PropertyAst) {
-          properties.add(decoratorAst);
+          // De-sugar into a property/event (banana syntax).
+          // TODO: Lint this properly.
+          if (decoratorAst.name.codeUnitAt(0) == $open_parenthesis) {
+            properties.add(
+              new PropertyAst.from(
+                  decoratorAst,
+                  decoratorAst.name.substring(1, decoratorAst.name.length - 1),
+                  decoratorAst.expression),
+            );
+            events.add(
+              new EventAst.from(
+                decoratorAst,
+                decoratorAst.name.substring(1, decoratorAst.name.length - 1) +
+                    'Changed',
+                new ExpressionAst(
+                  '${decoratorAst.expression.expression} = \$event',
+                ),
+              ),
+            );
+          } else {
+            properties.add(decoratorAst);
+          }
         } else if (decoratorAst is ReferenceAst) {
           references.add(decoratorAst);
         } else {
