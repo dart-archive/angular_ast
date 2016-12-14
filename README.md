@@ -12,9 +12,6 @@ This package is _platform agnostic_ (no HTML or Dart VM dependencies).
 
 *Currently in development* and **not stable**.
 
-It's recommended you look at the various tests to see more detailed
-examples of how it may be used and the type of output you can expect.
-
 ```dart
 import 'package:angular_ast/angular_ast.dart';
 
