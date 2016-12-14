@@ -1,34 +1,55 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-part of angular2_template_parser.src.ast;
+import 'package:angular_ast/src/ast.dart';
+import 'package:angular_ast/src/token.dart';
+import 'package:source_span/source_span.dart';
 
-/// A simple string value (not an expression).
-class NgText extends NgAstNode with NgAstSourceTokenMixin {
-  /// Text value.
-  final String value;
+/// Represents a block of static text (i.e. not bound to a directive).
+///
+/// Clients should not extend, implement, or mix-in this class.
+abstract class TextAst implements StandaloneTemplateAst {
+  /// Create a new synthetic [TextAst] with a string [value].
+  factory TextAst(String value) = _SyntheticTextAst;
 
-  /// Create a new [text] node.
-  factory NgText(
-    String text, [
-    NgToken parsedToken,
-  ]) = NgText._;
+  /// Create a new synthetic [TextAst] that originated from node [origin].
+  factory TextAst.from(
+    TemplateAst origin,
+    String value,
+  ) = _SyntheticTextAst.from;
 
-  NgText._(
-    this.value, [
-    NgToken parsedToken,
-  ])
-      : super._(parsedToken != null ? [parsedToken] : const []);
+  /// Create a new [TextAst] parsed from tokens from [sourceFile].
+  factory TextAst.parsed(
+    SourceFile sourceFile,
+    NgToken textToken,
+  ) = _ParsedTextAst;
 
   @override
-  bool operator ==(Object o) => o is NgText && value == o.value;
+  bool operator ==(Object o) => o is TextAst && value == o.value;
 
   @override
   int get hashCode => value.hashCode;
 
-  @override
-  String toString() => '$NgText $value';
+  /// Static text value.
+  String get value;
 
   @override
-  void visit(Visitor visitor) => visitor.visitText(this);
+  String toString() => '$TextAst {$value}';
+}
+
+class _ParsedTextAst extends TemplateAst with TextAst {
+  _ParsedTextAst(
+    SourceFile sourceFile,
+    NgToken textToken,
+  )
+      : super.parsed(textToken, textToken, sourceFile);
+
+  @override
+  String get value => beginToken.lexeme;
+}
+
+class _SyntheticTextAst extends SyntheticTemplateAst with TextAst {
+  @override
+  final String value;
+
+  _SyntheticTextAst(this.value);
+
+  _SyntheticTextAst.from(TemplateAst origin, this.value) : super.from(origin);
 }

@@ -1,57 +1,116 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-part of angular2_template_parser.src.ast;
+import 'package:angular_ast/src/ast.dart';
+import 'package:angular_ast/src/token.dart';
+import 'package:source_span/source_span.dart';
+import 'package:quiver/core.dart';
 
-/// A parsed event AST.
-class NgEvent extends NgAstNode with NgAstSourceTokenMixin {
-  /// Name of the event.
-  final String name;
+/// Represents an event listener on an element.
+///
+/// Clients should not extend, implement, or mix-in this class.
+abstract class EventAst implements TemplateAst {
+  /// Create a new synthetic [EventAst] listening to [name].
+  factory EventAst(
+    String name,
+    ExpressionAst expression, [
+    String postfix,
+  ]) = _SyntheticEventAst;
 
-  /// Listener of the event (an expression).
-  final String value;
+  /// Create a new synthetic [EventAst] that originated from [origin].
+  factory EventAst.from(
+    TemplateAst origin,
+    String name,
+    ExpressionAst expression, [
+    String postfix,
+  ]) = _SyntheticEventAst.from;
 
-  /// A parsed Dart expression.
+  /// Create a new [EventAst] parsed from tokens in [sourceFile].
+  factory EventAst.parsed(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    NgToken nameToken,
+    ExpressionAst expression,
+    NgToken endToken,
+  ) = _ParsedEventAst;
+
+  @override
+  bool operator ==(Object o) =>
+      o is EventAst &&
+      name == o.name &&
+      expression == o.expression &&
+      postfix == o.postfix;
+
+  @override
+  int get hashCode => hash3(name, expression, postfix);
+
+  /// Bound expression.
+  ExpressionAst get expression;
+
+  /// Name of the event being listened to.
+  String get name;
+
+  /// An optional postfix used to filter events that support it.
   ///
-  /// should be set with parseAngularExpression(...)
-  Expression expression;
-
-  NgEvent(this.name, this.value) : super._(const []);
-
-  NgEvent.fromTokens(
-    NgToken before,
-    NgToken start,
-    NgToken name,
-    NgToken equals,
-    NgToken value,
-    NgToken end,
-  )
-      : this.name = name.text,
-        this.value = value.text,
-        super._([before, start, name, equals, value, end]);
-
-  /// Creates an Event action from a banana desugar.  Has new
-  /// names and values but links to original source.
-  NgEvent.fromBanana(NgToken before, NgToken start, NgToken name,
-      NgToken equals, NgToken value, NgToken end)
-      : this.name = '${name.text}Change',
-        this.value = '${value.text} = \$event',
-        super._([before, start, name, equals, value, end]);
+  /// For example `(keydown.space)`.
+  String get postfix;
 
   @override
-  int get hashCode => hash2(name, value);
-
-  @override
-  bool operator ==(Object o) {
-    if (o is NgEvent) {
-      return o.name == name && o.value == value;
+  String toString() {
+    if (postfix != null) {
+      return '$EventAst {$name.$postfix="$expression"}';
     }
-    return false;
+    return '$EventAst {$name="$expression"}';
+  }
+}
+
+class _ParsedEventAst extends TemplateAst with EventAst {
+  final NgToken _nameToken;
+
+  _ParsedEventAst(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    this._nameToken,
+    this.expression,
+    NgToken endToken,
+  )
+      : super.parsed(
+          beginToken,
+          endToken,
+          sourceFile,
+        );
+
+  String get _nameWithoutParentheses {
+    return _nameToken.lexeme.substring(1, _nameToken.lexeme.length - 1);
   }
 
   @override
-  String toString() => '$NgEvent ($name)="$value"';
+  final ExpressionAst expression;
 
   @override
-  void visit(Visitor visitor) => visitor.visitEvent(this);
+  String get name => _nameWithoutParentheses.split('.').first;
+
+  @override
+  String get postfix {
+    final split = _nameWithoutParentheses.split('.');
+    return split.length > 1 ? split.last : null;
+  }
+}
+
+class _SyntheticEventAst extends SyntheticTemplateAst with EventAst {
+  @override
+  final String name;
+
+  @override
+  final ExpressionAst expression;
+
+  @override
+  final String postfix;
+
+  _SyntheticEventAst(this.name, this.expression, [this.postfix]);
+
+  _SyntheticEventAst.from(
+    TemplateAst origin,
+    this.name,
+    this.expression, [
+    this.postfix,
+  ])
+      : super.from(origin);
 }
