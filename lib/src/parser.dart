@@ -30,11 +30,18 @@ class NgParser {
     'wbr',
   ];
 
+  final bool _toolFriendlyAstOrigin;
+
   @literal
-  const factory NgParser() = NgParser._;
+  const factory NgParser({
+    bool toolFriendlyAstOrigin,
+  }) = NgParser._;
 
   // Prevent inheritance.
-  const NgParser._();
+  const NgParser._({
+    bool toolFriendlyAstOrigin: false,
+  })
+      : _toolFriendlyAstOrigin = toolFriendlyAstOrigin;
 
   /// Return a series of tokens by incrementally scanning [template].
   List<StandaloneTemplateAst> parse(String template) {
@@ -43,6 +50,7 @@ class NgParser {
       new SourceFile(template),
       tokens,
       _voidElements,
+      toolFriendlyAstOrigin: _toolFriendlyAstOrigin,
     );
     return parser.parse();
   }
