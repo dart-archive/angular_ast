@@ -11,14 +11,14 @@ import 'package:source_span/source_span.dart';
 class RecursiveAstParser {
   final NgTokenReader _reader;
   final SourceFile _source;
+  final bool _toolFriendlyAstOrigin;
   final List<String> _voidElements;
 
   RecursiveAstParser(
-    SourceFile sourceFile,
-    Iterable<NgToken> tokens,
-    this._voidElements,
-  )
-      : _reader = new NgTokenReader(sourceFile, tokens),
+      SourceFile sourceFile, Iterable<NgToken> tokens, this._voidElements,
+      {bool toolFriendlyAstOrigin: false})
+      : _toolFriendlyAstOrigin = toolFriendlyAstOrigin,
+        _reader = new NgTokenReader(sourceFile, tokens),
         _source = sourceFile;
 
   /// Iterates through and returns the top-level AST nodes from the tokens.
@@ -136,7 +136,7 @@ class RecursiveAstParser {
       if (nextToken.type == NgTokenType.beforeElementDecorator) {
         var decoratorAst = parseDecorator(nextToken);
         if (decoratorAst is AttributeAst) {
-          // De-sugar into an EmbeddedTemplateAst.
+          // De-sugar into a EmbeddedTemplateAst or create a StarAst.
           if (decoratorAst.name.codeUnitAt(0) == $asterisk) {
             if (deSugarTemplateAst != null) {
               _reader.error(''
@@ -154,15 +154,23 @@ class RecursiveAstParser {
           // De-sugar into a property/event (banana syntax).
           // TODO: Lint this properly.
           if (decoratorAst.name.codeUnitAt(0) == $open_parenthesis) {
+            TemplateAst origin = decoratorAst;
+            if (_toolFriendlyAstOrigin) {
+              origin = new BananaAst.from(
+                decoratorAst,
+                decoratorAst.name,
+                decoratorAst.expression.expression,
+              );
+            }
             properties.add(
               new PropertyAst.from(
-                  decoratorAst,
+                  origin,
                   decoratorAst.name.substring(1, decoratorAst.name.length - 1),
                   decoratorAst.expression),
             );
             events.add(
               new EventAst.from(
-                decoratorAst,
+                origin,
                 decoratorAst.name.substring(1, decoratorAst.name.length - 1) +
                     'Changed',
                 new ExpressionAst(
@@ -210,8 +218,14 @@ class RecursiveAstParser {
       references: references,
     );
     if (deSugarTemplateAst != null) {
-      return new EmbeddedTemplateAst.from(
+      TemplateAst origin = deSugarTemplateAst;
+      origin = new StarAst.from(
         deSugarTemplateAst,
+        deSugarTemplateAst.name,
+        new ExpressionAst(deSugarTemplateAst.value),
+      );
+      return new EmbeddedTemplateAst.from(
+        origin,
         childNodes: [
           element,
         ],

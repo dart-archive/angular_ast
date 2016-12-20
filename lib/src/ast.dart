@@ -14,3 +14,5 @@ export 'package:angular_ast/src/ast/property.dart' show PropertyAst;
 export 'package:angular_ast/src/ast/reference.dart' show ReferenceAst;
 export 'package:angular_ast/src/ast/template.dart' show EmbeddedTemplateAst;
 export 'package:angular_ast/src/ast/text.dart' show TextAst;
+export 'package:angular_ast/src/ast/sugar/banana.dart' show BananaAst;
+export 'package:angular_ast/src/ast/sugar/star.dart' show StarAst;
