@@ -29,6 +29,6 @@ These are needed to add useful features on top of current support
     - [ ] Be able to change an expression
 - [ ] Add resolver and schema support
 - [ ] Add friendly error class with auto-fix support
-- [ ] Add "sugared" version of the AST tree (for tooling)
-    - [ ] BananaSugarAst
-    - [ ] StructuralSugarAst
+- [x] Add "sugared" version of the AST tree (for tooling)
+    - [x] BananaSugarAst
+    - [x] StructuralSugarAst
