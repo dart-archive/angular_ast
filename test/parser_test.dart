@@ -51,7 +51,7 @@ main() {
     expect(
       parse('{{name}}'),
       [
-        new InterpolationAst(new ExpressionAst('name')),
+        new InterpolationAst(new ExpressionAst.parse('name')),
       ],
     );
   });
@@ -63,7 +63,7 @@ main() {
         new TextAst('Hello'),
         new ElementAst('div'),
         new CommentAst('Goodbye'),
-        new InterpolationAst(new ExpressionAst('name')),
+        new InterpolationAst(new ExpressionAst.parse('name')),
       ],
     );
   });
@@ -114,7 +114,7 @@ main() {
       parse('<button (click)="onClick()"></button>'),
       [
         new ElementAst('button', events: [
-          new EventAst('click', new ExpressionAst('onClick()')),
+          new EventAst('click', new ExpressionAst.parse('onClick()')),
         ]),
       ],
     );
@@ -136,7 +136,7 @@ main() {
       parse('<button [value]="btnValue"></button>'),
       [
         new ElementAst('button', properties: [
-          new PropertyAst('value', new ExpressionAst('btnValue')),
+          new PropertyAst('value', new ExpressionAst.parse('btnValue')),
         ]),
       ],
     );
@@ -197,7 +197,7 @@ main() {
       [
         new EmbeddedTemplateAst(
           properties: [
-            new PropertyAst('ngIf', new ExpressionAst('someValue')),
+            new PropertyAst('ngIf', new ExpressionAst.parse('someValue')),
           ],
         ),
       ],
@@ -254,10 +254,11 @@ main() {
         new ElementAst(
           'custom',
           events: [
-            new EventAst('nameChanged', new ExpressionAst('myName = \$event')),
+            new EventAst(
+                'nameChanged', new ExpressionAst.parse('myName = \$event')),
           ],
           properties: [
-            new PropertyAst('name', new ExpressionAst('myName')),
+            new PropertyAst('name', new ExpressionAst.parse('myName')),
           ],
         )
       ],
