@@ -6,7 +6,7 @@ import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:meta/meta.dart';
 
-/// An [AstVisitor] that does nothing but return the AST node back.
+/// An [TemplateAstVisitor] that does nothing but return the AST node back.
 class IdentityTemplateAstVisitor<C>
     implements TemplateAstVisitor<TemplateAst, C> {
   @literal

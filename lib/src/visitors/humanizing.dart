@@ -12,14 +12,13 @@ import 'package:angular_ast/src/ast/text.dart';
 import 'package:angular_ast/src/visitor.dart';
 
 /// Provides a human-readable view of a template AST tree.
-class HumanizingTemplateAstVisitor extends TemplateAstVisitor<String, StringBuffer> {
+class HumanizingTemplateAstVisitor
+    extends TemplateAstVisitor<String, StringBuffer> {
   const HumanizingTemplateAstVisitor();
 
   @override
   String visit(TemplateAst astNode, [StringBuffer context]) {
-    context ??= new StringBuffer();
-    super.visit(astNode, context);
-    return context.toString();
+    return super.visit(astNode, context);
   }
 
   @override
@@ -39,9 +38,7 @@ class HumanizingTemplateAstVisitor extends TemplateAstVisitor<String, StringBuff
   @override
   String visitElement(ElementAst astNode, [StringBuffer context]) {
     context ??= new StringBuffer();
-    context
-      ..write('<')
-      ..write(astNode.name);
+    context..write('<')..write(astNode.name);
     if (astNode.attributes.isNotEmpty) {
       context
         ..write(' ')
@@ -66,45 +63,78 @@ class HumanizingTemplateAstVisitor extends TemplateAstVisitor<String, StringBuff
     if (astNode.childNodes.isNotEmpty) {
       context.writeAll(astNode.childNodes.map(visit));
     }
-    context
-      ..write('</')
-      ..write(astNode.name)
-      ..write('>');
+    context..write('</')..write(astNode.name)..write('>');
     return context.toString();
   }
 
   @override
-  String visitEmbeddedContent(EmbeddedContentAst astNode, [_]) {
-    // TODO: implement visitEmbeddedContent
+  String visitEmbeddedContent(
+    EmbeddedContentAst astNode, [
+    StringBuffer context,
+  ]) {
+    context ??= new StringBuffer();
+    if (astNode.selector != null) {
+      context.write('<ng-content select="${astNode.selector}">');
+    } else {
+      context.write('<ng-content>');
+    }
+    context.write('</ng-content>');
+    return context.toString();
   }
 
   @override
-  String visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [StringBuffer context]) {
-    // TODO: implement visitEmbeddedTemplate
+  String visitEmbeddedTemplate(
+    EmbeddedTemplateAst astNode, [
+    StringBuffer context,
+  ]) {
+    context ??= new StringBuffer();
+    context..write('<template');
+    if (astNode.properties.isNotEmpty) {
+      context
+        ..write(' ')
+        ..writeAll(astNode.properties.map(visitProperty), ' ');
+    }
+    if (astNode.references.isNotEmpty) {
+      context
+        ..write(' ')
+        ..writeAll(astNode.references.map(visitReference), ' ');
+    }
+    context.write('>');
+    if (astNode.childNodes.isNotEmpty) {
+      context.writeAll(astNode.childNodes.map(visit));
+    }
+    context..write('</template>');
+    return context.toString();
   }
 
   @override
-  String visitEvent(EventAst astNode, [StringBuffer context]) {
-    // TODO: implement visitEvent
+  String visitEvent(EventAst astNode, [_]) {
+    return '(${astNode.name})="${astNode.expression.expression.toSource()}"';
   }
 
   @override
-  String visitInterpolation(InterpolationAst astNode, [StringBuffer context]) {
-    // TODO: implement visitInterpolation
+  String visitInterpolation(InterpolationAst astNode, [_]) {
+    return '{{${astNode.expression.expression.toSource()}}}';
   }
 
   @override
-  String visitProperty(PropertyAst astNode, [StringBuffer context]) {
-    // TODO: implement visitProperty
+  String visitProperty(PropertyAst astNode, [_]) {
+    if (astNode.expression != null) {
+      return '[${astNode.name}]="${astNode.expression.expression.toSource()}"';
+    } else {
+      return '[${astNode.name}]';
+    }
   }
 
   @override
-  String visitReference(ReferenceAst astNode, [StringBuffer context]) {
-    // TODO: implement visitReference
+  String visitReference(ReferenceAst astNode, [_]) {
+    if (astNode.variable != null) {
+      return '#${astNode.identifier}="${astNode.variable}"';
+    } else {
+      return '#${astNode.identifier}';
+    }
   }
 
   @override
-  String visitText(TextAst astNode, [StringBuffer context]) {
-    // TODO: implement visitText
-  }
+  String visitText(TextAst astNode, [_]) => astNode.value;
 }

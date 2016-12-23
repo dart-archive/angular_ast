@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'package:angular_ast/src/ast.dart';
+import 'package:angular_ast/src/expression/micro.dart';
 import 'package:angular_ast/src/parser/reader.dart';
 import 'package:angular_ast/src/token.dart';
 import 'package:charcode/charcode.dart';
@@ -236,6 +237,27 @@ class RecursiveAstParser {
           sourceUrl: _source.url.toString(),
         ),
       );
+      final starExpression = deSugarTemplateAst.value;
+      final directiveName = deSugarTemplateAst.name.substring(1);
+      if (starExpression.startsWith('let')) {
+        // This is a micro expression, so we further parse it.
+        final micro = parseMicroExpression(
+          starExpression,
+          directiveName,
+          sourceUrl: _source.url.toString(),
+        );
+        return new EmbeddedTemplateAst.from(
+          origin,
+          childNodes: [
+            element,
+          ],
+          attributes: [
+            new AttributeAst(directiveName),
+          ],
+          properties: micro.properties,
+          references: micro.assignments,
+        );
+      }
       return new EmbeddedTemplateAst.from(
         origin,
         childNodes: [
@@ -243,9 +265,9 @@ class RecursiveAstParser {
         ],
         properties: [
           new PropertyAst(
-            deSugarTemplateAst.name.substring(1),
+            directiveName,
             new ExpressionAst.parse(
-              deSugarTemplateAst.value,
+              starExpression,
               sourceUrl: _source.url.toString(),
             ),
           ),

@@ -19,6 +19,7 @@ const _listEquals = const ListEquality();
 /// Clients should not extend, implement, or mix-in this class.
 abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
   factory EmbeddedTemplateAst({
+    List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
     List<PropertyAst> properties,
     List<ReferenceAst> references,
@@ -26,6 +27,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
 
   factory EmbeddedTemplateAst.from(
     TemplateAst origin, {
+    List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
     List<PropertyAst> properties,
     List<ReferenceAst> references,
@@ -35,6 +37,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     SourceFile sourceFile,
     NgToken beginToken,
     NgToken endToken, {
+    List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
     List<PropertyAst> properties,
     List<ReferenceAst> references,
@@ -45,11 +48,16 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     return visitor.visitEmbeddedTemplate(this, context);
   }
 
+  /// Attributes.
+  ///
+  /// Within a `<template>` tag, it may be assumed that this is a directive.
+  List<AttributeAst> get attributes;
+
   /// Property assignments.
   ///
   /// For an embedded template, it may be assumed that all of this will be one
-  /// or more structural directives (i.e. like `ngFor`), as the template itself
-  /// does not have properties.
+  /// or more structural directives (i.e. like `ngForOf`), as the template
+  /// itself does not have properties.
   List<PropertyAst> get properties;
 
   /// References to the template.
@@ -79,6 +87,12 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
   @override
   String toString() {
     final buffer = new StringBuffer('$EmbeddedTemplateAst{ ');
+    if (attributes.isNotEmpty) {
+      buffer
+        ..write('attributes=')
+        ..writeAll(attributes, ', ')
+        ..write(' ');
+    }
     if (properties.isNotEmpty) {
       buffer
         ..write('properties=')
@@ -106,11 +120,15 @@ class _ParsedEmbeddedTemplateAst extends TemplateAst with EmbeddedTemplateAst {
     SourceFile sourceFile,
     NgToken beginToken,
     NgToken endToken, {
+    this.attributes: const [],
     this.childNodes: const [],
     this.properties: const [],
     this.references: const [],
   })
       : super.parsed(beginToken, endToken, sourceFile);
+
+  @override
+  final List<AttributeAst> attributes;
 
   @override
   final List<StandaloneTemplateAst> childNodes;
@@ -125,6 +143,7 @@ class _ParsedEmbeddedTemplateAst extends TemplateAst with EmbeddedTemplateAst {
 class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
     with EmbeddedTemplateAst {
   _SyntheticEmbeddedTemplateAst({
+    this.attributes: const [],
     this.childNodes: const [],
     this.properties: const [],
     this.references: const [],
@@ -132,10 +151,14 @@ class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
 
   _SyntheticEmbeddedTemplateAst.from(
     TemplateAst origin, {
+    this.attributes: const [],
     this.childNodes: const [],
     this.properties: const [],
     this.references: const [],
   });
+
+  @override
+  final List<AttributeAst> attributes;
 
   @override
   final List<StandaloneTemplateAst> childNodes;

@@ -22,6 +22,11 @@ export 'package:angular_ast/src/ast.dart'
 export 'package:angular_ast/src/lexer.dart' show NgLexer;
 export 'package:angular_ast/src/parser.dart' show NgParser;
 export 'package:angular_ast/src/token.dart' show NgToken, NgTokenType;
+export 'package:angular_ast/src/visitor.dart'
+    show
+        HumanizingTemplateAstVisitor,
+        IdentityTemplateAstVisitor,
+        TemplateAstVisitor;
 
 /// Returns [template] parsed as an abstract syntax tree.
 List<TemplateAst> parse(String template) {

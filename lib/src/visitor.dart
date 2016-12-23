@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
-import 'package:meta/meta.dart';
+export 'package:angular_ast/src/visitors/humanizing.dart';
+export 'package:angular_ast/src/visitors/identity.dart';
 
 /// A visitor for [TemplateAst] trees that may process each node.
 ///
@@ -55,11 +56,7 @@ abstract class TemplateAstVisitor<R, C> {
   R visitComment(CommentAst astNode, [C context]);
 
   /// Visits all embedded content ASTs.
-  @mustCallSuper
-  R visitEmbeddedContent(EmbeddedContentAst astNode, [C context]) {
-    astNode.childNodes.forEach((c) => visit(c, context));
-    return null;
-  }
+  R visitEmbeddedContent(EmbeddedContentAst astNode, [C context]);
 
   /// Visits all embedded template ASTs.
   R visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [C context]) {
@@ -71,7 +68,6 @@ abstract class TemplateAstVisitor<R, C> {
   }
 
   /// Visits all element ASTs.
-  @mustCallSuper
   R visitElement(ElementAst astNode, [C context]) {
     astNode
       ..attributes.forEach((a) => visitAttribute(a, context))

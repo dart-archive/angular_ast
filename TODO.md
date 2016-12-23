@@ -9,12 +9,15 @@ These are blocking the package from replacing the current parser
 - [x] Parse embedded content
 - [x] Support implicitly void elements (`<input>`)
 - [x] Support banana syntax (event and property setter)
-- [ ] Support interpolated property setters
 - [x] Lex expressions
 - [x] Parse expressions
-- [ ] Support the `*ngFor` style multiple-expressions/properties
+- [x] Support the `*ngFor` style multiple-expressions/properties
 - [x] Add AST visitor, and `accept` methods to AST classes
 - [x] Support explicitly void elements (`<foo />`)
+
+Potentially not support
+
+- [ ] Support interpolated property setters
 
 ## Secondary issues
 
