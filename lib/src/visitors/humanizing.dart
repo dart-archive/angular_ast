@@ -89,6 +89,11 @@ class HumanizingTemplateAstVisitor
   ]) {
     context ??= new StringBuffer();
     context..write('<template');
+    if (astNode.attributes.isNotEmpty) {
+      context
+        ..write(' ')
+        ..writeAll(astNode.attributes.map(visitAttribute), ' ');
+    }
     if (astNode.properties.isNotEmpty) {
       context
         ..write(' ')

@@ -61,6 +61,7 @@ abstract class TemplateAstVisitor<R, C> {
   /// Visits all embedded template ASTs.
   R visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [C context]) {
     astNode
+      ..attributes.forEach((a) => visitAttribute(a, context))
       ..childNodes.forEach((c) => visit(c, context))
       ..properties.forEach((p) => visitProperty(p, context))
       ..references.forEach((r) => visitReference(r, context));
