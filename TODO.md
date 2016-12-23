@@ -12,13 +12,14 @@ These are blocking the package from replacing the current parser
 - [ ] Support interpolated property setters
 - [x] Lex expressions
 - [x] Parse expressions
-- [ ] Add AST visitor, and `accept` methods to AST classes
+- [ ] Support the `*ngFor` style multiple-expressions/properties
+- [x] Add AST visitor, and `accept` methods to AST classes
+- [x] Support explicitly void elements (`<foo />`)
 
 ## Secondary issues
 
 These are needed to add useful features on top of current support
 
-- [ ] Support explicitly void elements (`<foo />`)
 - [ ] Add AST rewrite support (for refactoring tools)
     - [ ] Be able to remove an element
     - [ ] Be able to remove a decorator

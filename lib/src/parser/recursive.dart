@@ -195,11 +195,12 @@ class RecursiveAstParser {
           throw new StateError('Invalid decorator AST: $decoratorAst');
         }
       }
-    } while (nextToken.type != NgTokenType.openElementEnd);
+    } while (nextToken.type != NgTokenType.openElementEnd &&
+        nextToken.type != NgTokenType.openElementEndVoid);
 
     // If this is a void element, skip this part
     var endToken = nextToken;
-    if (!isVoidElement) {
+    if (!isVoidElement && nextToken.type != NgTokenType.openElementEndVoid) {
       // Collect child nodes.
       nextToken = _reader.next();
       while (nextToken.type != NgTokenType.closeElementStart) {

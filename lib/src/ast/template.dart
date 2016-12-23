@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/visitor.dart';
 import 'package:collection/collection.dart';
 import 'package:quiver/core.dart';
 import 'package:source_span/source_span.dart';
@@ -38,6 +39,11 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     List<PropertyAst> properties,
     List<ReferenceAst> references,
   }) = _ParsedEmbeddedTemplateAst;
+
+  @override
+  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+    return visitor.visitEmbeddedTemplate(this, context);
+  }
 
   /// Property assignments.
   ///

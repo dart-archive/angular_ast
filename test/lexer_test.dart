@@ -45,6 +45,17 @@ main() {
     );
   });
 
+  test('should tokenize an HTML element that is explicitly void', () {
+    expect(
+      tokenize('<hr/>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'hr'),
+        new NgToken.openElementEndVoid(3),
+      ],
+    );
+  });
+
   test('should tokenize nested HTML elements', () {
     expect(
       tokenize('<div><span></span></div>'),

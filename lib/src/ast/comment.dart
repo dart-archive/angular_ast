@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 
 /// Represents a comment block of static text.
@@ -25,6 +26,11 @@ abstract class CommentAst implements StandaloneTemplateAst {
     NgToken valueToken,
     NgToken endCommentToken,
   ) = _ParsedCommentAst;
+
+  @override
+  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+    return visitor.visitComment(this, context);
+  }
 
   @override
   bool operator ==(Object o) => o is CommentAst && value == o.value;

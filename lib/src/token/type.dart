@@ -85,6 +85,12 @@ class NgTokenType {
     lexeme: '>',
   );
 
+  /// Represents ending opening an element declaration, with no inner content.
+  static const openElementEndVoid = const NgTokenType._(
+    'openElementEndVoid',
+    lexeme: '/>',
+  );
+
   /// Represents starting opening an element declaration.
   static const openElementStart = const NgTokenType._(
     'openElementStart',

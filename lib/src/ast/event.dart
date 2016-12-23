@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
@@ -43,6 +44,11 @@ abstract class EventAst implements TemplateAst {
 
   @override
   int get hashCode => hash3(name, expression, postfix);
+
+  @override
+  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+    return visitor.visitEvent(this, context);
+  }
 
   /// Bound expression.
   ExpressionAst get expression;

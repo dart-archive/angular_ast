@@ -22,7 +22,8 @@ class NgScanner {
   static final _findBeforeElementDecoratorValue = new RegExp(r'\s*=\s*"');
   static final _findElementDecorator = new RegExp(r'[^\s=>]+', multiLine: true);
   static final _findElementDecoratorValue = new RegExp(r'[^"]*');
-  static final _findElementIdentifier = new RegExp(r'[^\s|>]*');
+  static const _findElementEndVoid = '/>';
+  static final _findElementIdentifier = new RegExp(r'[^\s/>]*');
   static final _findInterpolationValue = new RegExp(r'[^}}]*');
   static final _findWhitespace = new RegExp(r'\s+', multiLine: true);
 
@@ -106,7 +107,9 @@ class NgScanner {
     if (_scanner.scan(_findBeforeElementDecoratorValue)) {
       _state = _NgScannerState.scanElementDecoratorValue;
       return new NgToken.beforeElementDecoratorValue(offset);
-    } else if (_scanner.peekChar() == _charElementEnd) {
+    } else if (
+        _scanner.peekChar() == _charElementEnd ||
+        _scanner.peekChar() == $slash) {
       return scanElementEnd(wasOpenTag: true);
     } else if (_scanner.matches(_findWhitespace)) {
       return scanBeforeElementDecorator();
@@ -231,7 +234,13 @@ class NgScanner {
   @protected
   NgToken scanElementEnd({@required bool wasOpenTag}) {
     final offset = _scanner.position;
-    if (_scanner.scanChar(_charElementEnd)) {
+    if (_scanner.scan(_findElementEndVoid)) {
+      _state = _NgScannerState.scanStart;
+      if (!wasOpenTag) {
+        throw _unexpected();
+      }
+      return new NgToken.openElementEndVoid(offset);
+    } else if (_scanner.scanChar(_charElementEnd)) {
       _state = _NgScannerState.scanStart;
       return wasOpenTag
           ? new NgToken.openElementEnd(offset)
