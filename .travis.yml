@@ -7,4 +7,4 @@ dart:
 cache:
   directories:
     - $HOME/.pub-cache
-script: ./tool/travis.sh
+script: ./tool/presubmit.sh
