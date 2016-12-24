@@ -107,8 +107,7 @@ class NgScanner {
     if (_scanner.scan(_findBeforeElementDecoratorValue)) {
       _state = _NgScannerState.scanElementDecoratorValue;
       return new NgToken.beforeElementDecoratorValue(offset);
-    } else if (
-        _scanner.peekChar() == _charElementEnd ||
+    } else if (_scanner.peekChar() == _charElementEnd ||
         _scanner.peekChar() == $slash) {
       return scanElementEnd(wasOpenTag: true);
     } else if (_scanner.matches(_findWhitespace)) {
