@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 
 /// Represents an `<ng-content>` element AST.
@@ -27,6 +28,11 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
     NgToken endElementToken, [
     NgToken selectorValueToken,
   ]) = _ParsedEmbeddedContentAst;
+
+  @override
+  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+    return visitor.visitEmbeddedContent(this, context);
+  }
 
   /// A CSS selector denoting what elements should be embedded.
   ///

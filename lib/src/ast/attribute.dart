@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
@@ -32,8 +33,17 @@ abstract class AttributeAst implements TemplateAst {
   ]) = _ParsedAttributeAst;
 
   @override
-  bool operator ==(Object o) =>
-      o is AttributeAst && name == o.name && value == o.value;
+  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+    return visitor.visitAttribute(this, context);
+  }
+
+  @override
+  bool operator ==(Object o) {
+    if (o is AttributeAst) {
+      return name == o.name && value == o.value;
+    }
+    return false;
+  }
 
   @override
   int get hashCode => hash2(name, value);

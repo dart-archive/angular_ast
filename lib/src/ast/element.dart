@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/visitor.dart';
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
@@ -70,6 +71,11 @@ abstract class ElementAst implements StandaloneTemplateAst {
       _listEquals.hash(properties),
       _listEquals.hash(references),
     ]);
+  }
+
+  @override
+  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+    return visitor.visitElement(this, context);
   }
 
   /// Whether this is a `<template>` tag and should not be directly rendered.

@@ -264,4 +264,39 @@ main() {
       ],
     );
   });
+
+  test('should parse an *ngFor multi-expression', () {
+    expect(
+      parse('<a *ngFor="let item of items; trackBy: byId; let i = index"></a>'),
+      [
+        new EmbeddedTemplateAst(
+          attributes: [
+            new AttributeAst('ngFor'),
+          ],
+          childNodes: [
+            new ElementAst('a'),
+          ],
+          properties: [
+            new PropertyAst(
+              'ngForOf',
+              new ExpressionAst.parse('items'),
+            ),
+            new PropertyAst(
+              'ngForTrackBy',
+              new ExpressionAst.parse('byId'),
+            ),
+          ],
+          references: [
+            new ReferenceAst(
+              'item',
+            ),
+            new ReferenceAst(
+              'i',
+              'index',
+            ),
+          ],
+        )
+      ],
+    );
+  });
 }

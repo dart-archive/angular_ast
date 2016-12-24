@@ -81,6 +81,10 @@ class NgToken {
     return new NgToken._(NgTokenType.openElementEnd, offset);
   }
 
+  factory NgToken.openElementEndVoid(int offset) {
+    return new NgToken._(NgTokenType.openElementEndVoid, offset);
+  }
+
   factory NgToken.openElementStart(int offset) {
     return new NgToken._(NgTokenType.openElementStart, offset);
   }

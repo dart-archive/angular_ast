@@ -21,6 +21,11 @@ new ExpressionAst.parse('some + dart + expression')
 ```
 $$ng.pipes.bar(foo) // Used to be: "foo | bar"
 ```
+- Added `TemplateAstVisitor` and two examples:
+    - `HumanizingTemplateAstVisitor`
+    - `IdentityTemplateAstVisitor`
+- De-sugars the `*ngFor`-style micro expressions; see `micro_test.dart`.
+    - Added `attributes` as a valid property of `EmbeddedTemplateAst`
 
 ## 0.1.0
 

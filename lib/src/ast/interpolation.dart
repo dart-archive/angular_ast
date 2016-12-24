@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 
 /// Represents a bound text element to an expression.
@@ -27,6 +28,11 @@ abstract class InterpolationAst implements StandaloneTemplateAst {
     ExpressionAst expressionAst,
     NgToken endToken,
   ) = _ParsedInterpolationAst;
+
+  @override
+  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+    return visitor.visitInterpolation(this, context);
+  }
 
   /// Bound expression.
   ExpressionAst get expression;

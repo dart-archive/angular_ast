@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 
 /// Represents a block of static text (i.e. not bound to a directive).
@@ -29,6 +30,11 @@ abstract class TextAst implements StandaloneTemplateAst {
 
   @override
   int get hashCode => value.hashCode;
+
+  @override
+  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+    return visitor.visitText(this, context);
+  }
 
   /// Static text value.
   String get value;
