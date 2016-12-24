@@ -21,7 +21,6 @@ new ExpressionAst.parse('some + dart + expression')
 ```
 $$ng.pipes.bar(foo) // Used to be: "foo | bar"
 ```
-
 - Added `TemplateAstVisitor` and two examples:
     - `HumanizingTemplateAstVisitor`
     - `IdentityTemplateAstVisitor`
