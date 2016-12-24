@@ -8,17 +8,17 @@ These are blocking the package from replacing the current parser
 - [x] Parse embedded templates
 - [x] Parse embedded content
 - [x] Support implicitly void elements (`<input>`)
-- [ ] Support explicitly void elements (`<foo />`)
 - [x] Support banana syntax (event and property setter)
 - [ ] Support interpolated property setters
-- [ ] Lex expressions
-- [ ] Parse expressions
+- [x] Lex expressions
+- [x] Parse expressions
 - [ ] Add AST visitor, and `accept` methods to AST classes
 
 ## Secondary issues
 
 These are needed to add useful features on top of current support
 
+- [ ] Support explicitly void elements (`<foo />`)
 - [ ] Add AST rewrite support (for refactoring tools)
     - [ ] Be able to remove an element
     - [ ] Be able to remove a decorator

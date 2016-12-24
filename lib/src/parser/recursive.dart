@@ -81,14 +81,22 @@ class RecursiveAstParser {
           beginToken,
           nameToken,
           endToken,
-          valueToken != null ? new ExpressionAst(valueToken.lexeme) : null,
+          valueToken != null
+              ? new ExpressionAst.parse(
+                  valueToken.lexeme,
+                  sourceUrl: _source.url.toString(),
+                )
+              : null,
         );
       case $open_parenthesis:
         return new EventAst.parsed(
           _source,
           beginToken,
           nameToken,
-          new ExpressionAst(valueToken.lexeme),
+          new ExpressionAst.parse(
+            valueToken.lexeme,
+            sourceUrl: _source.url.toString(),
+          ),
           endToken,
         );
       case $hash:
@@ -159,7 +167,7 @@ class RecursiveAstParser {
               origin = new BananaAst.from(
                 decoratorAst,
                 decoratorAst.name,
-                decoratorAst.expression.expression,
+                decoratorAst.expression.expression.toSource(),
               );
             }
             properties.add(
@@ -173,7 +181,7 @@ class RecursiveAstParser {
                 origin,
                 decoratorAst.name.substring(1, decoratorAst.name.length - 1) +
                     'Changed',
-                new ExpressionAst(
+                new ExpressionAst.parse(
                   '${decoratorAst.expression.expression} = \$event',
                 ),
               ),
@@ -222,7 +230,10 @@ class RecursiveAstParser {
       origin = new StarAst.from(
         deSugarTemplateAst,
         deSugarTemplateAst.name,
-        new ExpressionAst(deSugarTemplateAst.value),
+        new ExpressionAst.parse(
+          deSugarTemplateAst.value,
+          sourceUrl: _source.url.toString(),
+        ),
       );
       return new EmbeddedTemplateAst.from(
         origin,
@@ -232,7 +243,10 @@ class RecursiveAstParser {
         properties: [
           new PropertyAst(
             deSugarTemplateAst.name.substring(1),
-            new ExpressionAst(deSugarTemplateAst.value),
+            new ExpressionAst.parse(
+              deSugarTemplateAst.value,
+              sourceUrl: _source.url.toString(),
+            ),
           ),
         ],
       );
@@ -329,8 +343,9 @@ class RecursiveAstParser {
     return new InterpolationAst.parsed(
       _source,
       beginToken,
-      new ExpressionAst(
+      new ExpressionAst.parse(
         valueToken.lexeme,
+        sourceUrl: _source.url.toString(),
       ),
       endToken,
     );
