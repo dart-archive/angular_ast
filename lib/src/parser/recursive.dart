@@ -1,6 +1,7 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/expression/micro.dart';
 import 'package:angular_ast/src/parser/reader.dart';
@@ -239,11 +240,11 @@ class RecursiveAstParser {
       );
       final starExpression = deSugarTemplateAst.value;
       final directiveName = deSugarTemplateAst.name.substring(1);
-      if (starExpression.startsWith('let')) {
+      if (isMicroExpression(starExpression)) {
         // This is a micro expression, so we further parse it.
         final micro = parseMicroExpression(
-          starExpression,
           directiveName,
+          starExpression,
           sourceUrl: _source.url.toString(),
         );
         return new EmbeddedTemplateAst.from(
