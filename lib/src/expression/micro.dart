@@ -24,5 +24,9 @@ NgMicroAst parseMicroExpression(
   String expression, {
   String sourceUrl,
 }) {
-  return const NgMicroParser().parse(directive, expression);
+  return const NgMicroParser().parse(
+    directive,
+    expression,
+    sourceUrl: sourceUrl,
+  );
 }

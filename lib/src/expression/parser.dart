@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 
 final _resourceProvider = new MemoryResourceProvider();
 
@@ -33,7 +34,7 @@ class _ThrowingListener implements AnalysisErrorListener {
 Expression parseExpression(
   String expression, {
   bool deSugarPipes: true,
-  String sourceUrl: '/~test.dart',
+  @required String sourceUrl,
 }) {
   final source = _resourceProvider
       .newFile(
@@ -98,10 +99,15 @@ class _NgExpressionParser extends Parser {
   ///
   /// With the expectation the compiler will optimize further.
   Expression parseAndTransformPipeExpression(BinaryExpression expression) {
-    final ngInternalNamespace = astFactory.simpleIdentifier(
-      new StringToken(TokenType.IDENTIFIER, r'$$ng.pipe', 0),
+    final ngInternalNamespace = astFactory.prefixedIdentifier(
+      astFactory.simpleIdentifier(
+        new StringToken(TokenType.IDENTIFIER, r'$$ng', 0),
+      ),
+      new Token(TokenType.PERIOD, 0),
+      astFactory.simpleIdentifier(
+        new StringToken(TokenType.IDENTIFIER, r'pipe', 0),
+      ),
     );
-    // TODO: Support pipe arguments.
     var pipeArgs = <Expression>[];
     while (currentToken.lexeme == ':') {
       currentToken = currentToken.next;
@@ -116,6 +122,13 @@ class _NgExpressionParser extends Parser {
         pipeArgs,
         new Token(TokenType.CLOSE_SQUARE_BRACKET, 0),
       ));
+    }
+    if (expression.rightOperand is! Identifier) {
+      throw new FormatException(
+        'Pipe name must be a valid identifier',
+        expression.toSource(),
+        expression.rightOperand.offset,
+      );
     }
     return astFactory.methodInvocation(
       ngInternalNamespace,

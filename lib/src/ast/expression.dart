@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:angular_ast/src/expression/parser.dart';
+import 'package:meta/meta.dart';
 
 /// Wraps a parsed Dart [Expression] as an Angular [ExpressionAst].
 class ExpressionAst {
   /// Dart expression.
-  final Expression expression;
+  final analyzer.Expression expression;
 
   /// Create a new expression AST wrapping a Dart expression.
   const ExpressionAst(this.expression);
@@ -17,12 +18,8 @@ class ExpressionAst {
   factory ExpressionAst.parse(
     String expression, {
     bool deSugarPipes: true,
-    String sourceUrl: '/test.dart',
+    @required String sourceUrl,
   }) {
-    // Fall back in case this comes from a test w/o a real source URL.
-    if (!sourceUrl.endsWith('.dart')) {
-      sourceUrl = '/test.dart';
-    }
     return new ExpressionAst(parseExpression(
       expression,
       deSugarPipes: deSugarPipes,

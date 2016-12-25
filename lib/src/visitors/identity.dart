@@ -13,9 +13,6 @@ class IdentityTemplateAstVisitor<C>
   const IdentityTemplateAstVisitor();
 
   @override
-  TemplateAst visit(TemplateAst astNode, [_]) => astNode;
-
-  @override
   TemplateAst visitAttribute(AttributeAst astNode, [_]) => astNode;
 
   @override

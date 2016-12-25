@@ -17,7 +17,7 @@ main() {
   new Directory(templatesDir).listSync().forEach((file) {
     if (file is File) {
       test('should parse ${p.basenameWithoutExtension(file.path)}', () {
-        parse(file.readAsStringSync());
+        parse(file.readAsStringSync(), sourceUrl: file.absolute.path);
       });
     }
   });

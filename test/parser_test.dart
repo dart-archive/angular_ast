@@ -6,7 +6,12 @@ import 'package:angular_ast/angular_ast.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final parse = const NgParser().parse;
+  List<StandaloneTemplateAst> parse(String template) {
+    return const NgParser().parse(
+      template,
+      sourceUrl: '/test/parser_test.dart#inline',
+    );
+  }
 
   test('should parse a text node', () {
     expect(
@@ -52,7 +57,10 @@ void main() {
     expect(
       parse('{{name}}'),
       [
-        new InterpolationAst(new ExpressionAst.parse('name')),
+        new InterpolationAst(new ExpressionAst.parse(
+          'name',
+          sourceUrl: '/test/expression/parser_test.dart#inline',
+        )),
       ],
     );
   });
@@ -64,7 +72,10 @@ void main() {
         new TextAst('Hello'),
         new ElementAst('div'),
         new CommentAst('Goodbye'),
-        new InterpolationAst(new ExpressionAst.parse('name')),
+        new InterpolationAst(new ExpressionAst.parse(
+          'name',
+          sourceUrl: '/test/expression/parser_test.dart#inline',
+        )),
       ],
     );
   });
@@ -115,7 +126,12 @@ void main() {
       parse('<button (click)="onClick()"></button>'),
       [
         new ElementAst('button', events: [
-          new EventAst('click', new ExpressionAst.parse('onClick()')),
+          new EventAst(
+              'click',
+              new ExpressionAst.parse(
+                'onClick()',
+                sourceUrl: '/test/expression/parser_test.dart#inline',
+              )),
         ]),
       ],
     );
@@ -137,7 +153,12 @@ void main() {
       parse('<button [value]="btnValue"></button>'),
       [
         new ElementAst('button', properties: [
-          new PropertyAst('value', new ExpressionAst.parse('btnValue')),
+          new PropertyAst(
+              'value',
+              new ExpressionAst.parse(
+                'btnValue',
+                sourceUrl: '/test/expression/parser_test.dart#inline',
+              )),
         ]),
       ],
     );
@@ -198,7 +219,12 @@ void main() {
       [
         new EmbeddedTemplateAst(
           properties: [
-            new PropertyAst('ngIf', new ExpressionAst.parse('someValue')),
+            new PropertyAst(
+                'ngIf',
+                new ExpressionAst.parse(
+                  'someValue',
+                  sourceUrl: '/test/expression/parser_test.dart#inline',
+                )),
           ],
         ),
       ],
@@ -256,10 +282,19 @@ void main() {
           'custom',
           events: [
             new EventAst(
-                'nameChanged', new ExpressionAst.parse('myName = \$event')),
+                'nameChanged',
+                new ExpressionAst.parse(
+                  'myName = \$event',
+                  sourceUrl: '/test/expression/parser_test.dart#inline',
+                )),
           ],
           properties: [
-            new PropertyAst('name', new ExpressionAst.parse('myName')),
+            new PropertyAst(
+                'name',
+                new ExpressionAst.parse(
+                  'myName',
+                  sourceUrl: '/test/expression/parser_test.dart#inline',
+                )),
           ],
         )
       ],
@@ -280,11 +315,17 @@ void main() {
           properties: [
             new PropertyAst(
               'ngForOf',
-              new ExpressionAst.parse('items'),
+              new ExpressionAst.parse(
+                'items',
+                sourceUrl: '/test/expression/parser_test.dart#inline',
+              ),
             ),
             new PropertyAst(
               'ngForTrackBy',
-              new ExpressionAst.parse('byId'),
+              new ExpressionAst.parse(
+                'byId',
+                sourceUrl: '/test/expression/parser_test.dart#inline',
+              ),
             ),
           ],
           references: [

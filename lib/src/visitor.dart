@@ -12,43 +12,6 @@ export 'package:angular_ast/src/visitors/identity.dart';
 abstract class TemplateAstVisitor<R, C> {
   const TemplateAstVisitor();
 
-  /// Visits an [astNode] tree, passing along [context] if given.
-  ///
-  /// Based on the subtype other `visit` methods are called.
-  R visit(TemplateAst astNode, [C context]) {
-    if (astNode is AttributeAst) {
-      return visitAttribute(astNode, context);
-    }
-    if (astNode is CommentAst) {
-      return visitComment(astNode, context);
-    }
-    if (astNode is EmbeddedContentAst) {
-      return visitEmbeddedContent(astNode, context);
-    }
-    if (astNode is EmbeddedTemplateAst) {
-      return visitEmbeddedTemplate(astNode, context);
-    }
-    if (astNode is ElementAst) {
-      return visitElement(astNode, context);
-    }
-    if (astNode is EventAst) {
-      return visitEvent(astNode, context);
-    }
-    if (astNode is InterpolationAst) {
-      return visitInterpolation(astNode, context);
-    }
-    if (astNode is PropertyAst) {
-      return visitProperty(astNode, context);
-    }
-    if (astNode is ReferenceAst) {
-      return visitReference(astNode, context);
-    }
-    if (astNode is TextAst) {
-      return visitText(astNode, context);
-    }
-    throw new UnsupportedError('${astNode.runtimeType}');
-  }
-
   /// Visits all attribute ASTs.
   R visitAttribute(AttributeAst astNode, [C context]);
 
@@ -62,7 +25,7 @@ abstract class TemplateAstVisitor<R, C> {
   R visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [C context]) {
     astNode
       ..attributes.forEach((a) => visitAttribute(a, context))
-      ..childNodes.forEach((c) => visit(c, context))
+      ..childNodes.forEach((c) => c.accept/*<R, C>*/(this, context))
       ..properties.forEach((p) => visitProperty(p, context))
       ..references.forEach((r) => visitReference(r, context));
     return null;
@@ -72,7 +35,7 @@ abstract class TemplateAstVisitor<R, C> {
   R visitElement(ElementAst astNode, [C context]) {
     astNode
       ..attributes.forEach((a) => visitAttribute(a, context))
-      ..childNodes.forEach((c) => visit(c, context))
+      ..childNodes.forEach((c) => c.accept/*<R, C>*/(this, context))
       ..events.forEach((e) => visitEvent(e, context))
       ..properties.forEach((p) => visitProperty(p, context))
       ..references.forEach((r) => visitReference(r, context));

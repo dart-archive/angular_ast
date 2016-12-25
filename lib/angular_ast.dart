@@ -4,6 +4,7 @@
 
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/parser.dart';
+import 'package:meta/meta.dart';
 export 'package:angular_ast/src/ast.dart'
     show
         AttributeAst,
@@ -30,6 +31,6 @@ export 'package:angular_ast/src/visitor.dart'
         TemplateAstVisitor;
 
 /// Returns [template] parsed as an abstract syntax tree.
-List<TemplateAst> parse(String template) {
-  return const NgParser().parse(template);
+List<TemplateAst> parse(String template, {@required String sourceUrl}) {
+  return const NgParser().parse(template, sourceUrl: sourceUrl);
 }

@@ -7,7 +7,6 @@ import 'package:angular_ast/src/ast/comment.dart';
 import 'package:angular_ast/src/ast/content.dart';
 import 'package:angular_ast/src/ast/element.dart';
 import 'package:angular_ast/src/ast/event.dart';
-import 'package:angular_ast/src/ast/interface.dart';
 import 'package:angular_ast/src/ast/interpolation.dart';
 import 'package:angular_ast/src/ast/property.dart';
 import 'package:angular_ast/src/ast/reference.dart';
@@ -19,11 +18,6 @@ import 'package:angular_ast/src/visitor.dart';
 class HumanizingTemplateAstVisitor
     extends TemplateAstVisitor<String, StringBuffer> {
   const HumanizingTemplateAstVisitor();
-
-  @override
-  String visit(TemplateAst astNode, [StringBuffer context]) {
-    return super.visit(astNode, context);
-  }
 
   @override
   String visitAttribute(AttributeAst astNode, [_]) {
@@ -65,7 +59,7 @@ class HumanizingTemplateAstVisitor
     }
     context.write('>');
     if (astNode.childNodes.isNotEmpty) {
-      context.writeAll(astNode.childNodes.map(visit));
+      context.writeAll(astNode.childNodes.map((c) => c.accept(this)));
     }
     context..write('</')..write(astNode.name)..write('>');
     return context.toString();
@@ -110,7 +104,7 @@ class HumanizingTemplateAstVisitor
     }
     context.write('>');
     if (astNode.childNodes.isNotEmpty) {
-      context.writeAll(astNode.childNodes.map(visit));
+      context.writeAll(astNode.childNodes.map((c) => c.accept(this)));
     }
     context..write('</template>');
     return context.toString();

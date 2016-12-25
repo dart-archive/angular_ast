@@ -185,6 +185,7 @@ class RecursiveAstParser {
                     'Changed',
                 new ExpressionAst.parse(
                   '${decoratorAst.expression.expression} = \$event',
+                  sourceUrl: _source.url.toString(),
                 ),
               ),
             );

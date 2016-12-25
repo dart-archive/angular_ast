@@ -9,7 +9,11 @@ import 'package:test/test.dart';
 
 void main() {
   NgMicroAst parse(String directive, String expression) {
-    return const NgMicroParser().parse(directive, expression);
+    return const NgMicroParser().parse(
+      directive,
+      expression,
+      sourceUrl: '/test/expression/micro/parser_test.dart#inline',
+    );
   }
 
   test('should parse a simple let', () {
@@ -45,8 +49,20 @@ void main() {
           new ReferenceAst('item'),
         ],
         properties: [
-          new PropertyAst('ngForOf', new ExpressionAst.parse('items')),
-          new PropertyAst('ngForTrackBy', new ExpressionAst.parse('byId')),
+          new PropertyAst(
+            'ngForOf',
+            new ExpressionAst.parse(
+              'items',
+              sourceUrl: '/test/expression/micro/parser_test.dart#inline',
+            ),
+          ),
+          new PropertyAst(
+            'ngForTrackBy',
+            new ExpressionAst.parse(
+              'byId',
+              sourceUrl: '/test/expression/micro/parser_test.dart#inline',
+            ),
+          ),
         ],
       ),
     );

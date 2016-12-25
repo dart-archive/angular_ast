@@ -45,10 +45,16 @@ class NgParser {
       : _toolFriendlyAstOrigin = toolFriendlyAstOrigin;
 
   /// Return a series of tokens by incrementally scanning [template].
-  List<StandaloneTemplateAst> parse(String template) {
+  List<StandaloneTemplateAst> parse(
+    String template, {
+    @required String sourceUrl,
+  }) {
     final tokens = const NgLexer().tokenize(template);
     final parser = new RecursiveAstParser(
-      new SourceFile(template),
+      new SourceFile(
+        template,
+        url: sourceUrl,
+      ),
       tokens,
       _voidElements,
       toolFriendlyAstOrigin: _toolFriendlyAstOrigin,
