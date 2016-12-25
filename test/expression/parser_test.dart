@@ -37,7 +37,7 @@ void main() {
         sourceUrl: '/test/expression/parser_test.dart#inline',
       )
           .toSource(),
-      r'$$ng.pipe.bar(foo)',
+      r'foo | bar',
     );
   });
 
@@ -48,7 +48,7 @@ void main() {
         sourceUrl: '/test/expression/parser_test.dart#inline',
       )
           .toSource(),
-      r'$$ng.pipe.baz($$ng.pipe.bar(foo))',
+      r'foo | bar | baz',
     );
   });
 
@@ -61,7 +61,7 @@ void main() {
         sourceUrl: '/test/expression/parser_test.dart#inline',
       )
           .toSource(),
-      r'($$ng.pipe.bar(getThing(foo))) + ($$ng.pipe.bar(getThing(baz)))',
+      r'(getThing(foo) | bar) + (getThing(baz) | bar)',
     );
   });
 
@@ -72,7 +72,7 @@ void main() {
         sourceUrl: '/test/expression/parser_test.dart#inline',
       )
           .toSource(),
-      r'$$ng.pipe.bar(foo, [baz])',
+      r'foo | bar:baz',
     );
   });
 
@@ -83,7 +83,7 @@ void main() {
         sourceUrl: '/test/expression/parser_test.dart#inline',
       )
           .toSource(),
-      r"$$ng.pipe.date(foo, ['YY/MM/DD', false])",
+      r"foo | date:'YY/MM/DD':false",
     );
   });
 }
