@@ -15,12 +15,7 @@ new ExpressionAst.parse('some + dart + expression')
 
 - One exception: The `|` operator is not respected, as it is used for
   pipes in AngularDart. Instead, this operator is converted into a
-  special method invocation that can be treated as a pipe call by
-  clients:
-
-```
-$$ng.pipes.bar(foo) // Used to be: "foo | bar"
-```
+  special `PipeExpression`.
 - Added `TemplateAstVisitor` and two examples:
     - `HumanizingTemplateAstVisitor`
     - `IdentityTemplateAstVisitor`
