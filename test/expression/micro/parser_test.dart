@@ -41,6 +41,26 @@ void main() {
     );
   });
 
+  test('should parse a let with a full Dart expression', () {
+    expect(
+      parse('ngFor', 'let x of items.where(filter)'),
+      new NgMicroAst(
+        assignments: [
+          new ReferenceAst('x'),
+        ],
+        properties: [
+          new PropertyAst(
+            'ngForOf',
+            new ExpressionAst.parse(
+              'items.where(filter)',
+              sourceUrl: '/test/expression/micro/parser_test.dart#inline',
+            ),
+          ),
+        ],
+      ),
+    );
+  });
+
   test('should parse a let/bind pair', () {
     expect(
       parse('ngFor', 'let item of items; trackBy: byId'),
