@@ -1,14 +1,18 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:angular_ast/src/expression/pipe.dart';
+import 'package:meta/meta.dart';
 
 final _resourceProvider = new MemoryResourceProvider();
 
@@ -29,7 +33,7 @@ class _ThrowingListener implements AnalysisErrorListener {
 Expression parseExpression(
   String expression, {
   bool deSugarPipes: true,
-  String sourceUrl: '/~test.dart',
+  @required String sourceUrl,
 }) {
   final source = _resourceProvider
       .newFile(
@@ -94,35 +98,26 @@ class _NgExpressionParser extends Parser {
   ///
   /// With the expectation the compiler will optimize further.
   Expression parseAndTransformPipeExpression(BinaryExpression expression) {
-    final ngInternalNamespace = astFactory.simpleIdentifier(
-      new StringToken(TokenType.IDENTIFIER, r'$$ng.pipe', 0),
-    );
-    // TODO: Support pipe arguments.
-    var pipeArgs = <Expression>[];
+    final pipeArgs = <Expression>[];
     while (currentToken.lexeme == ':') {
       currentToken = currentToken.next;
       pipeArgs.add(this.parseExpression2());
     }
-    var callArgs = <Expression>[expression.leftOperand];
-    if (pipeArgs.isNotEmpty) {
-      callArgs.add(new ListLiteral(
-        null,
-        null,
-        new Token(TokenType.OPEN_SQUARE_BRACKET, 0),
-        pipeArgs,
-        new Token(TokenType.CLOSE_SQUARE_BRACKET, 0),
-      ));
+    if (expression.rightOperand is! Identifier) {
+      throw new FormatException(
+        'Pipe name must be a valid identifier',
+        expression.toSource(),
+        expression.rightOperand.offset,
+      );
     }
-    return astFactory.methodInvocation(
-      ngInternalNamespace,
-      new Token(TokenType.PERIOD, 0),
+    return new PipeExpression(
+      expression.beginToken,
+      expression.endToken,
+      expression.end,
       expression.rightOperand,
-      null,
-      astFactory.argumentList(
-        new Token(TokenType.OPEN_PAREN, 0),
-        callArgs,
-        new Token(TokenType.CLOSE_PAREN, 0),
-      ),
+      expression.operator,
+      expression.leftOperand,
+      pipeArgs,
     );
   }
 }

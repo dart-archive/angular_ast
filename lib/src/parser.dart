@@ -1,6 +1,7 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/lexer.dart';
 import 'package:angular_ast/src/parser/recursive.dart';
@@ -44,10 +45,16 @@ class NgParser {
       : _toolFriendlyAstOrigin = toolFriendlyAstOrigin;
 
   /// Return a series of tokens by incrementally scanning [template].
-  List<StandaloneTemplateAst> parse(String template) {
+  List<StandaloneTemplateAst> parse(
+    String template, {
+    @required String sourceUrl,
+  }) {
     final tokens = const NgLexer().tokenize(template);
     final parser = new RecursiveAstParser(
-      new SourceFile(template),
+      new SourceFile(
+        template,
+        url: sourceUrl,
+      ),
       tokens,
       _voidElements,
       toolFriendlyAstOrigin: _toolFriendlyAstOrigin,

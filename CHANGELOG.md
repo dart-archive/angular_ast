@@ -15,16 +15,11 @@ new ExpressionAst.parse('some + dart + expression')
 
 - One exception: The `|` operator is not respected, as it is used for
   pipes in AngularDart. Instead, this operator is converted into a
-  special method invocation that can be treated as a pipe call by
-  clients:
-
-```
-$$ng.pipes.bar(foo) // Used to be: "foo | bar"
-```
+  special `PipeExpression`.
 - Added `TemplateAstVisitor` and two examples:
     - `HumanizingTemplateAstVisitor`
     - `IdentityTemplateAstVisitor`
-- De-sugars the `*ngFor`-style micro expressions; see `micro_test.dart`.
+- De-sugars the `*ngFor`-style micro expressions; see `micro/*_test.dart`.
     - Added `attributes` as a valid property of `EmbeddedTemplateAst`
 
 ## 0.1.0
