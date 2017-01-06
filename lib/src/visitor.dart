@@ -15,6 +15,11 @@ abstract class TemplateAstVisitor<R, C> {
   /// Visits all attribute ASTs.
   R visitAttribute(AttributeAst astNode, [C context]);
 
+  /// Visits all banana ASTs.
+  ///
+  /// **NOTE**: When de-sugared, this will never occur in a template tree.
+  R visitBanana(BananaAst astNode, [C context]);
+
   /// Visits all comment ASTs.
   R visitComment(CommentAst astNode, [C context]);
 
@@ -56,6 +61,11 @@ abstract class TemplateAstVisitor<R, C> {
 
   /// Visits all reference ASTs.
   R visitReference(ReferenceAst astNode, [C context]);
+
+  /// Visits all star ASTs.
+  ///
+  /// **NOTE**: When de-sugared, this will never occur in a template tree.
+  R visitStar(StarAst astNode, [C context]);
 
   /// Visits all text ASTs.
   R visitText(TextAst astNode, [C context]);

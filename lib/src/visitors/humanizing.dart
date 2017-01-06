@@ -19,6 +19,11 @@ class HumanizingTemplateAstVisitor
   }
 
   @override
+  String visitBanana(BananaAst astNode, [_]) {
+    return '[(${astNode.name})]="${astNode.field}"';
+  }
+
+  @override
   String visitComment(CommentAst astNode, [_]) {
     return '<!--${astNode.value}-->';
   }
@@ -130,6 +135,15 @@ class HumanizingTemplateAstVisitor
       return '#${astNode.identifier}="${astNode.variable}"';
     } else {
       return '#${astNode.identifier}';
+    }
+  }
+
+  @override
+  String visitStar(StarAst astNode, [_]) {
+    if (astNode.expression == null) {
+      return '*${astNode.name}';
+    } else {
+      return '*${astNode.name}="${visitExpression(astNode.expression)}"';
     }
   }
 

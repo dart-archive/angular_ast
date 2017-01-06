@@ -39,7 +39,7 @@ abstract class StarAst implements TemplateAst {
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
-    throw new UnimplementedError();
+    return visitor.visitStar(this, context);
   }
 
   @override

@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 export 'package:angular_ast/src/ast.dart'
     show
         AttributeAst,
+        BananaAst,
         CommentAst,
         ElementAst,
         EmbeddedContentAst,
@@ -18,6 +19,7 @@ export 'package:angular_ast/src/ast.dart'
         PropertyAst,
         ReferenceAst,
         StandaloneTemplateAst,
+        StarAst,
         SyntheticTemplateAst,
         TemplateAst,
         TextAst;
