@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 export 'package:angular_ast/src/ast.dart'
     show
         AttributeAst,
+        BananaAst,
         CommentAst,
         ElementAst,
         EmbeddedContentAst,
@@ -18,6 +19,7 @@ export 'package:angular_ast/src/ast.dart'
         PropertyAst,
         ReferenceAst,
         StandaloneTemplateAst,
+        StarAst,
         SyntheticTemplateAst,
         TemplateAst,
         TextAst;
@@ -31,6 +33,13 @@ export 'package:angular_ast/src/visitor.dart'
         TemplateAstVisitor;
 
 /// Returns [template] parsed as an abstract syntax tree.
-List<TemplateAst> parse(String template, {@required String sourceUrl}) {
-  return const NgParser().parse(template, sourceUrl: sourceUrl);
+List<TemplateAst> parse(
+  String template, {
+  @required String sourceUrl,
+  bool toolFriendlyAst: false,
+}) {
+  final parser = toolFriendlyAst
+      ? const NgParser(toolFriendlyAstOrigin: true)
+      : const NgParser();
+  return parser.parse(template, sourceUrl: sourceUrl);
 }

@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analyzer.dart' as analyzer;
+import 'package:angular_ast/angular_ast.dart';
 import 'package:angular_ast/src/expression/parser.dart';
 import 'package:meta/meta.dart';
+import 'package:source_span/src/span.dart';
 
 /// Wraps a parsed Dart [Expression] as an Angular [ExpressionAst].
-class ExpressionAst {
+class ExpressionAst implements TemplateAst {
   /// Dart expression.
   final analyzer.Expression expression;
 
@@ -37,6 +39,32 @@ class ExpressionAst {
 
   @override
   int get hashCode => expression.hashCode;
+
+  @override
+  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+    return visitor.visitExpression(this, context);
+  }
+
+  @override
+  NgToken get beginToken => null;
+
+  @override
+  List<StandaloneTemplateAst> get childNodes => const [];
+
+  @override
+  NgToken get endToken => null;
+
+  @override
+  bool get isParent => false;
+
+  @override
+  bool get isStandalone => false;
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  SourceSpan get sourceSpan => null;
 
   @override
   String toString() => '$ExpressionAst {$expression}';

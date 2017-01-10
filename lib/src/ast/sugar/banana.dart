@@ -38,7 +38,7 @@ abstract class BananaAst implements TemplateAst {
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
-    throw new UnimplementedError();
+    return visitor.visitBanana(this, context);
   }
 
   @override

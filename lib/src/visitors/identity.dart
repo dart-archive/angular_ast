@@ -16,6 +16,9 @@ class IdentityTemplateAstVisitor<C>
   TemplateAst visitAttribute(AttributeAst astNode, [_]) => astNode;
 
   @override
+  TemplateAst visitBanana(BananaAst astNode, [_]) => astNode;
+
+  @override
   TemplateAst visitComment(CommentAst astNode, [_]) => astNode;
 
   @override
@@ -33,6 +36,9 @@ class IdentityTemplateAstVisitor<C>
   TemplateAst visitEvent(EventAst astNode, [_]) => astNode;
 
   @override
+  TemplateAst visitExpression(ExpressionAst astNode, [_]) => astNode;
+
+  @override
   TemplateAst visitInterpolation(InterpolationAst astNode, [_]) => astNode;
 
   @override
@@ -40,6 +46,9 @@ class IdentityTemplateAstVisitor<C>
 
   @override
   TemplateAst visitReference(ReferenceAst astNode, [_]) => astNode;
+
+  @override
+  TemplateAst visitStar(StarAst astNode, [_]) => astNode;
 
   @override
   TemplateAst visitText(TextAst astNode, [_]) => astNode;

@@ -2,17 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:angular_ast/src/ast/attribute.dart';
-import 'package:angular_ast/src/ast/comment.dart';
-import 'package:angular_ast/src/ast/content.dart';
-import 'package:angular_ast/src/ast/element.dart';
-import 'package:angular_ast/src/ast/event.dart';
-import 'package:angular_ast/src/ast/interpolation.dart';
-import 'package:angular_ast/src/ast/property.dart';
-import 'package:angular_ast/src/ast/reference.dart';
-import 'package:angular_ast/src/ast/template.dart';
-import 'package:angular_ast/src/ast/text.dart';
-import 'package:angular_ast/src/visitor.dart';
+import 'package:angular_ast/angular_ast.dart';
 
 /// Provides a human-readable view of a template AST tree.
 class HumanizingTemplateAstVisitor
@@ -26,6 +16,11 @@ class HumanizingTemplateAstVisitor
     } else {
       return '${astNode.name}';
     }
+  }
+
+  @override
+  String visitBanana(BananaAst astNode, [_]) {
+    return '[(${astNode.name})]="${astNode.field}"';
   }
 
   @override
@@ -116,6 +111,11 @@ class HumanizingTemplateAstVisitor
   }
 
   @override
+  String visitExpression(ExpressionAst astNode, [_]) {
+    return astNode.expression.toSource();
+  }
+
+  @override
   String visitInterpolation(InterpolationAst astNode, [_]) {
     return '{{${astNode.expression.expression.toSource()}}}';
   }
@@ -135,6 +135,15 @@ class HumanizingTemplateAstVisitor
       return '#${astNode.identifier}="${astNode.variable}"';
     } else {
       return '#${astNode.identifier}';
+    }
+  }
+
+  @override
+  String visitStar(StarAst astNode, [_]) {
+    if (astNode.expression == null) {
+      return '*${astNode.name}';
+    } else {
+      return '*${astNode.name}="${visitExpression(astNode.expression)}"';
     }
   }
 
