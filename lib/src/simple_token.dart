@@ -5,6 +5,10 @@ import 'package:quiver/core.dart';
 part 'token/simple_type.dart';
 
 class NgSimpleToken {
+  factory NgSimpleToken.bang(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.bang, offset);
+  }
+
   //Probably don't need
   factory NgSimpleToken.closeBrace(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.closeBrace, offset);
@@ -18,16 +22,17 @@ class NgSimpleToken {
     return new NgSimpleToken._(NgSimpleTokenType.closeParen, offset);
   }
 
-  factory NgSimpleToken.commentBegin(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.commentBegin, offset);
-  }
-
-  factory NgSimpleToken.commentEnd(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.commentEnd, offset);
+  factory NgSimpleToken.dash(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.dash, offset);
   }
 
   factory NgSimpleToken.doubleQuote(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.doubleQuote, offset);
+  }
+
+  factory NgSimpleToken.doubleQuotedText(int offset, String lexeme) {
+    return new NgSimpleToken(
+        new NgSimpleTokenType.doubleQuotedText(lexeme), offset);
   }
 
   factory NgSimpleToken.elementStart(int offset) {
@@ -36,10 +41,6 @@ class NgSimpleToken {
 
   factory NgSimpleToken.elementEnd(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.elementEnd, offset);
-  }
-
-  factory NgSimpleToken.elementEndVoid(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.elementEndVoid, offset);
   }
 
   factory NgSimpleToken.EOF(int offset) {
@@ -75,8 +76,13 @@ class NgSimpleToken {
     return new NgSimpleToken._(NgSimpleTokenType.singleQuote, offset);
   }
 
+  factory NgSimpleToken.singleQuotedText(int offset, String lexeme) {
+    return new NgSimpleToken(
+        new NgSimpleTokenType.singleQuotedText(lexeme), offset);
+  }
+
   factory NgSimpleToken.text(int offset, String lexeme) {
-    return new NgSimpleToken(new NgSimpleTokenType.textType(lexeme), offset);
+    return new NgSimpleToken(new NgSimpleTokenType.text(lexeme), offset);
   }
 
   factory NgSimpleToken.unexpectedChar(int offset, String lexeme) {
@@ -85,8 +91,7 @@ class NgSimpleToken {
   }
 
   factory NgSimpleToken.whitespace(int offset, String lexeme) {
-    return new NgSimpleToken(
-        new NgSimpleTokenType.whitespaceType(lexeme), offset);
+    return new NgSimpleToken(new NgSimpleTokenType.whitespace(lexeme), offset);
   }
 
   const NgSimpleToken._(this.type, this.offset);

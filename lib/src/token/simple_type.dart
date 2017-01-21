@@ -5,6 +5,8 @@
 part of angular_ast.src.simple_token;
 
 class NgSimpleTokenType {
+  static const bang = const NgSimpleTokenType._('bang', lexeme: '!');
+
   //probably not needed
   static const closeBrace =
       const NgSimpleTokenType._('closeBrace', lexeme: '}');
@@ -15,11 +17,7 @@ class NgSimpleTokenType {
   static const closeParen =
       const NgSimpleTokenType._('closeParen', lexeme: ')');
 
-  static const commentBegin =
-      const NgSimpleTokenType._('commentBegin', lexeme: '!--');
-
-  static const commentEnd =
-      const NgSimpleTokenType._('commendEnd', lexeme: '--');
+  static const dash = const NgSimpleTokenType._('dash', lexeme: '-');
 
   static const doubleQuote =
       const NgSimpleTokenType._('doubleQuote', lexeme: '"');
@@ -31,9 +29,6 @@ class NgSimpleTokenType {
 
   static const elementEnd =
       const NgSimpleTokenType._('elementEnd', lexeme: '>');
-
-  static const elementEndVoid =
-      const NgSimpleTokenType._('elementEndVoid', lexeme: '/>');
 
   static const equalSign = const NgSimpleTokenType._('equalSign', lexeme: '=');
 
@@ -55,11 +50,17 @@ class NgSimpleTokenType {
   static const singleQuote =
       const NgSimpleTokenType._('singleQuote', lexeme: "'");
 
-  NgSimpleTokenType.textType(this.lexeme) : this.name = 'text';
+  NgSimpleTokenType.doubleQuotedText(this.lexeme)
+      : this.name = 'doubleQuotedText';
+
+  NgSimpleTokenType.singleQuotedText(this.lexeme)
+      : this.name = 'singleQuotedText';
+
+  NgSimpleTokenType.text(this.lexeme) : this.name = 'text';
 
   NgSimpleTokenType.unexpectedChar(this.lexeme) : this.name = 'unexpectedChar';
 
-  NgSimpleTokenType.whitespaceType(this.lexeme) : this.name = 'whitespace';
+  NgSimpleTokenType.whitespace(this.lexeme) : this.name = 'whitespace';
 
   const NgSimpleTokenType._(this.name, {this.lexeme});
 
