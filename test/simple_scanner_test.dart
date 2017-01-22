@@ -24,7 +24,8 @@ void main() {
   });
 
   test('text node: should tokenize commentStart', () {
-    expect(new NgSimpleScanner("<!--Hello World-->").scan(), new NgSimpleToken.commentBegin(0));
+    expect(new NgSimpleScanner("<!--Hello World-->").scan(),
+        new NgSimpleToken.commentBegin(0));
   });
 
   //Element node

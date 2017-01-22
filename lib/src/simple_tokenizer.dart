@@ -29,7 +29,8 @@ class NgSimpleScanner {
   static bool matchesGroup(Match match, int group) =>
       match.group(group) != null;
 
-  static final _allTextMatches = new RegExp(r'([^\<]+)|(<!--)|(<)', multiLine: true);
+  static final _allTextMatches =
+      new RegExp(r'([^\<]+)|(<!--)|(<)', multiLine: true);
   static final _allElementMatches = new RegExp(r'(\])|' //1  ]
       r'(\!)|' //2  !
       r'(\-)|' //3  -
@@ -77,7 +78,7 @@ class NgSimpleScanner {
 
   NgSimpleToken scanComment() {
     int offset = _scanner.position;
-    while(true) {
+    while (true) {
       if (_scanner.peekChar() == $dash &&
           _scanner.peekChar(1) == $dash &&
           _scanner.peekChar(2) == $gt) {
