@@ -17,18 +17,23 @@ class NgSimpleTokenType {
   static const closeParen =
       const NgSimpleTokenType._('closeParen', lexeme: ')');
 
+  static const commentBegin =
+      const NgSimpleTokenType._('commentBegin', lexeme: '<!--');
+
+  static const commentEnd =
+      const NgSimpleTokenType._('commentEnd', lexeme: '-->');
+
   static const dash = const NgSimpleTokenType._('dash', lexeme: '-');
 
   static const doubleQuote =
       const NgSimpleTokenType._('doubleQuote', lexeme: '"');
 
-  static const elementStart = const NgSimpleTokenType._(
-    'elementStart',
+  static const tagStart = const NgSimpleTokenType._(
+    'tagStart',
     lexeme: '<',
   );
 
-  static const elementEnd =
-      const NgSimpleTokenType._('elementEnd', lexeme: '>');
+  static const tagEnd = const NgSimpleTokenType._('tagEnd', lexeme: '>');
 
   static const equalSign = const NgSimpleTokenType._('equalSign', lexeme: '=');
 

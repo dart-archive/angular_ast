@@ -8,41 +8,45 @@ import 'package:string_scanner/string_scanner.dart';
 import 'package:meta/meta.dart';
 
 class NgSimpleTokenizer {
-  @literal
-  const factory NgSimpleTokenizer() = NgSimpleTokenizer._;
+  final NgSimpleScanner _scanner;
 
-  const NgSimpleTokenizer._();
+  NgSimpleTokenizer(String template) : _scanner = new NgSimpleScanner(template);
 
-  Iterable<NgSimpleToken> tokenize(String template) sync* {
-    final scanner = new NgSimpleScanner(template);
-    NgSimpleToken token = scanner.scan();
+  Iterable<NgSimpleToken> tokenize() sync* {
+    NgSimpleToken token = _scanner.scan();
     while (token.type != NgSimpleTokenType.EOF) {
       yield token;
-      token = scanner.scan();
+      token = _scanner.scan();
     }
   }
 }
 
 class NgSimpleScanner {
+  String get state =>
+      _state == _NgSimpleScannerState.element ? "element" : "text";
+  String get remainingString => _scanner.rest;
+  String get elementRegex => _allElementMatches.toString();
   static bool matchesGroup(Match match, int group) =>
       match.group(group) != null;
 
-  static final _allTextMatches = new RegExp(r'(^[^\<]+)|(^<)');
-  static final _allElementMatches = new RegExp(r'(^\])|' //1  ]
-      r'(^\!)|' //2  !
-      r'(^\-)|' //3  -
-      r'(^\))|' //4  )
-      r'(^>)|' //5  >
-      r'(^\/)|' //6  /
-      r'(^\[)|' //7  [
-      r'(^\()|' //8  (
-      r'(^[\s]+)|' //9 whitespace
-      r'(^[a-zA-Z][\w\-\_]*[\w])|' //10 any alphanumeric + '-' + '_'
-      r'("([^"\\]|\\.)*")|' //11 closed double quote (includes group 12)
-      r"('([^'\\]|\\.)*')|" //13 closed single quote (includes group 14)
-      r'(^")|' //15 " (floating)
-      r"(^')|" //16 ' (floating)
-      r"(^<)"); //17 <
+  static final _allTextMatches = new RegExp(r'([^\<]+)|(<!--)|(<)', multiLine: true);
+  static final _allElementMatches = new RegExp(r'(\])|' //1  ]
+      r'(\!)|' //2  !
+      r'(\-)|' //3  -
+      r'(\))|' //4  )
+      r'(>)|' //5  >
+      r'(\/)|' //6  /
+      r'(\[)|' //7  [
+      r'(\()|' //8  (
+      r'([\s]+)|' //9 whitespace
+      r'([a-zA-Z0-9]([a-zA-Z0-9\-\_]*[a-zA-Z0-9])?)|' //10 any alphanumeric + '-' + '_'
+      r'("([^"\\]|\\.)*")|' //12 closed double quote (includes group 13)
+      r"('([^'\\]|\\.)*')|" //14 closed single quote (includes group 15)
+      r'(")|' //16 " (floating)
+      r"(')|" //17 ' (floating)
+      r"(<)|" //18 <
+      r"(=)"); //19 =
+  static final _commentEnd = new RegExp('-->');
 
   final StringScanner _scanner;
   _NgSimpleScannerState _state = _NgSimpleScannerState.text;
@@ -59,12 +63,42 @@ class NgSimpleScanner {
 
   NgSimpleToken scan() {
     switch (_state) {
+      case _NgSimpleScannerState.comment:
+        return scanComment();
+      case _NgSimpleScannerState.commentEnd:
+        return scanCommentEnd();
       case _NgSimpleScannerState.element:
         return scanElement();
       case _NgSimpleScannerState.text:
         return scanText();
     }
     return null;
+  }
+
+  NgSimpleToken scanComment() {
+    int offset = _scanner.position;
+    while(true) {
+      if (_scanner.peekChar() == $dash &&
+          _scanner.peekChar(1) == $dash &&
+          _scanner.peekChar(2) == $gt) {
+        break;
+      }
+      _scanner.position++;
+      if (_scanner.isDone) {
+        _state = _NgSimpleScannerState.text;
+        return new NgSimpleToken.EOF(offset);
+      }
+    }
+    _state = _NgSimpleScannerState.commentEnd;
+    return new NgSimpleToken.text(offset, _scanner.substring(offset));
+  }
+
+  NgSimpleToken scanCommentEnd() {
+    int offset = _scanner.position;
+    _scanner.scan(_commentEnd);
+    Match match = _scanner.lastMatch;
+    _state = _NgSimpleScannerState.text;
+    return new NgSimpleToken.commentEnd(offset);
   }
 
   NgSimpleToken scanElement() {
@@ -88,7 +122,7 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 5)) {
         _state = _NgSimpleScannerState.text;
-        return new NgSimpleToken.elementEnd(offset);
+        return new NgSimpleToken.tagEnd(offset);
       }
       if (matchesGroup(match, 6)) {
         return new NgSimpleToken.forwardSlash(offset);
@@ -106,30 +140,36 @@ class NgSimpleScanner {
         return new NgSimpleToken.text(offset, _scanner.substring(offset));
       }
       if (matchesGroup(match, 11)) {
+        return new NgSimpleToken.text(offset, _scanner.substring(offset));
+      }
+      if (matchesGroup(match, 12)) {
         return new NgSimpleToken.doubleQuotedText(
             offset, _scanner.substring(offset));
       }
-      if (matchesGroup(match, 13)) {
+      if (matchesGroup(match, 14)) {
         return new NgSimpleToken.singleQuotedText(
             offset, _scanner.substring(offset));
       }
-      if (matchesGroup(match, 15)) {
+      if (matchesGroup(match, 16)) {
         return new NgSimpleToken.doubleQuote(offset);
       }
-      if (matchesGroup(match, 16)) {
+      if (matchesGroup(match, 17)) {
         return new NgSimpleToken.singleQuote(offset);
       }
-      if (matchesGroup(match, 17)) {
-        return new NgSimpleToken.elementStart(offset);
+      if (matchesGroup(match, 18)) {
+        return new NgSimpleToken.tagStart(offset);
+      }
+      if (matchesGroup(match, 19)) {
+        return new NgSimpleToken.equalSign(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(
-        offset, _scanner.readChar().toString());
+        offset, new String.fromCharCode(_scanner.readChar()));
   }
 
   NgSimpleToken scanText() {
     int offset = _scanner.position;
-    if (_scanner.peekChar() == null) {
+    if (_scanner.peekChar() == null || _scanner.rest.length == 0) {
       return new NgSimpleToken.EOF(offset);
     }
     if (_scanner.scan(_allTextMatches)) {
@@ -138,13 +178,17 @@ class NgSimpleScanner {
         return new NgSimpleToken.text(offset, _scanner.substring(offset));
       }
       if (matchesGroup(match, 2)) {
+        _state = _NgSimpleScannerState.comment;
+        return new NgSimpleToken.commentBegin(offset);
+      }
+      if (matchesGroup(match, 3)) {
         _state = _NgSimpleScannerState.element;
-        return new NgSimpleToken.elementStart(offset);
+        return new NgSimpleToken.tagStart(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(
-        offset, _scanner.readChar().toString());
+        offset, new String.fromCharCode(_scanner.readChar()));
   }
 }
 
-enum _NgSimpleScannerState { text, element }
+enum _NgSimpleScannerState { text, element, comment, commentEnd }

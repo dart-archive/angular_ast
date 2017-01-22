@@ -3,89 +3,160 @@ import 'package:angular_ast/src/simple_token.dart';
 import 'package:test/test.dart';
 
 void main() {
-  NgSimpleToken tokenize(String html) => new NgSimpleScanner(html).scan();
-  NgSimpleToken tokenizeTag(String html) =>
-      new NgSimpleScanner(html, initialTextState: false).scan();
+  Iterable<NgSimpleToken> tokenize(String html) =>
+      new NgSimpleTokenizer(html).tokenize();
+  String untokenize(Iterable<NgSimpleToken> tokens) => tokens
+      .fold(new StringBuffer(), (buffer, token) => buffer..write(token.lexeme))
+      .toString();
 
-  //Text node
-  test('text node: should tokenize text', () {
+  /**
+  test('', () {
     expect(
-      tokenize("some random text <div></div>"),
-      new NgSimpleToken.text(0, "some random text "),
+      tokenize(''),
+      [
+      ]
     );
   });
+  **/
 
-  test('text node: should tokenize elementStart tag', () {
-    expect(tokenize("<div></div>"), new NgSimpleToken.elementStart(0));
+  test('should tokenize plain text', () {
+    expect(tokenize('Hello World'), [
+      new NgSimpleToken.text(0, 'Hello World'),
+    ]);
   });
 
-  test('text node: should tokenize EOF', () {
-    expect(new NgSimpleScanner("").scan(), new NgSimpleToken.EOF(0));
+  test('should tokenize multiline text', () {
+    expect(
+        tokenize('Hello\nWorld'), [new NgSimpleToken.text(0, 'Hello\nWorld')]);
   });
 
-  //Element node
-  test('element: should tokenize end bracket', () {
-    expect(tokenizeTag("]='someAttrValue'"), new NgSimpleToken.closeBracket(0));
+  test('should tokenize an HTML element', () {
+    expect(tokenize('''<div></div>'''), [
+      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.text(1, 'div'),
+      new NgSimpleToken.tagEnd(4),
+      new NgSimpleToken.tagStart(5),
+      new NgSimpleToken.forwardSlash(6),
+      new NgSimpleToken.text(7, 'div'),
+      new NgSimpleToken.tagEnd(10)
+    ]);
   });
 
-  test('element: should tokenize single bang', () {
-    expect(tokenizeTag("!-- some comment tag -->"), new NgSimpleToken.bang(0));
+  test('should tokenize an HTML element with void', () {
+    expect(tokenize('<hr/>'), [
+      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.text(1, "hr"),
+      new NgSimpleToken.forwardSlash(3),
+      new NgSimpleToken.tagEnd(4)
+    ]);
   });
 
-  test('element: should tokenize single dash', () {
-    expect(tokenizeTag("-- some comment tag -->"), new NgSimpleToken.dash(0));
+  test('should tokenize nested HTML elements', () {
+    expect(tokenize('<div><span></span></div>'), [
+      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.text(1, 'div'),
+      new NgSimpleToken.tagEnd(4),
+      new NgSimpleToken.tagStart(5),
+      new NgSimpleToken.text(6, 'span'),
+      new NgSimpleToken.tagEnd(10),
+      new NgSimpleToken.tagStart(11),
+      new NgSimpleToken.forwardSlash(12),
+      new NgSimpleToken.text(13, 'span'),
+      new NgSimpleToken.tagEnd(17),
+      new NgSimpleToken.tagStart(18),
+      new NgSimpleToken.forwardSlash(19),
+      new NgSimpleToken.text(20, 'div'),
+      new NgSimpleToken.tagEnd(23)
+    ]);
   });
 
-  test('element: should tokenize closeParen', () {
-    expect(tokenizeTag(")='someAttrValue'"), new NgSimpleToken.closeParen(0));
+  test('should tokenize HTML elements mixed with plain text', () {
+    expect(tokenize('<div>Hello this is text</div>'), [
+      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.text(1, 'div'),
+      new NgSimpleToken.tagEnd(4),
+      new NgSimpleToken.text(5, 'Hello this is text'),
+      new NgSimpleToken.tagStart(23),
+      new NgSimpleToken.forwardSlash(24),
+      new NgSimpleToken.text(25, 'div'),
+      new NgSimpleToken.tagEnd(28)
+    ]);
   });
 
-  test('element: should tokenze elementEnd', () {
-    expect(tokenizeTag("> some text </div>"), new NgSimpleToken.elementEnd(0));
+  test('should tokenize an HTML template and untokenize back', () {
+    const html = r'''
+      <div>
+        <span>Hello World</span>
+        <ul>
+          <li>1</li>
+          <li>2</li>
+          <li>
+            <strong>3</strong>
+          </li>
+        </ul>
+      </div>
+    ''';
+    expect(untokenize(tokenize(html)), html);
   });
 
-  test('element: should tokenize forwardSlash', () {
-    expect(tokenizeTag("/><div></div>"), new NgSimpleToken.forwardSlash(0));
+  test('should tokenize an element with a decorator with a value', () {
+    expect(tokenize('<button title="Submit"></button>'), [
+      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.text(1, 'button'),
+      new NgSimpleToken.whitespace(7, ' '),
+      new NgSimpleToken.text(8, 'title'),
+      new NgSimpleToken.equalSign(13),
+      new NgSimpleToken.doubleQuotedText(14, '"Submit"'),
+      new NgSimpleToken.tagEnd(22),
+      new NgSimpleToken.tagStart(23),
+      new NgSimpleToken.forwardSlash(24),
+      new NgSimpleToken.text(25, 'button'),
+      new NgSimpleToken.tagEnd(31)
+    ]);
   });
 
-  test('element: should tokenize openBracket', () {
-    expect(tokenizeTag("[someInput]='blah'"), new NgSimpleToken.openBracket(0));
+  test('should tokenize a HTML template with decorator values and back', () {
+    const html = r'''
+      <div>
+        <span hidden>Hello World</span>
+        <a href="www.somelink.com/index.html">Click me!</a>
+        <!-- some random comment inserted here -->
+        <ul>
+          <li>1</li>
+          <li>
+            <textarea disabled name="box" readonly>Test</textarea>
+          </li>
+          <li>
+            <button disabled>3</button>
+          </li>
+        </ul>
+      </div>
+    ''';
+    expect(untokenize(tokenize(html)), html);
   });
 
-  test('element: should tokenize openParen', () {
-    expect(tokenizeTag("(someEvent)='do something;'"),
-        new NgSimpleToken.openParen(0));
+  test('should tokenize a comment', () {
+    expect(tokenize('<!--Hello World-->'), [
+      new NgSimpleToken.commentBegin(0),
+      new NgSimpleToken.text(4, 'Hello World'),
+      new NgSimpleToken.commentEnd(15)
+    ]);
   });
 
-  test('element: should tokenize whiteSpace', () {
-    expect(tokenizeTag("  someAttr='blah'"),
-        new NgSimpleToken.whitespace(0, "  "));
-  });
-
-  test('element: should tokenize text', () {
-    expect(tokenizeTag("my-element_tag [a]='y'>"),
-        new NgSimpleToken.text(0, "my-element_tag"));
-  });
-
-  test('element: should tokenize doubleQuoted text', () {
-    expect(tokenizeTag('"doSomething1; doSomething2"'),
-        new NgSimpleToken.doubleQuotedText(0, '"doSomething1; doSomething2"'));
-  });
-
-  test('element: should tokenize singleQuoted text', () {
-    expect(tokenizeTag("'doSomething1; doSomething2'"),
-        new NgSimpleToken.singleQuotedText(0, "'doSomething1; doSomething2'"));
-  });
-
-  test('element: should tokenize unclosed doubleQuote', () {
-    expect(tokenizeTag('" blah blah'), new NgSimpleToken.doubleQuote(0));
-  });
-
-  test('element: should tokenize unclosed singleQuote', () {
-    expect(tokenizeTag("' blah blah"), new NgSimpleToken.singleQuote(0));
-  });
-
-  test('element: should tokenize elementStart tag', () {
-    expect(tokenizeTag("<div></div>"), new NgSimpleToken.elementStart(0));
+  test('should tokenize copyright comments', () {
+    expect(
+      tokenize(''
+          '<!--\n'
+          '  Copyright (c) 2016, the Dart project authors.\n'
+          '-->'),
+      [
+        new NgSimpleToken.commentBegin(0),
+        new NgSimpleToken.text(
+          4,
+          '\n  Copyright (c) 2016, the Dart project authors.\n',
+        ),
+        new NgSimpleToken.commentEnd(53),
+      ],
+    );
   });
 }

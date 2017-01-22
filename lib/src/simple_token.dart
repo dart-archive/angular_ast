@@ -22,6 +22,14 @@ class NgSimpleToken {
     return new NgSimpleToken._(NgSimpleTokenType.closeParen, offset);
   }
 
+  factory NgSimpleToken.commentBegin(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.commentBegin, offset);
+  }
+
+  factory NgSimpleToken.commentEnd(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.commentEnd, offset);
+  }
+
   factory NgSimpleToken.dash(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.dash, offset);
   }
@@ -35,12 +43,12 @@ class NgSimpleToken {
         new NgSimpleTokenType.doubleQuotedText(lexeme), offset);
   }
 
-  factory NgSimpleToken.elementStart(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.elementStart, offset);
+  factory NgSimpleToken.tagStart(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.tagStart, offset);
   }
 
-  factory NgSimpleToken.elementEnd(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.elementEnd, offset);
+  factory NgSimpleToken.tagEnd(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.tagEnd, offset);
   }
 
   factory NgSimpleToken.EOF(int offset) {
