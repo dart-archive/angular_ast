@@ -55,8 +55,7 @@ class NgSimpleTokenType {
   static const singleQuote =
       const NgSimpleTokenType._('singleQuote', lexeme: "'");
 
-  static const star =
-      const NgSimpleTokenType._('star', lexeme: '*');
+  static const star = const NgSimpleTokenType._('star', lexeme: '*');
 
   NgSimpleTokenType.doubleQuotedText(this.lexeme)
       : this.name = 'doubleQuotedText';

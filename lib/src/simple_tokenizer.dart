@@ -28,8 +28,7 @@ class NgSimpleScanner {
   static bool matchesGroup(Match match, int group) =>
       match.group(group) != null;
 
-  static final _allTextMatches =
-      new RegExp(r'([^\<]+)|(<!--)|(<)');
+  static final _allTextMatches = new RegExp(r'([^\<]+)|(<!--)|(<)');
   static final _allElementMatches = new RegExp(r'(\])|' //1  ]
       r'(\!)|' //2  !
       r'(\-)|' //3  -
