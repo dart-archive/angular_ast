@@ -89,6 +89,10 @@ class NgSimpleToken {
         new NgSimpleTokenType.singleQuotedText(lexeme), offset);
   }
 
+  factory NgSimpleToken.star(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.star, offset);
+  }
+
   factory NgSimpleToken.text(int offset, String lexeme) {
     return new NgSimpleToken(new NgSimpleTokenType.text(lexeme), offset);
   }

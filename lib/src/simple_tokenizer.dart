@@ -5,7 +5,6 @@
 import 'package:angular_ast/src/simple_token.dart';
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
-import 'package:meta/meta.dart';
 
 class NgSimpleTokenizer {
   final NgSimpleScanner _scanner;
@@ -30,7 +29,7 @@ class NgSimpleScanner {
       match.group(group) != null;
 
   static final _allTextMatches =
-      new RegExp(r'([^\<]+)|(<!--)|(<)', multiLine: true);
+      new RegExp(r'([^\<]+)|(<!--)|(<)');
   static final _allElementMatches = new RegExp(r'(\])|' //1  ]
       r'(\!)|' //2  !
       r'(\-)|' //3  -
@@ -46,7 +45,8 @@ class NgSimpleScanner {
       r'(")|' //16 " (floating)
       r"(')|" //17 ' (floating)
       r"(<)|" //18 <
-      r"(=)"); //19 =
+      r"(=)|" //19 =
+      r"(\*)"); //20 *
   static final _commentEnd = new RegExp('-->');
 
   final StringScanner _scanner;
@@ -87,7 +87,8 @@ class NgSimpleScanner {
       _scanner.position++;
       if (_scanner.isDone) {
         _state = _NgSimpleScannerState.text;
-        return new NgSimpleToken.EOF(offset);
+        String substring = _scanner.string.substring(offset);
+        return new NgSimpleToken.text(offset, substring);
       }
     }
     _state = _NgSimpleScannerState.commentEnd;
@@ -97,7 +98,6 @@ class NgSimpleScanner {
   NgSimpleToken scanCommentEnd() {
     int offset = _scanner.position;
     _scanner.scan(_commentEnd);
-    Match match = _scanner.lastMatch;
     _state = _NgSimpleScannerState.text;
     return new NgSimpleToken.commentEnd(offset);
   }
@@ -162,6 +162,9 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 19)) {
         return new NgSimpleToken.equalSign(offset);
+      }
+      if (matchesGroup(match, 20)) {
+        return new NgSimpleToken.star(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(
