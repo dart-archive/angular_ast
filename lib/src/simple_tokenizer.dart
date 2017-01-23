@@ -5,17 +5,20 @@
 import 'package:angular_ast/src/simple_token.dart';
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
+import 'package:meta/meta.dart';
 
 class NgSimpleTokenizer {
-  final NgSimpleScanner _scanner;
+  @literal
+  const factory NgSimpleTokenizer() = NgSimpleTokenizer._;
 
-  NgSimpleTokenizer(String template) : _scanner = new NgSimpleScanner(template);
+  const NgSimpleTokenizer._();
 
-  Iterable<NgSimpleToken> tokenize() sync* {
-    NgSimpleToken token = _scanner.scan();
+  Iterable<NgSimpleToken> tokenize(String template) sync* {
+    final scanner = new NgSimpleScanner(template);
+    NgSimpleToken token = scanner.scan();
     while (token.type != NgSimpleTokenType.EOF) {
       yield token;
-      token = _scanner.scan();
+      token = scanner.scan();
     }
   }
 }
