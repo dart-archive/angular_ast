@@ -36,6 +36,21 @@ void main() {
     ]);
   });
 
+  test('should tokenize an HTML element with local variable', () {
+    expect(tokenize('''<div #myDiv></div>'''), [
+      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.text(1, 'div'),
+      new NgSimpleToken.whitespace(4, ' '),
+      new NgSimpleToken.hash(5),
+      new NgSimpleToken.text(6, 'myDiv'),
+      new NgSimpleToken.tagEnd(11),
+      new NgSimpleToken.tagStart(12),
+      new NgSimpleToken.forwardSlash(13),
+      new NgSimpleToken.text(14, 'div'),
+      new NgSimpleToken.tagEnd(17)
+    ]);
+  });
+
   test('should tokenize an HTML element with void', () {
     expect(tokenize('<hr/>'), [
       new NgSimpleToken.tagStart(0),
@@ -94,18 +109,18 @@ void main() {
   });
 
   test('should tokenize an element with a decorator with a value', () {
-    expect(tokenize('<button title="Submit"></button>'), [
+    expect(tokenize(r'<button title="Submit \"quoted text\""></button>'), [
       new NgSimpleToken.tagStart(0),
       new NgSimpleToken.text(1, 'button'),
       new NgSimpleToken.whitespace(7, ' '),
       new NgSimpleToken.text(8, 'title'),
       new NgSimpleToken.equalSign(13),
-      new NgSimpleToken.doubleQuotedText(14, '"Submit"'),
-      new NgSimpleToken.tagEnd(22),
-      new NgSimpleToken.tagStart(23),
-      new NgSimpleToken.forwardSlash(24),
-      new NgSimpleToken.text(25, 'button'),
-      new NgSimpleToken.tagEnd(31)
+      new NgSimpleToken.doubleQuotedText(14, '"Submit \"quoted text\""'),
+      new NgSimpleToken.tagEnd(38),
+      new NgSimpleToken.tagStart(39),
+      new NgSimpleToken.forwardSlash(40),
+      new NgSimpleToken.text(41, 'button'),
+      new NgSimpleToken.tagEnd(47)
     ]);
   });
 
@@ -121,6 +136,7 @@ void main() {
             <textarea disabled name="box" readonly>Test</textarea>
           </li>
           <li>
+            <myTag myAttr="some value "literal""></myTag>
             <button disabled>3</button>
           </li>
         </ul>

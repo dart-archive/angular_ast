@@ -24,10 +24,6 @@ class NgSimpleTokenizer {
 }
 
 class NgSimpleScanner {
-  String get state =>
-      _state == _NgSimpleScannerState.element ? "element" : "text";
-  String get remainingString => _scanner.rest;
-  String get elementRegex => _allElementMatches.toString();
   static bool matchesGroup(Match match, int group) =>
       match.group(group) != null;
 
@@ -48,7 +44,8 @@ class NgSimpleScanner {
       r"(')|" //17 ' (floating)
       r"(<)|" //18 <
       r"(=)|" //19 =
-      r"(\*)"); //20 *
+      r"(\*)|" //20 *
+      r"(\#)"); //21 #
   static final _commentEnd = new RegExp('-->');
 
   final StringScanner _scanner;
@@ -147,11 +144,11 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 12)) {
         return new NgSimpleToken.doubleQuotedText(
-            offset, _scanner.substring(offset));
+            offset, _scanner.substring(offset).replaceAll(r'\"', '"'));
       }
       if (matchesGroup(match, 14)) {
         return new NgSimpleToken.singleQuotedText(
-            offset, _scanner.substring(offset));
+            offset, _scanner.substring(offset).replaceAll(r"\'", "'"));
       }
       if (matchesGroup(match, 16)) {
         return new NgSimpleToken.doubleQuote(offset);
@@ -167,6 +164,9 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 20)) {
         return new NgSimpleToken.star(offset);
+      }
+      if (matchesGroup(match, 21)) {
+        return new NgSimpleToken.hash(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(

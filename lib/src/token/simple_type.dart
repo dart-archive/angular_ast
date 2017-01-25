@@ -5,76 +5,63 @@
 part of angular_ast.src.simple_token;
 
 class NgSimpleTokenType {
-  static const bang = const NgSimpleTokenType._('bang', lexeme: '!');
+  static const bang = const NgSimpleTokenType._('bang');
 
   //probably not needed
-  static const closeBrace =
-      const NgSimpleTokenType._('closeBrace', lexeme: '}');
+  static const closeBrace = const NgSimpleTokenType._('closeBrace');
 
-  static const closeBracket =
-      const NgSimpleTokenType._('closeBracket', lexeme: ']');
+  static const closeBracket = const NgSimpleTokenType._('closeBracket');
 
-  static const closeParen =
-      const NgSimpleTokenType._('closeParen', lexeme: ')');
+  static const closeParen = const NgSimpleTokenType._('closeParen');
 
-  static const commentBegin =
-      const NgSimpleTokenType._('commentBegin', lexeme: '<!--');
+  static const commentBegin = const NgSimpleTokenType._('commentBegin');
 
-  static const commentEnd =
-      const NgSimpleTokenType._('commentEnd', lexeme: '-->');
+  static const commentEnd = const NgSimpleTokenType._('commentEnd');
 
-  static const dash = const NgSimpleTokenType._('dash', lexeme: '-');
+  static const dash = const NgSimpleTokenType._('dash');
 
-  static const doubleQuote =
-      const NgSimpleTokenType._('doubleQuote', lexeme: '"');
+  static const doubleQuote = const NgSimpleTokenType._('doubleQuote');
 
   static const tagStart = const NgSimpleTokenType._(
     'tagStart',
-    lexeme: '<',
   );
 
-  static const tagEnd = const NgSimpleTokenType._('tagEnd', lexeme: '>');
+  static const tagEnd = const NgSimpleTokenType._('tagEnd');
 
-  static const equalSign = const NgSimpleTokenType._('equalSign', lexeme: '=');
+  static const equalSign = const NgSimpleTokenType._('equalSign');
 
-  static const EOF = const NgSimpleTokenType._('EOF', lexeme: '');
+  static const EOF = const NgSimpleTokenType._('EOF');
 
-  static const forwardSlash =
-      const NgSimpleTokenType._('forwardSlash', lexeme: '/');
+  static const forwardSlash = const NgSimpleTokenType._('forwardSlash');
 
-  static const hash = const NgSimpleTokenType._('hash', lexeme: '#');
+  static const hash = const NgSimpleTokenType._('hash');
 
   //Probably not needed
-  static const openBrace = const NgSimpleTokenType._('openBrace', lexeme: '{');
+  static const openBrace = const NgSimpleTokenType._('openBrace');
 
-  static const openBracket =
-      const NgSimpleTokenType._('openBracket', lexeme: '[');
+  static const openBracket = const NgSimpleTokenType._('openBracket');
 
-  static const openParen = const NgSimpleTokenType._('openParen', lexeme: '(');
+  static const openParen = const NgSimpleTokenType._('openParen');
 
-  static const singleQuote =
-      const NgSimpleTokenType._('singleQuote', lexeme: "'");
+  static const singleQuote = const NgSimpleTokenType._('singleQuote');
 
-  static const star = const NgSimpleTokenType._('star', lexeme: '*');
+  static const star = const NgSimpleTokenType._('star');
 
-  NgSimpleTokenType.doubleQuotedText(this.lexeme)
-      : this.name = 'doubleQuotedText';
+  NgSimpleTokenType.doubleQuotedText() : this.name = 'doubleQuotedText';
 
-  NgSimpleTokenType.singleQuotedText(this.lexeme)
-      : this.name = 'singleQuotedText';
+  NgSimpleTokenType.singleQuotedText() : this.name = 'singleQuotedText';
 
-  NgSimpleTokenType.text(this.lexeme) : this.name = 'text';
+  NgSimpleTokenType.text() : this.name = 'text';
 
-  NgSimpleTokenType.unexpectedChar(this.lexeme) : this.name = 'unexpectedChar';
+  NgSimpleTokenType.unexpectedChar() : this.name = 'unexpectedChar';
 
-  NgSimpleTokenType.whitespace(this.lexeme) : this.name = 'whitespace';
+  NgSimpleTokenType.whitespace() : this.name = 'whitespace';
 
-  const NgSimpleTokenType._(this.name, {this.lexeme});
+  const NgSimpleTokenType._(this.name);
 
-  NgSimpleTokenType(this.name, this.lexeme);
+  NgSimpleTokenType(this.name);
 
   final String name;
-  final String lexeme;
 
   @override
   String toString() => '#$NgSimpleTokenType {$name}';
@@ -82,11 +69,11 @@ class NgSimpleTokenType {
   @override
   bool operator ==(Object o) {
     if (o is NgSimpleTokenType) {
-      return o.name == name && o.lexeme == lexeme;
+      return o.name == name;
     }
     return false;
   }
 
   @override
-  int get hashCode => hash2(name, lexeme);
+  int get hashCode => name.hashCode;
 }
