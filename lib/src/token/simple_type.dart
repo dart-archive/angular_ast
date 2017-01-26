@@ -20,6 +20,8 @@ class NgSimpleTokenType {
 
   static const dash = const NgSimpleTokenType._('dash');
 
+  static const dashedIdentifier = const NgSimpleTokenType._('dashedIdentifier');
+
   static const doubleQuote = const NgSimpleTokenType._('doubleQuote');
 
   static const tagStart = const NgSimpleTokenType._(
@@ -36,6 +38,8 @@ class NgSimpleTokenType {
 
   static const hash = const NgSimpleTokenType._('hash');
 
+  static const identifier = const NgSimpleTokenType._('identifier');
+
   //Probably not needed
   static const openBrace = const NgSimpleTokenType._('openBrace');
 
@@ -43,19 +47,21 @@ class NgSimpleTokenType {
 
   static const openParen = const NgSimpleTokenType._('openParen');
 
+  static const period = const NgSimpleTokenType._('period');
+
   static const singleQuote = const NgSimpleTokenType._('singleQuote');
 
   static const star = const NgSimpleTokenType._('star');
 
-  NgSimpleTokenType.doubleQuotedText() : this.name = 'doubleQuotedText';
+  static const doubleQuotedText = const NgSimpleTokenType._('doubleQuotedText');
 
-  NgSimpleTokenType.singleQuotedText() : this.name = 'singleQuotedText';
+  static const singleQuotedText = const NgSimpleTokenType._('singleQuotedText');
 
-  NgSimpleTokenType.text() : this.name = 'text';
+  static const text = const NgSimpleTokenType._('text');
 
-  NgSimpleTokenType.unexpectedChar() : this.name = 'unexpectedChar';
+  static const unexpectedChar = const NgSimpleTokenType._('unexpectedChar');
 
-  NgSimpleTokenType.whitespace() : this.name = 'whitespace';
+  static const whitespace = const NgSimpleTokenType._('whitespace');
 
   const NgSimpleTokenType._(this.name);
 

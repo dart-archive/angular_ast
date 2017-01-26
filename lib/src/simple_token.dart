@@ -38,13 +38,18 @@ class NgSimpleToken {
     return new NgSimpleToken._(NgSimpleTokenType.dash, offset, '-');
   }
 
+  factory NgSimpleToken.dashedIdentifier(int offset, String lexeme) {
+    return new NgSimpleToken(
+        NgSimpleTokenType.dashedIdentifier, offset, lexeme);
+  }
+
   factory NgSimpleToken.doubleQuote(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.doubleQuote, offset, '"');
   }
 
   factory NgSimpleToken.doubleQuotedText(int offset, String lexeme) {
     return new NgSimpleToken(
-        new NgSimpleTokenType.doubleQuotedText(), offset, lexeme);
+        NgSimpleTokenType.doubleQuotedText, offset, lexeme);
   }
 
   factory NgSimpleToken.tagStart(int offset) {
@@ -71,6 +76,10 @@ class NgSimpleToken {
     return new NgSimpleToken._(NgSimpleTokenType.hash, offset, '#');
   }
 
+  factory NgSimpleToken.identifier(int offset, String lexeme) {
+    return new NgSimpleToken(NgSimpleTokenType.identifier, offset, lexeme);
+  }
+
   //Probably don't need
   factory NgSimpleToken.openBrace(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.openBrace, offset, '{');
@@ -84,13 +93,17 @@ class NgSimpleToken {
     return new NgSimpleToken._(NgSimpleTokenType.openParen, offset, '(');
   }
 
+  factory NgSimpleToken.period(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.period, offset, '.');
+  }
+
   factory NgSimpleToken.singleQuote(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.singleQuote, offset, "'");
   }
 
   factory NgSimpleToken.singleQuotedText(int offset, String lexeme) {
     return new NgSimpleToken(
-        new NgSimpleTokenType.singleQuotedText(), offset, lexeme);
+        NgSimpleTokenType.singleQuotedText, offset, lexeme);
   }
 
   factory NgSimpleToken.star(int offset) {
@@ -98,17 +111,15 @@ class NgSimpleToken {
   }
 
   factory NgSimpleToken.text(int offset, String lexeme) {
-    return new NgSimpleToken(new NgSimpleTokenType.text(), offset, lexeme);
+    return new NgSimpleToken(NgSimpleTokenType.text, offset, lexeme);
   }
 
   factory NgSimpleToken.unexpectedChar(int offset, String lexeme) {
-    return new NgSimpleToken(
-        new NgSimpleTokenType.unexpectedChar(), offset, lexeme);
+    return new NgSimpleToken(NgSimpleTokenType.unexpectedChar, offset, lexeme);
   }
 
   factory NgSimpleToken.whitespace(int offset, String lexeme) {
-    return new NgSimpleToken(
-        new NgSimpleTokenType.whitespace(), offset, lexeme);
+    return new NgSimpleToken(NgSimpleTokenType.whitespace, offset, lexeme);
   }
 
   const NgSimpleToken._(this.type, this.offset, this.lexeme);

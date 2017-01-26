@@ -37,7 +37,7 @@ class NgSimpleScanner {
       r'(\[)|' //7  [
       r'(\()|' //8  (
       r'([\s]+)|' //9 whitespace
-      r'([a-zA-Z0-9]([a-zA-Z0-9\-\_]*[a-zA-Z0-9])?)|' //10 any alphanumeric + '-' + '_'
+      r'([a-zA-Z]([\w\_\-])*[a-zA-Z0-9]?)|' //10 any alphanumeric + '-' + '_'
       r'("([^"\\]|\\.)*")|' //12 closed double quote (includes group 13)
       r"('([^'\\]|\\.)*')|" //14 closed single quote (includes group 15)
       r'(")|' //16 " (floating)
@@ -45,7 +45,8 @@ class NgSimpleScanner {
       r"(<)|" //18 <
       r"(=)|" //19 =
       r"(\*)|" //20 *
-      r"(\#)"); //21 #
+      r"(\#)|" //21 #
+      r"(\.)"); //22 .
   static final _commentEnd = new RegExp('-->');
 
   final StringScanner _scanner;
@@ -137,10 +138,11 @@ class NgSimpleScanner {
         return new NgSimpleToken.whitespace(offset, _scanner.substring(offset));
       }
       if (matchesGroup(match, 10)) {
-        return new NgSimpleToken.text(offset, _scanner.substring(offset));
-      }
-      if (matchesGroup(match, 11)) {
-        return new NgSimpleToken.text(offset, _scanner.substring(offset));
+        String s = _scanner.substring(offset);
+        if (s.contains("-")) {
+          return new NgSimpleToken.dashedIdentifier(offset, s);
+        }
+        return new NgSimpleToken.identifier(offset, s);
       }
       if (matchesGroup(match, 12)) {
         return new NgSimpleToken.doubleQuotedText(
@@ -167,6 +169,9 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 21)) {
         return new NgSimpleToken.hash(offset);
+      }
+      if (matchesGroup(match, 22)) {
+        return new NgSimpleToken.period(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(

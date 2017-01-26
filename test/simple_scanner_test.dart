@@ -71,13 +71,13 @@ void main() {
         new NgSimpleToken.whitespace(0, "  "));
   });
 
-  test('element: should tokenize text', () {
+  test('element: should tokenize identifier', () {
     expect(tokenizeTag("my-element_tag [a]='y'>"),
-        new NgSimpleToken.text(0, "my-element_tag"));
+        new NgSimpleToken.dashedIdentifier(0, "my-element_tag"));
   });
 
   test('element: should tokenize single letter text', () {
-    expect(tokenizeTag("a href='blah>"), new NgSimpleToken.text(0, 'a'));
+    expect(tokenizeTag("a href='blah>"), new NgSimpleToken.identifier(0, 'a'));
   });
 
   test('element: should tokenize doubleQuoted text', () {
