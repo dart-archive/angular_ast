@@ -10,7 +10,12 @@ void main() {
   Iterable<NgSimpleToken> tokenize(String html) =>
       new NgSimpleTokenizer().tokenize(html);
   String untokenize(Iterable<NgSimpleToken> tokens) => tokens
-      .fold(new StringBuffer(), (buffer, token) => buffer..write(token.lexeme))
+      .fold(
+          new StringBuffer(),
+          (buffer, token) => buffer
+            ..write((token is NgSimpleQuoteToken)
+                ? token.quotedLexeme
+                : token.lexeme))
       .toString();
 
   test('should tokenize plain text', () {
@@ -127,7 +132,8 @@ void main() {
       new NgSimpleToken.whitespace(7, ' '),
       new NgSimpleToken.identifier(8, 'title'),
       new NgSimpleToken.equalSign(13),
-      new NgSimpleToken.doubleQuotedText(14, '"Submit \"quoted text\""'),
+      new NgSimpleQuoteToken.doubleQuotedText(
+          14, '"Submit \"quoted text\""', true),
       new NgSimpleToken.tagEnd(38),
       new NgSimpleToken.tagStart(39),
       new NgSimpleToken.forwardSlash(40),
@@ -148,7 +154,7 @@ void main() {
       new NgSimpleToken.identifier(14, 'x'),
       new NgSimpleToken.closeBracket(15),
       new NgSimpleToken.equalSign(16),
-      new NgSimpleToken.doubleQuotedText(17, '"y"'),
+      new NgSimpleQuoteToken.doubleQuotedText(17, '"y"', true),
       new NgSimpleToken.tagEnd(20),
       new NgSimpleToken.tagStart(21),
       new NgSimpleToken.forwardSlash(22),
@@ -211,7 +217,7 @@ void main() {
       new NgSimpleToken.star(6),
       new NgSimpleToken.identifier(7, 'ngIf'),
       new NgSimpleToken.equalSign(11),
-      new NgSimpleToken.doubleQuotedText(12, '"some bool"'),
+      new NgSimpleQuoteToken.doubleQuotedText(12, '"some bool"', true),
       new NgSimpleToken.tagEnd(23),
       new NgSimpleToken.tagStart(24),
       new NgSimpleToken.forwardSlash(25),
@@ -274,14 +280,22 @@ void main() {
       new NgSimpleToken.identifier(6, 'someInput'),
       new NgSimpleToken.closeBracket(15),
       new NgSimpleToken.equalSign(16),
-      new NgSimpleToken.doubleQuote(17),
-      new NgSimpleToken.whitespace(18, ' '),
-      new NgSimpleToken.openParen(19),
-      new NgSimpleToken.identifier(20, 'someEvent'),
-      new NgSimpleToken.closeParen(29),
-      new NgSimpleToken.equalSign(30),
-      new NgSimpleToken.singleQuotedText(31, "'do something'"),
-      new NgSimpleToken.tagEnd(45)
+      new NgSimpleQuoteToken.doubleQuotedText(
+          17, '" (someEvent)=\'do something\'>', false),
+    ]);
+  });
+
+  test('should tokenize dangling single quote', () {
+    expect(tokenize('''<div [someInput]=' (someEvent)="do something">'''), [
+      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.identifier(1, 'div'),
+      new NgSimpleToken.whitespace(4, ' '),
+      new NgSimpleToken.openBracket(5),
+      new NgSimpleToken.identifier(6, 'someInput'),
+      new NgSimpleToken.closeBracket(15),
+      new NgSimpleToken.equalSign(16),
+      new NgSimpleQuoteToken.singleQuotedText(
+          17, "' (someEvent)=\"do something\">", false),
     ]);
   });
 

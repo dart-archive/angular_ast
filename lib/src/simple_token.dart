@@ -43,15 +43,6 @@ class NgSimpleToken {
         NgSimpleTokenType.dashedIdentifier, offset, lexeme);
   }
 
-  factory NgSimpleToken.doubleQuote(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.doubleQuote, offset, '"');
-  }
-
-  factory NgSimpleToken.doubleQuotedText(int offset, String lexeme) {
-    return new NgSimpleToken(
-        NgSimpleTokenType.doubleQuotedText, offset, lexeme);
-  }
-
   factory NgSimpleToken.tagStart(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.tagStart, offset, '<');
   }
@@ -97,15 +88,6 @@ class NgSimpleToken {
     return new NgSimpleToken._(NgSimpleTokenType.period, offset, '.');
   }
 
-  factory NgSimpleToken.singleQuote(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.singleQuote, offset, "'");
-  }
-
-  factory NgSimpleToken.singleQuotedText(int offset, String lexeme) {
-    return new NgSimpleToken(
-        NgSimpleTokenType.singleQuotedText, offset, lexeme);
-  }
-
   factory NgSimpleToken.star(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.star, offset, '*');
   }
@@ -145,4 +127,57 @@ class NgSimpleToken {
 
   @override
   String toString() => '#$NgSimpleToken(${type.name}) {$offset:$lexeme}';
+}
+
+class NgSimpleQuoteToken extends NgSimpleToken {
+  factory NgSimpleQuoteToken.doubleQuotedText(
+      int offset, String lexeme, bool isClosed) {
+    return new NgSimpleQuoteToken(
+        NgSimpleTokenType.doubleQuote, offset, lexeme, isClosed);
+  }
+
+  factory NgSimpleQuoteToken.singleQuotedText(
+      int offset, String lexeme, bool isClosed) {
+    return new NgSimpleQuoteToken(
+        NgSimpleTokenType.singleQuote, offset, lexeme, isClosed);
+  }
+
+  final int
+      quoteOffset; //super.offset will be for text only; this is for Quote begin
+  final int quoteEndOffset; //If null, indicated unclosed
+  String _quotedLexeme;
+
+  NgSimpleQuoteToken(
+      NgSimpleTokenType type, this.quoteOffset, String lexeme, bool isClosed)
+      : quoteEndOffset = (isClosed ? quoteOffset + lexeme.length : null),
+        super(
+            type,
+            quoteOffset + 1,
+            lexeme.substring(
+                1, (isClosed ? lexeme.length - 1 : lexeme.length))) {
+    _quotedLexeme = lexeme;
+  }
+
+  @override
+  bool operator ==(Object o) {
+    if (o is NgSimpleQuoteToken) {
+      return o.offset == offset &&
+          o.type == type &&
+          o.quoteOffset == quoteOffset &&
+          o.quoteEndOffset == quoteEndOffset;
+    }
+    return false;
+  }
+
+  String get quotedLexeme => _quotedLexeme;
+  String get quote => (type == NgSimpleTokenType.doubleQuote) ? '"' : "'";
+  bool get isClosed => quoteEndOffset != null;
+  int get quotedLength => _quotedLexeme.length;
+
+  @override
+  int get hashCode => hash4(super.hashCode, lexeme, quoteOffset, end);
+
+  @override
+  String toString() =>
+      '#$NgSimpleQuoteToken(${type.name}) {$quoteOffset:$quotedLexeme}';
 }

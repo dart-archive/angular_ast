@@ -81,21 +81,27 @@ void main() {
   });
 
   test('element: should tokenize doubleQuoted text', () {
-    expect(tokenizeTag('"doSomething1; doSomething2"'),
-        new NgSimpleToken.doubleQuotedText(0, '"doSomething1; doSomething2"'));
+    expect(
+        tokenizeTag('"doSomething1; doSomething2"'),
+        new NgSimpleQuoteToken.doubleQuotedText(
+            0, '"doSomething1; doSomething2"', true));
   });
 
   test('element: should tokenize singleQuoted text', () {
-    expect(tokenizeTag("'doSomething1; doSomething2'"),
-        new NgSimpleToken.singleQuotedText(0, "'doSomething1; doSomething2'"));
+    expect(
+        tokenizeTag("'doSomething1; doSomething2'"),
+        new NgSimpleQuoteToken.singleQuotedText(
+            0, "'doSomething1; doSomething2'", true));
   });
 
   test('element: should tokenize unclosed doubleQuote', () {
-    expect(tokenizeTag('" blah blah'), new NgSimpleToken.doubleQuote(0));
+    expect(tokenizeTag('" blah blah'),
+        new NgSimpleQuoteToken.doubleQuotedText(0, '" blah blah', false));
   });
 
   test('element: should tokenize unclosed singleQuote', () {
-    expect(tokenizeTag("' blah blah"), new NgSimpleToken.singleQuote(0));
+    expect(tokenizeTag("' blah blah"),
+        new NgSimpleQuoteToken.singleQuotedText(0, "' blah blah", false));
   });
 
   test('element: should tokenize elementStart tag', () {

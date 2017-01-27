@@ -38,15 +38,13 @@ class NgSimpleScanner {
       r'(\()|' //8  (
       r'([\s]+)|' //9 whitespace
       r'([a-zA-Z]([\w\_\-])*[a-zA-Z0-9]?)|' //10 any alphanumeric + '-' + '_'
-      r'("([^"\\]|\\.)*")|' //12 closed double quote (includes group 13)
-      r"('([^'\\]|\\.)*')|" //14 closed single quote (includes group 15)
-      r'(")|' //16 " (floating)
-      r"(')|" //17 ' (floating)
-      r"(<)|" //18 <
-      r"(=)|" //19 =
-      r"(\*)|" //20 *
-      r"(\#)|" //21 #
-      r"(\.)"); //22 .
+      r'("([^"\\]|\\.)*"?)|' //12 closed double quote (includes group 13)
+      r"('([^'\\]|\\.)*'?)|" //14 closed single quote (includes group 15)
+      r"(<)|" //16 <
+      r"(=)|" //17 =
+      r"(\*)|" //18 *
+      r"(\#)|" //19 #
+      r"(\.)"); //20 .
   static final _commentEnd = new RegExp('-->');
 
   final StringScanner _scanner;
@@ -145,32 +143,30 @@ class NgSimpleScanner {
         return new NgSimpleToken.identifier(offset, s);
       }
       if (matchesGroup(match, 12)) {
-        return new NgSimpleToken.doubleQuotedText(
-            offset, _scanner.substring(offset).replaceAll(r'\"', '"'));
+        String lexeme = _scanner.substring(offset).replaceAll(r'\"', '"');
+        bool isClosed = lexeme[lexeme.length - 1] == '"';
+        return new NgSimpleQuoteToken.doubleQuotedText(
+            offset, lexeme, isClosed);
       }
       if (matchesGroup(match, 14)) {
-        return new NgSimpleToken.singleQuotedText(
-            offset, _scanner.substring(offset).replaceAll(r"\'", "'"));
+        String lexeme = _scanner.substring(offset).replaceAll(r"\'", "'");
+        bool isClosed = lexeme[lexeme.length - 1] == "'";
+        return new NgSimpleQuoteToken.singleQuotedText(
+            offset, lexeme, isClosed);
       }
       if (matchesGroup(match, 16)) {
-        return new NgSimpleToken.doubleQuote(offset);
-      }
-      if (matchesGroup(match, 17)) {
-        return new NgSimpleToken.singleQuote(offset);
-      }
-      if (matchesGroup(match, 18)) {
         return new NgSimpleToken.tagStart(offset);
       }
-      if (matchesGroup(match, 19)) {
+      if (matchesGroup(match, 17)) {
         return new NgSimpleToken.equalSign(offset);
       }
-      if (matchesGroup(match, 20)) {
+      if (matchesGroup(match, 18)) {
         return new NgSimpleToken.star(offset);
       }
-      if (matchesGroup(match, 21)) {
+      if (matchesGroup(match, 19)) {
         return new NgSimpleToken.hash(offset);
       }
-      if (matchesGroup(match, 22)) {
+      if (matchesGroup(match, 20)) {
         return new NgSimpleToken.period(offset);
       }
     }
