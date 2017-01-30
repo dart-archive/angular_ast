@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/scanner.dart';
-import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:meta/meta.dart';
 
 /// Separates an Angular template into a series of lexical tokens.

@@ -5,7 +5,7 @@
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/expression/micro.dart';
 import 'package:angular_ast/src/parser/reader.dart';
-import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 

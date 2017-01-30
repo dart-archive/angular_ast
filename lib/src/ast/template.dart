@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
-import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:collection/collection.dart';
 import 'package:quiver/core.dart';

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of angular_ast.src.token;
+part of angular_ast.src.token.tokens;
 
 // A token that has a custom lexeme, i.e. not predefined by a token type.
 //

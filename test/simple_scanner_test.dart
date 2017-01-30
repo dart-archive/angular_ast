@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/simple_tokenizer.dart';
-import 'package:angular_ast/src/simple_token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:test/test.dart';
 
 void main() {
