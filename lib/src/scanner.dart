@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/token/tokens.dart';
+import 'package:angular_ast/src/simple_tokenizer.dart';
+import 'package:angular_ast/src/parser/reader.dart';
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:string_scanner/string_scanner.dart';
+import 'package:source_span/source_span.dart';
 
 /// A thin wrapper around [StringScanner] that scans tokens from an HTML string.
 class NgScanner {
@@ -27,14 +30,20 @@ class NgScanner {
   static final _findWhitespace = new RegExp(r'\s+', multiLine: true);
 
   final StringScanner _scanner;
+  final NgTokenReader _reader;
 
   _NgScannerState _state = _NgScannerState.scanStart;
 
   factory NgScanner(String html, {sourceUrl}) {
-    return new NgScanner._(new StringScanner(html, sourceUrl: sourceUrl));
+    StringScanner scanner = new StringScanner(html, sourceUrl: sourceUrl);
+    NgTokenReader reader = new NgTokenReader(
+        new SourceFile(html, url: sourceUrl),
+        new NgSimpleTokenizer().tokenize(html));
+
+    return new NgScanner._(scanner, reader);
   }
 
-  NgScanner._(this._scanner);
+  NgScanner._(this._scanner, this._reader);
 
   /// Scans and returns the next token, or `null` if there is none more.
   NgToken scan() {
