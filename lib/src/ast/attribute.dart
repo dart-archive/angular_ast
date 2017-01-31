@@ -58,7 +58,7 @@ abstract class AttributeAst implements TemplateAst {
   @override
   String toString() {
     if (value != null) {
-      return '$AttributeAst {$name="$value"}';
+      return '$AttributeAst {$name=$value"}';
     }
     return '$AttributeAst {$name}';
   }

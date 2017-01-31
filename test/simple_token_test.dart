@@ -124,6 +124,24 @@ void main() {
     expect(token.type, NgSimpleTokenType.identifier);
   });
 
+  test('mustacheBegin', () {
+    token = new NgSimpleToken.mustacheBegin(0);
+    expect(token.lexeme, '{{');
+    expect(token.end, 2);
+    expect(token.length, 2);
+    expect(token.offset, 0);
+    expect(token.type, NgSimpleTokenType.mustacheBegin);
+  });
+
+  test('mustacheEnd', () {
+    token = new NgSimpleToken.mustacheEnd(0);
+    expect(token.lexeme, '}}');
+    expect(token.end, 2);
+    expect(token.length, 2);
+    expect(token.offset, 0);
+    expect(token.type, NgSimpleTokenType.mustacheEnd);
+  });
+
   test('openBracket', () {
     token = new NgSimpleToken.openBracket(0);
     expect(token.lexeme, '[');

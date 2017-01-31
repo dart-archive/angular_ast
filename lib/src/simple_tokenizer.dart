@@ -182,6 +182,7 @@ class NgSimpleScanner {
     if (_scanner.scan(_allTextMatches)) {
       Match match = _scanner.lastMatch;
       if (matchesGroup(match, 1)) {
+        String text = _scanner.substring(offset);
         return new NgSimpleToken.text(offset, _scanner.substring(offset));
       }
       if (matchesGroup(match, 2)) {
@@ -191,6 +192,9 @@ class NgSimpleScanner {
       if (matchesGroup(match, 3)) {
         _state = _NgSimpleScannerState.element;
         return new NgSimpleToken.tagStart(offset);
+      }
+      if (matchesGroup(match, 4)) {
+        return new NgSimpleToken.mustacheBegin(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(

@@ -173,7 +173,7 @@ void main() {
         new NgToken.beforeElementDecorator(7, ' '),
         new NgToken.elementDecorator(8, 'title'),
         new NgToken.beforeElementDecoratorValue(13),
-        new NgToken.elementDecoratorValue(15, 'Submit'),
+        new NgToken.elementDecoratorValue(14, '"Submit'),
         new NgToken.afterElementDecoratorValue(21),
         new NgToken.openElementEnd(22),
         new NgToken.closeElementStart(23),

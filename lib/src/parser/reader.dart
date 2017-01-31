@@ -117,7 +117,13 @@ class NgTokenReversibleReader extends NgTokenReader {
   }
 
   NgBaseToken putBack(NgBaseToken token) {
-    _seen.add(token);
-    return token;
+    if (_peek != null) {
+      _seen.add(_peek);
+      _peek = token;
+      return _peek;
+    } else {
+      _peek = token;
+      return _peek;
+    }
   }
 }

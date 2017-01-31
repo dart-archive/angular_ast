@@ -115,7 +115,7 @@ void main() {
       parse('<button title="Submit"></button>'),
       [
         new ElementAst('button', attributes: [
-          new AttributeAst('title', 'Submit'),
+          new AttributeAst('title', '"Submit'),
         ]),
       ],
     );

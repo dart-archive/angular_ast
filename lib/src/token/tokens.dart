@@ -55,6 +55,10 @@ class NgSimpleToken implements NgBaseToken {
         NgSimpleTokenType.dashedIdentifier, offset, lexeme);
   }
 
+  factory NgSimpleToken.doubleQuote(int offset) {
+    return new NgSimpleToken(NgSimpleTokenType.doubleQuote, offset, '"');
+  }
+
   factory NgSimpleToken.tagStart(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.tagStart, offset, '<');
   }
@@ -81,6 +85,14 @@ class NgSimpleToken implements NgBaseToken {
 
   factory NgSimpleToken.identifier(int offset, String lexeme) {
     return new NgSimpleToken(NgSimpleTokenType.identifier, offset, lexeme);
+  }
+
+  factory NgSimpleToken.mustacheBegin(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.mustacheBegin, offset, "{{");
+  }
+
+  factory NgSimpleToken.mustacheEnd(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.mustacheEnd, offset, "}}");
   }
 
   //Probably don't need
@@ -110,6 +122,10 @@ class NgSimpleToken implements NgBaseToken {
 
   factory NgSimpleToken.unexpectedChar(int offset, String lexeme) {
     return new NgSimpleToken(NgSimpleTokenType.unexpectedChar, offset, lexeme);
+  }
+
+  factory NgSimpleToken.voidCloseTag(int offset) {
+    return new NgSimpleToken(NgSimpleTokenType.voidCloseTag, offset, "/>");
   }
 
   factory NgSimpleToken.whitespace(int offset, String lexeme) {
@@ -253,6 +269,22 @@ class NgToken implements NgBaseToken {
 
   factory NgToken.elementIdentifier(int offset, String string) {
     return new _LexemeNgToken(offset, string, NgTokenType.elementIdentifier);
+  }
+
+  factory NgToken.eventElementDecoratorBegin(int offset) {
+    return new NgToken._(NgTokenType.eventElementDecoratorBegin, offset);
+  }
+
+  factory NgToken.eventElementDecoratorEnd(int offset) {
+    return new NgToken._(NgTokenType.eventElementDecoratorEnd, offset);
+  }
+
+  factory NgToken.inputElementDecoratorBegin(int offset) {
+    return new NgToken._(NgTokenType.inputElementDecoratorBegin, offset);
+  }
+
+  factory NgToken.inputElementDecoratorEnd(int offset) {
+    return new NgToken._(NgTokenType.inputElementDecoratorEnd, offset);
   }
 
   factory NgToken.interpolationEnd(int offset) {

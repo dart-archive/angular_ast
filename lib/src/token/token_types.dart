@@ -47,6 +47,10 @@ class NgSimpleTokenType implements NgBaseTokenType {
 
   static const identifier = const NgSimpleTokenType._('identifier');
 
+  static const mustacheBegin = const NgSimpleTokenType._('mustacheBegin');
+
+  static const mustacheEnd = const NgSimpleTokenType._('mustacheEnd');
+
   //Probably not needed
   static const openBrace = const NgSimpleTokenType._('openBrace');
 
@@ -60,13 +64,11 @@ class NgSimpleTokenType implements NgBaseTokenType {
 
   static const star = const NgSimpleTokenType._('star');
 
-  static const doubleQuotedText = const NgSimpleTokenType._('doubleQuotedText');
-
-  static const singleQuotedText = const NgSimpleTokenType._('singleQuotedText');
-
   static const text = const NgSimpleTokenType._('text');
 
   static const unexpectedChar = const NgSimpleTokenType._('unexpectedChar');
+
+  static const voidCloseTag = const NgSimpleTokenType._('voidCloseTag');
 
   static const whitespace = const NgSimpleTokenType._('whitespace');
 
@@ -110,7 +112,7 @@ class NgTokenType implements NgBaseTokenType {
   /// Represents `="`.
   static const beforeElementDecoratorValue = const NgTokenType._(
     'beforeElementDecoratorValue',
-    lexeme: '="',
+    lexeme: '=',
   );
 
   /// Represents ending closing an element declaration.
@@ -150,6 +152,22 @@ class NgTokenType implements NgBaseTokenType {
 
   /// Represents the name of an element.
   static const elementIdentifier = const NgTokenType._('elementIdentifier');
+
+  /// Represents the beginning of an event element decorator
+  static const eventElementDecoratorBegin =
+      const NgTokenType._('eventElementDecoratorBegin', lexeme: '(');
+
+  /// Represents the end of an event element decorator
+  static const eventElementDecoratorEnd =
+      const NgTokenType._('eventElementDecoratorEnd', lexeme: ')');
+
+  /// Represents the beginning of an input element decorator
+  static const inputElementDecoratorBegin =
+      const NgTokenType._('inputElementDecoratorBegin', lexeme: '[');
+
+  /// Represents the end of an input element decorator
+  static const inputElementDecoratorEnd =
+      const NgTokenType._('inputElementDecoratorEnd', lexeme: ']');
 
   /// Represents ending an interpolated text block.
   static const interpolationEnd = const NgTokenType._(
