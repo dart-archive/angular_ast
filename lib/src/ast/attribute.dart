@@ -15,6 +15,7 @@ abstract class AttributeAst implements TemplateAst {
   /// Create a new synthetic [AttributeAst] with a string [value].
   factory AttributeAst(
     String name, [
+    bool isDoubleQuote,
     String value,
   ]) = _SyntheticAttributeAst;
 
@@ -22,6 +23,7 @@ abstract class AttributeAst implements TemplateAst {
   factory AttributeAst.from(
     TemplateAst origin,
     String name, [
+    bool isDoubleQuote,
     String value,
   ]) = _SyntheticAttributeAst.from;
 
@@ -29,6 +31,7 @@ abstract class AttributeAst implements TemplateAst {
   factory AttributeAst.parsed(
     SourceFile sourceFile,
     NgToken nameToken, [
+    bool isDoubleQuote,
     NgToken valueToken,
     NgToken endValueToken,
   ]) = _ParsedAttributeAst;
@@ -55,10 +58,18 @@ abstract class AttributeAst implements TemplateAst {
   /// Static attribute value; may be `null` to have no value.
   String get value;
 
+  /// Static boolean value; may be `null` if no value.
+  bool get isDoubleQuote;
+
+  /// Static quoted attribute value; may be `null` to have no value.
+  String get quotedValue => (value == null)
+      ? null
+      : (isDoubleQuote ? '"' + value + '"' : "'" + value + "'");
+
   @override
   String toString() {
     if (value != null) {
-      return '$AttributeAst {$name=$value"}';
+      return '$AttributeAst {$name=$value}';
     }
     return '$AttributeAst {$name}';
   }
@@ -68,13 +79,18 @@ class _ParsedAttributeAst extends TemplateAst with AttributeAst {
   final NgToken _nameToken;
   final NgToken _valueToken;
 
+  @override
+  final bool isDoubleQuote;
+
   _ParsedAttributeAst(
     SourceFile sourceFile,
     NgToken nameToken, [
+    bool isDoubleQuote,
     this._valueToken,
     NgToken endValueToken,
   ])
       : _nameToken = nameToken,
+        isDoubleQuote = isDoubleQuote,
         super.parsed(nameToken, endValueToken ?? nameToken, sourceFile);
 
   @override
@@ -91,11 +107,15 @@ class _SyntheticAttributeAst extends SyntheticTemplateAst with AttributeAst {
   @override
   final String value;
 
-  _SyntheticAttributeAst(this.name, [this.value]);
+  @override
+  final bool isDoubleQuote;
+
+  _SyntheticAttributeAst(this.name, [this.isDoubleQuote, this.value]);
 
   _SyntheticAttributeAst.from(
     TemplateAst origin,
     this.name, [
+    this.isDoubleQuote,
     this.value,
   ])
       : super.from(origin);

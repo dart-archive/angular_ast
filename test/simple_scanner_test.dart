@@ -73,7 +73,7 @@ void main() {
 
   test('element: should tokenize identifier', () {
     expect(tokenizeTag("my-element_tag [a]='y'>"),
-        new NgSimpleToken.dashedIdentifier(0, "my-element_tag"));
+        new NgSimpleToken.identifier(0, "my-element_tag"));
   });
 
   test('element: should tokenize single letter text', () {

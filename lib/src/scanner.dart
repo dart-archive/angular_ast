@@ -1,51 +1,35 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/simple_tokenizer.dart';
 import 'package:angular_ast/src/parser/reader.dart';
-import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:source_span/source_span.dart';
 
 /// A thin wrapper around [StringScanner] that scans tokens from an HTML string.
 class NgScanner {
-  static const _charElementDecoratorWrapper = $double_quote;
-  static const _charElementEnd = $gt;
-  static const _charElementStart = $lt;
-  static const _charElementStartClose = $slash;
-
-  static const _findAfterComment = '-->';
   static const _findAfterInterpolation = '}}';
-  static const _findBeforeComment = '<!--';
   static const _findBeforeInterpolation = '{{';
-  static final _findBeforeElementDecoratorValue = new RegExp(r'\s*=\s*"');
-  static final _findElementDecorator = new RegExp(r'[^\s=>]+', multiLine: true);
-  static final _findElementDecoratorValue = new RegExp(r'[^"]*');
-  static const _findElementEndVoid = '/>';
-  static final _findElementIdentifier = new RegExp(r'[^\s/>]*');
-  static final _findInterpolationValue = new RegExp(r'[^}}]*');
-  static final _findWhitespace = new RegExp(r'\s+', multiLine: true);
 
-  final StringScanner _scanner;
   final NgTokenReversibleReader _reader;
   _NgScannerState _state = _NgScannerState.scanStart;
 
   NgSimpleToken _current;
   NgSimpleToken _moveNext() => _current = _reader.next();
+  NgSimpleToken _moveNextExpect(NgBaseTokenType type) =>
+      _current = _reader.expect(type);
 
   factory NgScanner(String html, {sourceUrl}) {
-    StringScanner scanner = new StringScanner(html, sourceUrl: sourceUrl);
     NgTokenReader reader = new NgTokenReversibleReader(
         new SourceFile(html, url: sourceUrl),
         new NgSimpleTokenizer().tokenize(html));
 
-    return new NgScanner._(scanner, reader);
+    return new NgScanner._(reader);
   }
 
-  NgScanner._(this._scanner, this._reader);
+  NgScanner._(this._reader);
 
   /// Scans and returns the next token, or `null` if there is none more.
   NgToken scan() {
@@ -59,8 +43,6 @@ class NgScanner {
         return scanAfterComment();
       case _NgScannerState.scanAfterElementDecorator:
         return scanAfterElementDecorator();
-      case _NgScannerState.scanAfterElementDecoratorValue:
-        return scanAfterElementDecoratorValue();
       case _NgScannerState.scanAfterInterpolation:
         return scanAfterInterpolation();
       case _NgScannerState.scanBeforeElementDecorator:
@@ -104,6 +86,75 @@ class NgScanner {
   }
 
   @protected
+  NgToken evaluateSpecialElementDecorator() {
+    NgToken prefix;
+    NgToken identifier;
+    NgToken suffix;
+
+    //Prefix
+    if (_current.type == NgSimpleTokenType.openParen) {
+      //Event
+      prefix = new NgToken.eventPrefix(_current.offset);
+    } else if (_current.type == NgSimpleTokenType.openBracket) {
+      //Banana/Two-way
+      if (_reader.peekType() == NgSimpleTokenType.openParen) {
+        int offset = _current.offset;
+        _moveNext();
+        prefix = new NgToken.bananaPrefix(offset);
+      }
+      //Property
+      else {
+        prefix = new NgToken.propertyPrefix(_current.offset);
+      }
+    } else if (_current.type == NgSimpleTokenType.hash) {
+      //Reference
+      prefix = new NgToken.referencePrefix(_current.offset);
+    } else if (_current.type == NgSimpleTokenType.star) {
+      //Template
+      prefix = new NgToken.templatePrefix(_current.offset);
+    }
+
+    //Identifier
+    _moveNextExpect(NgSimpleTokenType.identifier);
+    if (prefix.type == NgTokenType.propertyPrefix &&
+        _reader.peekType() == NgSimpleTokenType.period) {
+      NgToken baseIdentifier =
+          new NgToken.elementDecoratorValue(_current.offset, _current.lexeme);
+      StringBuffer mergedLexeme = new StringBuffer();
+      mergedLexeme.write(baseIdentifier.lexeme);
+      _moveNext();
+      while (_current.type == NgSimpleTokenType.period) {
+        _current = _reader.expect(NgSimpleTokenType.identifier);
+        mergedLexeme.write('.');
+        mergedLexeme.write(_current.lexeme);
+        _moveNext();
+      }
+      _reader.putBack(_current);
+      identifier = new NgToken.elementDecoratorValue(
+          baseIdentifier.offset, mergedLexeme.toString());
+    } else {
+      identifier =
+          new NgToken.elementDecoratorValue(_current.offset, _current.lexeme);
+    }
+
+    //Suffix
+    if (prefix.type == NgTokenType.eventPrefix) {
+      _moveNextExpect(NgSimpleTokenType.closeParen);
+      suffix = new NgToken.eventSuffix(_current.offset);
+    } else if (prefix.type == NgTokenType.bananaPrefix) {
+      _moveNextExpect(NgSimpleTokenType.closeParen);
+      int offset = _current.offset;
+      _moveNextExpect(NgSimpleTokenType.closeBracket);
+      suffix = new NgToken.bananaSuffix(offset);
+    } else if (prefix.type == NgTokenType.propertyPrefix) {
+      _moveNextExpect(NgSimpleTokenType.closeBracket);
+      suffix = new NgToken.propertySuffix(_current.offset);
+    }
+
+    return new NgSpecialAttributeToken.generate(prefix, identifier, suffix);
+  }
+
+  @protected
   NgToken scanAfterComment() {
     if (_current.type == NgSimpleTokenType.commentEnd) {
       _state = _NgScannerState.scanStart;
@@ -121,23 +172,14 @@ class NgScanner {
         _current.type == NgSimpleTokenType.forwardSlash) {
       return scanElementEnd(wasOpenTag: true);
     } else if (_current.type == NgSimpleTokenType.whitespace) {
+      if (_reader.peekType() == NgSimpleTokenType.equalSign) {
+        _moveNext();
+        _state = _NgScannerState.scanElementDecoratorValue;
+        return new NgToken.beforeElementDecoratorValue(_current.offset);
+      }
       return scanBeforeElementDecorator();
-    } else if (_current.type == NgSimpleTokenType.closeParen) {
-      return new NgToken.eventElementDecoratorEnd(_current.offset);
-    } else if (_current.type == NgSimpleTokenType.closeBracket) {
-      return new NgToken.inputElementDecoratorEnd(_current.offset);
     }
 
-    throw _unexpected();
-  }
-
-  //TODO to also return single quote
-  @protected
-  NgToken scanAfterElementDecoratorValue() {
-    if (_current.type == NgSimpleTokenType.doubleQuote) {
-      _state = _NgScannerState.scanAfterElementDecorator;
-      return new NgToken.afterElementDecoratorValue(_current.offset);
-    }
     throw _unexpected();
   }
 
@@ -189,45 +231,69 @@ class NgScanner {
 
   @protected
   NgToken scanElementDecorator() {
-    if (_current.type == NgSimpleTokenType.identifier) {
+    NgSimpleTokenType type = _current.type;
+    if (type == NgSimpleTokenType.identifier) {
+      StringBuffer sb = new StringBuffer();
+      sb.write(_current.lexeme);
+      while (_reader.peekType() == NgSimpleTokenType.period) {
+        _moveNext();
+        _moveNextExpect(NgSimpleTokenType.identifier);
+        sb.write(_current.lexeme);
+      }
       _state = _NgScannerState.scanAfterElementDecorator;
-      return new NgToken.elementDecorator(_current.offset, _current.lexeme);
+      return new NgToken.elementDecorator(_current.offset, sb.toString());
     }
-    if (_current.type == NgSimpleTokenType.openParen) {
-      return new NgToken.eventElementDecoratorBegin(_current.offset);
-    }
-    if (_current.type == NgSimpleTokenType.openBracket) {
-      return new NgToken.inputElementDecoratorBegin(_current.offset);
+    if (type == NgSimpleTokenType.openParen ||
+        type == NgSimpleTokenType.openBracket ||
+        type == NgSimpleTokenType.hash ||
+        type == NgSimpleTokenType.star) {
+      _state = _NgScannerState.scanAfterElementDecorator;
+      return evaluateSpecialElementDecorator();
     }
     throw _unexpected();
   }
 
   @protected
   NgToken scanElementDecoratorValue() {
-    //TODO add single quote tokens and adjust
     if (_current is NgSimpleQuoteToken) {
-      bool isDouble = _current.type == NgSimpleTokenType.doubleQuote;
-      bool isClosed = (_current as NgSimpleQuoteToken).isClosed;
-      String substring = (_current as NgSimpleQuoteToken).quotedLexeme;
-      if (!isDouble) {
-        substring.replaceFirst("'", '"');
+      NgSimpleQuoteToken current = _current as NgSimpleQuoteToken;
+      bool isDouble = current.type == NgSimpleTokenType.doubleQuote;
+
+      String innerValue = current.lexeme;
+      int leftQuoteOffset = current.quoteOffset;
+      if (current.quoteEndOffset == null) {
+        throw _unexpectedSpecific(current.end);
       }
-      if (isClosed) {
-        int closeQuoteEnd = (_current as NgSimpleQuoteToken).quoteEndOffset;
-        substring = substring.substring(0, substring.length - 1);
-        _reader.putBack(new NgSimpleToken.doubleQuote(closeQuoteEnd - 1));
+      int rightQuoteOffset = current.quoteEndOffset - 1;
+
+      NgToken leftQuoteToken;
+      NgToken innerValueToken;
+      NgToken rightQuoteToken;
+
+      if (isDouble) {
+        leftQuoteToken = new NgToken.doubleQuote(leftQuoteOffset);
+        rightQuoteToken = new NgToken.doubleQuote(rightQuoteOffset);
+      } else {
+        leftQuoteToken = new NgToken.singleQuote(leftQuoteOffset);
+        rightQuoteToken = new NgToken.singleQuote(rightQuoteOffset);
       }
-      _state = _NgScannerState.scanAfterElementDecoratorValue;
-      return new NgToken.elementDecoratorValue(
-          (_current as NgSimpleQuoteToken).quoteOffset, substring);
+      innerValueToken =
+          new NgToken.elementDecoratorValue(current.offset, innerValue);
+
+      _state = _NgScannerState.scanAfterElementDecorator;
+      return new NgAttributeValueToken.generate(
+          leftQuoteToken, innerValueToken, rightQuoteToken);
+    }
+    if (_current.type == NgSimpleTokenType.whitespace) {
+      _moveNext();
+      return scanElementDecoratorValue();
     }
     throw _unexpected();
   }
 
   @protected
   NgToken scanElementIdentifier({@required bool wasOpenTag}) {
-    if (_current.type == NgSimpleTokenType.identifier ||
-        _current.type == NgSimpleTokenType.dashedIdentifier) {
+    if (_current.type == NgSimpleTokenType.identifier) {
       if (_reader.peekType() == NgSimpleTokenType.whitespace) {
         _state = _NgScannerState.scanBeforeElementDecorator;
       } else {
@@ -339,10 +405,21 @@ class NgScanner {
     NgSimpleToken token = override ?? _current;
     _state = _NgScannerState.hasError;
     return new FormatException(
-      'Unexpected character: $token.lexeme',
+      'Unexpected character: $token',
       token.lexeme,
       token.offset,
     );
+  }
+
+  FormatException _unexpectedSpecific(int errorOffset,
+      [NgSimpleToken override]) {
+    NgSimpleToken token = override ?? _current;
+    _state = _NgScannerState.hasError;
+    String errorString = token.lexeme.substring(errorOffset - token.offset);
+    return new FormatException(
+        'Unexpected character in token at offset: $errorString : $errorOffset',
+        token.lexeme,
+        errorOffset);
   }
 }
 
@@ -351,7 +428,6 @@ enum _NgScannerState {
   isEndOfFile,
   scanAfterComment,
   scanAfterElementDecorator,
-  scanAfterElementDecoratorValue,
   scanAfterInterpolation,
   scanBeforeElementDecorator,
   scanBeforeInterpolation,

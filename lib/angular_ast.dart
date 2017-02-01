@@ -25,7 +25,8 @@ export 'package:angular_ast/src/ast.dart'
         TextAst;
 export 'package:angular_ast/src/lexer.dart' show NgLexer;
 export 'package:angular_ast/src/parser.dart' show NgParser;
-export 'package:angular_ast/src/token/tokens.dart' show NgToken, NgTokenType;
+export 'package:angular_ast/src/token/tokens.dart'
+    show NgToken, NgTokenType, NgAttributeValueToken, NgSpecialAttributeToken;
 export 'package:angular_ast/src/visitor.dart'
     show
         HumanizingTemplateAstVisitor,

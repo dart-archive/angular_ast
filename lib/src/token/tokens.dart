@@ -50,10 +50,10 @@ class NgSimpleToken implements NgBaseToken {
     return new NgSimpleToken._(NgSimpleTokenType.dash, offset, '-');
   }
 
-  factory NgSimpleToken.dashedIdentifier(int offset, String lexeme) {
-    return new NgSimpleToken(
-        NgSimpleTokenType.dashedIdentifier, offset, lexeme);
-  }
+//  factory NgSimpleToken.dashedIdentifier(int offset, String lexeme) {
+//    return new NgSimpleToken(
+//        NgSimpleTokenType.dashedIdentifier, offset, lexeme);
+//  }
 
   factory NgSimpleToken.doubleQuote(int offset) {
     return new NgSimpleToken(NgSimpleTokenType.doubleQuote, offset, '"');
@@ -223,6 +223,14 @@ class NgToken implements NgBaseToken {
     return new NgToken._(NgTokenType.afterElementDecoratorValue, offset);
   }
 
+  factory NgToken.bananaPrefix(int offset) {
+    return new NgToken._(NgTokenType.bananaPrefix, offset);
+  }
+
+  factory NgToken.bananaSuffix(int offset) {
+    return new NgToken._(NgTokenType.bananaSuffix, offset);
+  }
+
   factory NgToken.beforeElementDecorator(int offset, String string) {
     return new _LexemeNgToken(
       offset,
@@ -255,6 +263,10 @@ class NgToken implements NgBaseToken {
     return new _LexemeNgToken(offset, string, NgTokenType.commentValue);
   }
 
+  factory NgToken.doubleQuote(int offset) {
+    return new NgToken._(NgTokenType.doubleQuote, offset);
+  }
+
   factory NgToken.elementDecorator(int offset, String string) {
     return new _LexemeNgToken(offset, string, NgTokenType.elementDecorator);
   }
@@ -271,20 +283,12 @@ class NgToken implements NgBaseToken {
     return new _LexemeNgToken(offset, string, NgTokenType.elementIdentifier);
   }
 
-  factory NgToken.eventElementDecoratorBegin(int offset) {
-    return new NgToken._(NgTokenType.eventElementDecoratorBegin, offset);
+  factory NgToken.eventPrefix(int offset) {
+    return new NgToken._(NgTokenType.eventPrefix, offset);
   }
 
-  factory NgToken.eventElementDecoratorEnd(int offset) {
-    return new NgToken._(NgTokenType.eventElementDecoratorEnd, offset);
-  }
-
-  factory NgToken.inputElementDecoratorBegin(int offset) {
-    return new NgToken._(NgTokenType.inputElementDecoratorBegin, offset);
-  }
-
-  factory NgToken.inputElementDecoratorEnd(int offset) {
-    return new NgToken._(NgTokenType.inputElementDecoratorEnd, offset);
+  factory NgToken.eventSuffix(int offset) {
+    return new NgToken._(NgTokenType.eventSuffix, offset);
   }
 
   factory NgToken.interpolationEnd(int offset) {
@@ -309,6 +313,26 @@ class NgToken implements NgBaseToken {
 
   factory NgToken.openElementStart(int offset) {
     return new NgToken._(NgTokenType.openElementStart, offset);
+  }
+
+  factory NgToken.propertyPrefix(int offset) {
+    return new NgToken._(NgTokenType.propertyPrefix, offset);
+  }
+
+  factory NgToken.propertySuffix(int offset) {
+    return new NgToken._(NgTokenType.propertySuffix, offset);
+  }
+
+  factory NgToken.referencePrefix(int offset) {
+    return new NgToken._(NgTokenType.referencePrefix, offset);
+  }
+
+  factory NgToken.singleQuote(int offset) {
+    return new NgToken._(NgTokenType.singleQuote, offset);
+  }
+
+  factory NgToken.templatePrefix(int offset) {
+    return new NgToken._(NgTokenType.templatePrefix, offset);
   }
 
   factory NgToken.text(int offset, String string) {
@@ -350,4 +374,99 @@ class NgToken implements NgBaseToken {
 
   @override
   String toString() => '#$NgToken(${type.name}) {$offset:$lexeme}';
+}
+
+class NgAttributeValueToken extends NgToken {
+  factory NgAttributeValueToken.generate(
+      NgToken leftQuote, NgToken innerValue, NgToken rightQuote) {
+    return new NgAttributeValueToken._(
+        leftQuote.offset, leftQuote, innerValue, rightQuote);
+  }
+
+  final NgToken leftQuote;
+  final NgToken innerValue;
+  final NgToken rightQuote;
+
+  const NgAttributeValueToken._(
+      offset, this.leftQuote, this.innerValue, this.rightQuote)
+      : super._(NgTokenType.elementDecoratorValue, offset);
+
+  @override
+  bool operator ==(Object o) {
+    if (o is NgAttributeValueToken) {
+      return leftQuote == o.leftQuote &&
+          rightQuote == o.rightQuote &&
+          innerValue == o.innerValue;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => hash3(leftQuote, innerValue, rightQuote);
+
+  @override
+  int get end => rightQuote.end;
+
+  @override
+  int get length => leftQuote.length + innerValue.length + rightQuote.length;
+
+  @override
+  String get lexeme => leftQuote.lexeme + innerValue.lexeme + rightQuote.lexeme;
+
+  @override
+  String toString() =>
+      '#$NgSpecialAttributeToken(${type.name}) {$offset:$lexeme}';
+
+  bool get isDoubleQuote => leftQuote.type == NgTokenType.doubleQuote;
+  bool get isSingleQuote => leftQuote.type == NgTokenType.singleQuote;
+}
+
+class NgSpecialAttributeToken extends NgToken {
+  factory NgSpecialAttributeToken.generate(
+      NgToken prefixToken, NgToken identifier, NgToken suffixToken) {
+    return new NgSpecialAttributeToken._(
+        prefixToken.offset, prefixToken, identifier, suffixToken);
+  }
+
+  final NgToken prefixToken;
+  final NgToken identifierToken;
+  final NgToken suffixToken;
+
+  bool get isReference => suffixToken == null;
+
+  const NgSpecialAttributeToken._(
+      offset, this.prefixToken, this.identifierToken, this.suffixToken)
+      : super._(NgTokenType.elementDecorator, offset);
+
+  @override
+  bool operator ==(Object o) {
+    if (o is NgSpecialAttributeToken) {
+      return prefixToken == o.prefixToken &&
+          suffixToken == o.suffixToken &&
+          identifierToken == o.identifierToken;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => hash3(prefixToken, identifierToken, suffixToken);
+
+  @override
+  int get end => isReference ? identifierToken.end : suffixToken.end;
+
+  @override
+  int get length =>
+      prefixToken.length +
+      identifierToken.length +
+      (isReference ? 0 : suffixToken.length);
+
+  @override
+  String get lexeme =>
+      prefixToken.lexeme +
+      identifierToken.lexeme +
+      (isReference ? '' : suffixToken.lexeme);
+
+  @override
+  String toString() =>
+      '#$NgSpecialAttributeToken(${type.name}) {$offset:$lexeme}';
 }

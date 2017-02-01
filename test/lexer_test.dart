@@ -173,8 +173,10 @@ void main() {
         new NgToken.beforeElementDecorator(7, ' '),
         new NgToken.elementDecorator(8, 'title'),
         new NgToken.beforeElementDecoratorValue(13),
-        new NgToken.elementDecoratorValue(14, '"Submit'),
-        new NgToken.afterElementDecoratorValue(21),
+        new NgAttributeValueToken.generate(
+            new NgToken.doubleQuote(14),
+            new NgToken.elementDecoratorValue(15, "Submit"),
+            new NgToken.doubleQuote(21)),
         new NgToken.openElementEnd(22),
         new NgToken.closeElementStart(23),
         new NgToken.elementIdentifier(25, 'button'),
@@ -253,6 +255,30 @@ void main() {
           'msgCharacterCounter(inputTextLength, maxCount)',
         ),
         new NgToken.interpolationEnd(48),
+      ],
+    );
+  });
+
+  test('should tokenize an HTML element with property attribute', () {
+    expect(
+      tokenize('<div [style.max-height.px]="contentHeight"></div>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgSpecialAttributeToken.generate(
+            new NgToken.propertyPrefix(5),
+            new NgToken.elementDecoratorValue(6, 'style.max-height.px'),
+            new NgToken.propertySuffix(25)),
+        new NgToken.beforeElementDecoratorValue(26),
+        new NgAttributeValueToken.generate(
+            new NgToken.doubleQuote(27),
+            new NgToken.elementDecoratorValue(28, 'contentHeight'),
+            new NgToken.doubleQuote(41)),
+        new NgToken.openElementEnd(42),
+        new NgToken.closeElementStart(43),
+        new NgToken.elementIdentifier(45, 'div'),
+        new NgToken.closeElementEnd(48)
       ],
     );
   });

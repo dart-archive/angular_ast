@@ -27,7 +27,7 @@ class NgSimpleTokenType implements NgBaseTokenType {
 
   static const dash = const NgSimpleTokenType._('dash');
 
-  static const dashedIdentifier = const NgSimpleTokenType._('dashedIdentifier');
+  //static const dashedIdentifier = const NgSimpleTokenType._('dashedIdentifier');
 
   static const doubleQuote = const NgSimpleTokenType._('doubleQuote');
 
@@ -104,12 +104,18 @@ class NgTokenType implements NgBaseTokenType {
     lexeme: '"',
   );
 
+  /// Represents '[('
+  static const bananaPrefix = const NgTokenType._('bananaPrefix', lexeme: '[(');
+
+  /// Represents ')]'
+  static const bananaSuffix = const NgTokenType._('bananaSuffix', lexeme: ')]');
+
   /// Represents whitespace before an attribute, event, or property binding.
   static const beforeElementDecorator = const NgTokenType._(
     'beforeElementDecorator',
   );
 
-  /// Represents `="`.
+  /// Represents `=`.
   static const beforeElementDecoratorValue = const NgTokenType._(
     'beforeElementDecoratorValue',
     lexeme: '=',
@@ -142,7 +148,10 @@ class NgTokenType implements NgBaseTokenType {
   /// Represents a comment value.
   static const commentValue = const NgTokenType._('commentValue');
 
-  /// Represents the name of an element decorator.
+  /// Represents "
+  static const doubleQuote = const NgTokenType._('doubleQuote', lexeme: '"');
+
+  /// Represents the name of an attribute element decorator.
   static const elementDecorator = const NgTokenType._('elementDecorator');
 
   /// Represents the value of an element decorator.
@@ -153,21 +162,11 @@ class NgTokenType implements NgBaseTokenType {
   /// Represents the name of an element.
   static const elementIdentifier = const NgTokenType._('elementIdentifier');
 
-  /// Represents the beginning of an event element decorator
-  static const eventElementDecoratorBegin =
-      const NgTokenType._('eventElementDecoratorBegin', lexeme: '(');
+  /// Represents '('
+  static const eventPrefix = const NgTokenType._('eventPrefix', lexeme: '(');
 
-  /// Represents the end of an event element decorator
-  static const eventElementDecoratorEnd =
-      const NgTokenType._('eventElementDecoratorEnd', lexeme: ')');
-
-  /// Represents the beginning of an input element decorator
-  static const inputElementDecoratorBegin =
-      const NgTokenType._('inputElementDecoratorBegin', lexeme: '[');
-
-  /// Represents the end of an input element decorator
-  static const inputElementDecoratorEnd =
-      const NgTokenType._('inputElementDecoratorEnd', lexeme: ']');
+  /// Represents ')'
+  static const eventSuffix = const NgTokenType._('eventSuffix', lexeme: ')');
 
   /// Represents ending an interpolated text block.
   static const interpolationEnd = const NgTokenType._(
@@ -203,6 +202,25 @@ class NgTokenType implements NgBaseTokenType {
     'openElementStart',
     lexeme: '<',
   );
+
+  /// Represents '['
+  static const propertyPrefix =
+      const NgTokenType._('propertyPrefix', lexeme: '[');
+
+  /// Represents ']'
+  static const propertySuffix =
+      const NgTokenType._('propertySuffix', lexeme: ']');
+
+  /// Represents '#'
+  static const referencePrefix =
+      const NgTokenType._('referencePrefix', lexeme: '#');
+
+  /// Represents '
+  static const singleQuote = const NgTokenType._('singleQuote', lexeme: "'");
+
+  /// Represents '*'
+  static const templatePrefix =
+      const NgTokenType._('templatePrefix', lexeme: '*');
 
   /// Represents a text token.
   static const text = const NgTokenType._('text');

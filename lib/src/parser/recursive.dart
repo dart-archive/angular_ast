@@ -58,26 +58,34 @@ class RecursiveAstParser {
   TemplateAst parseDecorator(NgToken beginToken) {
     // The first token is the decorator/name.
     final nameToken = _reader.expect(NgTokenType.elementDecorator);
-    final startChar = nameToken.lexeme.codeUnitAt(0);
+    bool isDoubleQuote;
     NgToken valueToken;
     NgToken endValueToken;
     var endToken = nameToken;
 
-    // If the next token starts a value then we need to parse the expression.
     if (_reader.peek().type == NgTokenType.beforeElementDecoratorValue) {
       _reader.next();
-      valueToken = _reader.expect(NgTokenType.elementDecoratorValue);
-      endValueToken = _reader.expect(NgTokenType.afterElementDecoratorValue);
+      NgAttributeValueToken attrToken = _reader
+          .expect(NgTokenType.elementDecoratorValue) as NgAttributeValueToken;
+      isDoubleQuote = attrToken.isDoubleQuote;
+      valueToken = attrToken.innerValue;
+      endValueToken = attrToken.rightQuote;
       endToken = endValueToken;
     }
 
-    // Determine what the decorator type is, i.e. either a:
-    // - property
-    // - event
-    // - reference
-    // - attribute
-    switch (startChar) {
-      case $open_bracket:
+    if (nameToken is! NgSpecialAttributeToken) {
+      return new AttributeAst.parsed(
+        _source,
+        nameToken,
+        isDoubleQuote,
+        valueToken,
+        endValueToken,
+      );
+    } else {
+      NgSpecialAttributeToken attrToken = nameToken as NgSpecialAttributeToken;
+      NgTokenType prefixType = attrToken.prefixToken.type;
+
+      if (prefixType == NgTokenType.bananaPrefix) {
         return new PropertyAst.parsed(
           _source,
           beginToken,
@@ -90,7 +98,7 @@ class RecursiveAstParser {
                 )
               : null,
         );
-      case $open_parenthesis:
+      } else if (prefixType == NgTokenType.eventPrefix) {
         return new EventAst.parsed(
           _source,
           beginToken,
@@ -101,20 +109,35 @@ class RecursiveAstParser {
           ),
           endToken,
         );
-      case $hash:
+      } else if (prefixType == NgTokenType.propertyPrefix) {
+        return new PropertyAst.parsed(
+          _source,
+          beginToken,
+          nameToken,
+          endToken,
+          valueToken != null
+              ? new ExpressionAst.parse(
+                  valueToken.lexeme,
+                  sourceUrl: _source.url.toString(),
+                )
+              : null,
+        );
+      } else if (prefixType == NgTokenType.referencePrefix) {
         return new ReferenceAst.parsed(
           _source,
           nameToken,
           valueToken,
           endValueToken,
         );
-      default:
+      } else if (prefixType == NgTokenType.templatePrefix) {
         return new AttributeAst.parsed(
           _source,
           nameToken,
+          isDoubleQuote,
           valueToken,
           endValueToken,
         );
+      }
     }
   }
 
@@ -279,9 +302,9 @@ class RecursiveAstParser {
     return element;
   }
 
-  /// Returns and parses an embedded content directive.
+  /// Returns and parses an embedded content directive/transclusions.
   EmbeddedContentAst parseEmbeddedContent(NgToken beginToken) {
-    NgToken valueToken;
+    NgAttributeValueToken valueToken;
     final nextToken = _reader.next();
     if (nextToken.type == NgTokenType.beforeElementDecorator) {
       final decorator = _reader.expect(NgTokenType.elementDecorator);
@@ -293,7 +316,6 @@ class RecursiveAstParser {
       }
       _reader.expect(NgTokenType.beforeElementDecoratorValue);
       valueToken = _reader.expect(NgTokenType.elementDecoratorValue);
-      _reader.expect(NgTokenType.afterElementDecoratorValue);
       _reader.expect(NgTokenType.openElementEnd);
     } else if (nextToken.type != NgTokenType.openElementEnd) {
       _reader.error('Expected ">", got $nextToken');
@@ -309,11 +331,7 @@ class RecursiveAstParser {
     }
     final endToken = _reader.expect(NgTokenType.closeElementEnd);
     return new EmbeddedContentAst.parsed(
-      _source,
-      beginToken,
-      endToken,
-      valueToken,
-    );
+        _source, beginToken, endToken, valueToken?.innerValue);
   }
 
   /// Returns and parses an embedded `<template>`.

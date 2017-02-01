@@ -62,12 +62,12 @@ void main() {
   });
 
   test('dashedIdenifier', () {
-    token = new NgSimpleToken.dashedIdentifier(0, 'some_dashed-identifier');
+    token = new NgSimpleToken.identifier(0, 'some_dashed-identifier');
     expect(token.lexeme, 'some_dashed-identifier');
     expect(token.end, 22);
     expect(token.length, 22);
     expect(token.offset, 0);
-    expect(token.type, NgSimpleTokenType.dashedIdentifier);
+    expect(token.type, NgSimpleTokenType.identifier);
   });
 
   test('tagStart', () {
