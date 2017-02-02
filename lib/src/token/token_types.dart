@@ -225,6 +225,9 @@ class NgTokenType implements NgBaseTokenType {
   /// Represents a text token.
   static const text = const NgTokenType._('text');
 
+  /// Represents a whitespace token.
+  static const whitespace = const NgTokenType._('whitespace');
+
   @override
   final String name;
 

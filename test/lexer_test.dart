@@ -48,11 +48,12 @@ void main() {
 
   test('should tokenize an HTML element that is explicitly void', () {
     expect(
-      tokenize('<hr/>'),
+      tokenize('<hr  />'),
       [
         new NgToken.openElementStart(0),
         new NgToken.elementIdentifier(1, 'hr'),
-        new NgToken.openElementEndVoid(3),
+        new NgToken.whitespace(3, '  '),
+        new NgToken.openElementEndVoid(5),
       ],
     );
   });
@@ -166,21 +167,23 @@ void main() {
 
   test('should tokenize an element with a decorator with a value', () {
     expect(
-      tokenize('<button title="Submit"></button>'),
+      tokenize('<button title =  "Submit"></button>'),
       [
         new NgToken.openElementStart(0),
         new NgToken.elementIdentifier(1, 'button'),
         new NgToken.beforeElementDecorator(7, ' '),
         new NgToken.elementDecorator(8, 'title'),
-        new NgToken.beforeElementDecoratorValue(13),
+        new NgToken.whitespace(13, ' '),
+        new NgToken.beforeElementDecoratorValue(14),
+        new NgToken.whitespace(15, '  '),
         new NgAttributeValueToken.generate(
-            new NgToken.doubleQuote(14),
-            new NgToken.elementDecoratorValue(15, "Submit"),
-            new NgToken.doubleQuote(21)),
-        new NgToken.openElementEnd(22),
-        new NgToken.closeElementStart(23),
-        new NgToken.elementIdentifier(25, 'button'),
-        new NgToken.closeElementEnd(31),
+            new NgToken.doubleQuote(17),
+            new NgToken.elementDecoratorValue(18, "Submit"),
+            new NgToken.doubleQuote(24)),
+        new NgToken.openElementEnd(25),
+        new NgToken.closeElementStart(26),
+        new NgToken.elementIdentifier(28, 'button'),
+        new NgToken.closeElementEnd(34),
       ],
     );
   });
@@ -195,7 +198,7 @@ void main() {
         <ul>
           <li>1</li>
           <li>
-            <textarea disabled name="box" readonly>Test</textarea>
+            <textarea disabled name  =  "box" readonly>Test</textarea>
           </li>
           <li>
             <button disabled>3</button>
@@ -261,7 +264,7 @@ void main() {
 
   test('should tokenize an HTML element with property attribute', () {
     expect(
-      tokenize('<div [style.max-height.px]="contentHeight"></div>'),
+      tokenize('<div [style.max-height.px]  =  "contentHeight"></div>'),
       [
         new NgToken.openElementStart(0),
         new NgToken.elementIdentifier(1, 'div'),
@@ -270,15 +273,17 @@ void main() {
             new NgToken.propertyPrefix(5),
             new NgToken.elementDecoratorValue(6, 'style.max-height.px'),
             new NgToken.propertySuffix(25)),
-        new NgToken.beforeElementDecoratorValue(26),
+        new NgToken.whitespace(26, '  '),
+        new NgToken.beforeElementDecoratorValue(28),
+        new NgToken.whitespace(29, '  '),
         new NgAttributeValueToken.generate(
-            new NgToken.doubleQuote(27),
-            new NgToken.elementDecoratorValue(28, 'contentHeight'),
-            new NgToken.doubleQuote(41)),
-        new NgToken.openElementEnd(42),
-        new NgToken.closeElementStart(43),
-        new NgToken.elementIdentifier(45, 'div'),
-        new NgToken.closeElementEnd(48)
+            new NgToken.doubleQuote(31),
+            new NgToken.elementDecoratorValue(32, 'contentHeight'),
+            new NgToken.doubleQuote(45)),
+        new NgToken.openElementEnd(46),
+        new NgToken.closeElementStart(47),
+        new NgToken.elementIdentifier(49, 'div'),
+        new NgToken.closeElementEnd(52)
       ],
     );
   });

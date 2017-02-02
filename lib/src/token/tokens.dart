@@ -339,6 +339,10 @@ class NgToken implements NgBaseToken {
     return new _LexemeNgToken(offset, string, NgTokenType.text);
   }
 
+  factory NgToken.whitespace(int offset, String string) {
+    return new _LexemeNgToken(offset, string, NgTokenType.whitespace);
+  }
+
   const NgToken._(this.type, this.offset);
 
   @override
