@@ -56,6 +56,9 @@ abstract class StarAst implements TemplateAst {
   /// Name of the directive being created.
   String get name;
 
+  /// Name of expression string
+  String get value;
+
   @override
   String toString() {
     if (expression != null) {
@@ -102,6 +105,7 @@ class _ParsedStarAst extends TemplateAst
   @override
   int get equalSignOffset => equalSignToken.offset;
 
+  @override
   String get value => valueToken?.innerValue?.lexeme;
 
   @override
@@ -129,4 +133,7 @@ class _SyntheticStarAst extends SyntheticTemplateAst with StarAst {
 
   @override
   final String name;
+
+  @override
+  String get value => expression.expression.toString();
 }

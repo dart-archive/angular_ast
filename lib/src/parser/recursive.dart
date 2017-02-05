@@ -6,7 +6,6 @@ import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/expression/micro.dart';
 import 'package:angular_ast/src/parser/reader.dart';
 import 'package:angular_ast/src/token/tokens.dart';
-import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 
 /// A recursive descent AST parser from a series of tokens.
@@ -119,7 +118,7 @@ class RecursiveAstParser {
     final properties = <PropertyAst>[];
     final references = <ReferenceAst>[];
     NgToken nextToken;
-    AttributeAst deSugarTemplateAst;
+    StarAst deSugarTemplateAst;
 
     // Start looping and get all of the decorators within the element.
     do {
@@ -127,52 +126,37 @@ class RecursiveAstParser {
       if (nextToken.type == NgTokenType.beforeElementDecorator) {
         var decoratorAst = parseDecorator(nextToken);
         if (decoratorAst is AttributeAst) {
+          attributes.add(decoratorAst);
+        } else if (decoratorAst is StarAst) {
           // De-sugar into a EmbeddedTemplateAst or create a StarAst.
-          if (decoratorAst.name.codeUnitAt(0) == $asterisk) {
-            if (deSugarTemplateAst != null) {
-              _reader.error(''
-                  'Already found an *-directive, limit 1 per element, but also '
-                  'found ${decoratorAst.sourceSpan.highlight()}');
-              return null;
-            }
-            deSugarTemplateAst = decoratorAst;
-          } else {
-            attributes.add(decoratorAst);
+          if (deSugarTemplateAst != null) {
+            _reader.error(''
+                'Already found an *-directive, limit 1 per element, but also '
+                'found ${decoratorAst.sourceSpan.highlight()}');
+            return null;
           }
+          deSugarTemplateAst = decoratorAst;
         } else if (decoratorAst is EventAst) {
           events.add(decoratorAst);
         } else if (decoratorAst is PropertyAst) {
-          // De-sugar into a property/event (banana syntax).
-          // TODO: Lint this properly.
-          if (decoratorAst.name.codeUnitAt(0) == $open_parenthesis) {
-            TemplateAst origin = decoratorAst;
-            if (_toolFriendlyAstOrigin) {
-              origin = new BananaAst.from(
-                decoratorAst,
-                decoratorAst.name,
-                decoratorAst.expression.expression.toSource(),
-              );
-            }
-            properties.add(
-              new PropertyAst.from(
-                  origin,
-                  decoratorAst.name.substring(1, decoratorAst.name.length - 1),
-                  decoratorAst.expression),
-            );
-            events.add(
-              new EventAst.from(
-                origin,
-                decoratorAst.name.substring(1, decoratorAst.name.length - 1) +
-                    'Changed',
-                new ExpressionAst.parse(
-                  '${decoratorAst.expression.expression} = \$event',
-                  sourceUrl: _source.url.toString(),
-                ),
+          properties.add(decoratorAst);
+        } else if (decoratorAst is BananaAst) {
+          TemplateAst origin = decoratorAst;
+          properties.add(new PropertyAst.from(
+              origin,
+              decoratorAst.name,
+              new ExpressionAst.parse(decoratorAst.value,
+                  sourceUrl: _source.url.toString())));
+          events.add(
+            new EventAst.from(
+              origin,
+              decoratorAst.name + 'Changed',
+              new ExpressionAst.parse(
+                '${decoratorAst.value} = \$event',
+                sourceUrl: _source.url.toString(),
               ),
-            );
-          } else {
-            properties.add(decoratorAst);
-          }
+            ),
+          );
         } else if (decoratorAst is ReferenceAst) {
           references.add(decoratorAst);
         } else {
@@ -215,16 +199,8 @@ class RecursiveAstParser {
     );
     if (deSugarTemplateAst != null) {
       TemplateAst origin = deSugarTemplateAst;
-      origin = new StarAst.from(
-        deSugarTemplateAst,
-        deSugarTemplateAst.name,
-        new ExpressionAst.parse(
-          deSugarTemplateAst.value,
-          sourceUrl: _source.url.toString(),
-        ),
-      );
       final starExpression = deSugarTemplateAst.value;
-      final directiveName = deSugarTemplateAst.name.substring(1);
+      final directiveName = deSugarTemplateAst.name;
       if (isMicroExpression(starExpression)) {
         // This is a micro expression, so we further parse it.
         final micro = parseMicroExpression(
