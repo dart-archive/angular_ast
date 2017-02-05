@@ -13,28 +13,20 @@ import 'package:quiver/core.dart';
 /// Clients should not extend, implement, or mix-in this class.
 abstract class AttributeAst implements TemplateAst {
   /// Create a new synthetic [AttributeAst] with a string [value].
-  factory AttributeAst(
-    String name, [
-    bool isDoubleQuote,
-    String value,
-  ]) = _SyntheticAttributeAst;
+  factory AttributeAst(String name, [String value]) = _SyntheticAttributeAst;
 
   /// Create a new synthetic [AttributeAst] that originated from node [origin].
   factory AttributeAst.from(
     TemplateAst origin,
     String name, [
-    bool isDoubleQuote,
     String value,
   ]) = _SyntheticAttributeAst.from;
 
   /// Create a new [AttributeAst] parsed from tokens from [sourceFile].
   factory AttributeAst.parsed(
-    SourceFile sourceFile,
-    NgToken nameToken, [
-    bool isDoubleQuote,
-    NgToken valueToken,
-    NgToken endValueToken,
-  ]) = _ParsedAttributeAst;
+      SourceFile sourceFile, NgToken beginToken, NgToken nameToken,
+      [NgAttributeValueToken valueToken,
+      NgToken equalSignToken]) = _ParsedAttributeAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -58,13 +50,9 @@ abstract class AttributeAst implements TemplateAst {
   /// Static attribute value; may be `null` to have no value.
   String get value;
 
-  /// Static boolean value; may be `null` if no value.
-  bool get isDoubleQuote;
-
-  /// Static quoted attribute value; may be `null` to have no value.
-  String get quotedValue => (value == null)
-      ? null
-      : (isDoubleQuote ? '"' + value + '"' : "'" + value + "'");
+  /// Static attribute value with quotes attached;
+  /// may be `null` to have no value.
+  String get quotedValue;
 
   @override
   String toString() {
@@ -75,29 +63,38 @@ abstract class AttributeAst implements TemplateAst {
   }
 }
 
-class _ParsedAttributeAst extends TemplateAst with AttributeAst {
-  final NgToken _nameToken;
-  final NgToken _valueToken;
+class _ParsedAttributeAst extends TemplateAst with AttributeAst, OffsetInfo {
+  final NgToken nameToken;
+  final NgAttributeValueToken valueToken;
+  final NgToken equalSignToken;
+
+  _ParsedAttributeAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+      [this.valueToken, this.equalSignToken])
+      : super.parsed(
+            beginToken,
+            (valueToken == null ? nameToken : valueToken.rightQuote),
+            sourceFile);
 
   @override
-  final bool isDoubleQuote;
-
-  _ParsedAttributeAst(
-    SourceFile sourceFile,
-    NgToken nameToken, [
-    bool isDoubleQuote,
-    this._valueToken,
-    NgToken endValueToken,
-  ])
-      : _nameToken = nameToken,
-        isDoubleQuote = isDoubleQuote,
-        super.parsed(nameToken, endValueToken ?? nameToken, sourceFile);
+  String get name => nameToken.lexeme;
 
   @override
-  String get name => _nameToken.lexeme;
+  int get nameOffset => nameToken.offset;
 
   @override
-  String get value => _valueToken?.lexeme;
+  int get equalSignOffset => equalSignToken?.offset;
+
+  @override
+  String get value => valueToken?.innerValue?.lexeme;
+
+  @override
+  String get quotedValue => valueToken?.lexeme;
+
+  @override
+  int get valueOffset => valueToken?.innerValue?.offset;
+
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
 }
 
 class _SyntheticAttributeAst extends SyntheticTemplateAst with AttributeAst {
@@ -108,14 +105,13 @@ class _SyntheticAttributeAst extends SyntheticTemplateAst with AttributeAst {
   final String value;
 
   @override
-  final bool isDoubleQuote;
+  String get quotedValue => '"$value"';
 
-  _SyntheticAttributeAst(this.name, [this.isDoubleQuote, this.value]);
+  _SyntheticAttributeAst(this.name, [this.value]);
 
   _SyntheticAttributeAst.from(
     TemplateAst origin,
     this.name, [
-    this.isDoubleQuote,
     this.value,
   ])
       : super.from(origin);

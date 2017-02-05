@@ -29,13 +29,10 @@ abstract class StarAst implements TemplateAst {
   ]) = _SyntheticStarAst.from;
 
   /// Create a new property assignment parsed from tokens in [sourceFile].
-  factory StarAst.parsed(
-    SourceFile sourceFile,
-    NgToken beginToken,
-    NgToken nameToken,
-    NgToken endToken, [
-    ExpressionAst expressionAst,
-  ]) = _ParsedStarAst;
+  factory StarAst.parsed(SourceFile sourceFile, NgToken beginToken,
+      NgSpecialAttributeToken nameToken,
+      [NgAttributeValueToken valueToken,
+      NgToken equalSignToken]) = _ParsedStarAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -68,23 +65,50 @@ abstract class StarAst implements TemplateAst {
   }
 }
 
-class _ParsedStarAst extends TemplateAst with StarAst {
-  final NgToken _nameToken;
+class _ParsedStarAst extends TemplateAst
+    with StarAst, OffsetInfo, SpecialOffsetInfo {
+  final NgSpecialAttributeToken nameToken;
+  final NgAttributeValueToken valueToken;
+  final NgToken equalSignToken;
 
-  _ParsedStarAst(
-    SourceFile sourceFile,
-    NgToken beginToken,
-    this._nameToken,
-    NgToken endToken, [
-    this.expression,
-  ])
-      : super.parsed(beginToken, endToken, sourceFile);
+  _ParsedStarAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+      [this.valueToken, this.equalSignToken])
+      : this.expression = valueToken != null
+            ? new ExpressionAst.parse(valueToken.innerValue.lexeme,
+                sourceUrl: sourceFile.url.toString())
+            : null,
+        super.parsed(
+            beginToken,
+            valueToken != null
+                ? valueToken.rightQuote
+                : nameToken.identifierToken,
+            sourceFile);
 
   @override
   final ExpressionAst expression;
 
   @override
-  String get name => _nameToken.lexeme.substring(1);
+  String get name => nameToken.identifierToken.lexeme;
+
+  @override
+  int get nameOffset => nameToken.identifierToken.offset;
+
+  @override
+  int get specialPrefixOffset => nameToken.prefixToken.offset;
+
+  @override
+  int get specialSuffixOffset => nameToken.suffixToken.offset;
+
+  @override
+  int get equalSignOffset => equalSignToken.offset;
+
+  String get value => valueToken?.innerValue?.lexeme;
+
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
+
+  @override
+  int get valueOffset => valueToken?.innerValue?.offset;
 }
 
 class _SyntheticStarAst extends SyntheticTemplateAst with StarAst {

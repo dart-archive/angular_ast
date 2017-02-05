@@ -116,8 +116,7 @@ class NgScanner {
 
     //Identifier
     _moveNextExpect(NgSimpleTokenType.identifier);
-    if (prefix.type == NgTokenType.propertyPrefix &&
-        _reader.peekType() == NgSimpleTokenType.period) {
+    if (_reader.peekType() == NgSimpleTokenType.period) {
       int propertyBeginOffset = _current.offset;
       StringBuffer mergedLexeme = new StringBuffer();
       mergedLexeme.write(_current.lexeme);
@@ -300,7 +299,9 @@ class NgScanner {
   NgToken scanElementIdentifier({@required bool wasOpenTag}) {
     if (_current.type == NgSimpleTokenType.identifier) {
       if (_reader.peekType() == NgSimpleTokenType.whitespace) {
-        _state = _NgScannerState.scanBeforeElementDecorator;
+        _state = (wasOpenTag)
+            ? _NgScannerState.scanBeforeElementDecorator
+            : _NgScannerState.scanCloseElementEnd;
       } else {
         _state = wasOpenTag
             ? _NgScannerState.scanOpenElementEnd
@@ -329,6 +330,8 @@ class NgScanner {
       return wasOpenTag
           ? new NgToken.openElementEnd(_current.offset)
           : new NgToken.closeElementEnd(_current.offset);
+    } else if (_current.type == NgSimpleTokenType.whitespace) {
+      return new NgToken.whitespace(_current.offset, _current.lexeme);
     }
     throw _unexpected();
   }

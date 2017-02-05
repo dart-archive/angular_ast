@@ -20,7 +20,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitBanana(BananaAst astNode, [_]) {
-    return '[(${astNode.name})]="${astNode.field}"';
+    return '[(${astNode.name})]="${astNode.value}"';
   }
 
   @override

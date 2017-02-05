@@ -80,15 +80,16 @@ void main() {
 
   test('should tokenize HTML elements mixed with plain text', () {
     expect(
-      tokenize('<div>Hello</div>'),
+      tokenize('<div >Hello</div>'),
       [
         new NgToken.openElementStart(0),
         new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.openElementEnd(4),
-        new NgToken.text(5, 'Hello'),
-        new NgToken.closeElementStart(10),
-        new NgToken.elementIdentifier(12, 'div'),
-        new NgToken.closeElementEnd(15),
+        new NgToken.whitespace(4, ' '),
+        new NgToken.openElementEnd(5),
+        new NgToken.text(6, 'Hello'),
+        new NgToken.closeElementStart(11),
+        new NgToken.elementIdentifier(13, 'div'),
+        new NgToken.closeElementEnd(16),
       ],
     );
   });
@@ -167,7 +168,7 @@ void main() {
 
   test('should tokenize an element with a decorator with a value', () {
     expect(
-      tokenize('<button title =  "Submit"></button>'),
+      tokenize('<button title =  "Submit"  ></button>'),
       [
         new NgToken.openElementStart(0),
         new NgToken.elementIdentifier(1, 'button'),
@@ -180,10 +181,11 @@ void main() {
             new NgToken.doubleQuote(17),
             new NgToken.elementDecoratorValue(18, "Submit"),
             new NgToken.doubleQuote(24)),
-        new NgToken.openElementEnd(25),
-        new NgToken.closeElementStart(26),
-        new NgToken.elementIdentifier(28, 'button'),
-        new NgToken.closeElementEnd(34),
+        new NgToken.whitespace(25, '  '),
+        new NgToken.openElementEnd(27),
+        new NgToken.closeElementStart(28),
+        new NgToken.elementIdentifier(30, 'button'),
+        new NgToken.closeElementEnd(36),
       ],
     );
   });

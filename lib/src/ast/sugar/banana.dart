@@ -8,7 +8,7 @@ import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
-/// Represents the `[(property)]="field"` syntax.
+/// Represents the `[(property)]="value"` syntax.
 ///
 /// This AST may only exist in the parses that do not de-sugar directives (i.e.
 /// useful for tooling, but not useful for compilers).
@@ -30,11 +30,11 @@ abstract class BananaAst implements TemplateAst {
 
   /// Create a new [BananaAst] parsed from tokens from [sourceFile].
   factory BananaAst.parsed(
-    SourceFile sourceFile,
-    NgToken nameToken,
-    NgToken fieldToken,
-    NgToken endFieldToken,
-  ) = _ParsedBananaAst;
+      SourceFile sourceFile,
+      NgToken beginToken,
+      NgSpecialAttributeToken nameToken,
+      NgAttributeValueToken valueToken,
+      NgToken equalSignToken) = _ParsedBananaAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -44,45 +44,64 @@ abstract class BananaAst implements TemplateAst {
   @override
   bool operator ==(Object o) {
     if (o is BananaAst) {
-      return name == o.name && field == o.field;
+      return name == o.name && value == o.value;
     }
     return false;
   }
 
   @override
-  int get hashCode => hash2(name, field);
+  int get hashCode => hash2(name, value);
 
   /// Name of the property.
   String get name;
 
-  /// Field bound to.
-  String get field;
+  /// Value bound to.
+  String get value;
 
   @override
   String toString() {
-    return '$BananaAst {$name="$field"}';
+    return '$BananaAst {$name="$value"}';
   }
 }
 
-class _ParsedBananaAst extends TemplateAst with BananaAst {
-  final NgToken _nameToken;
-  final NgToken _fieldToken;
+class _ParsedBananaAst extends TemplateAst
+    with BananaAst, OffsetInfo, SpecialOffsetInfo {
+  final NgSpecialAttributeToken nameToken;
+  final NgAttributeValueToken valueToken;
+  final NgToken equalSignToken;
 
-  _ParsedBananaAst(
-    SourceFile sourceFile,
-    NgToken nameToken,
-    this._fieldToken,
-    NgToken endValueToken,
-  )
-      : _nameToken = nameToken,
-        super.parsed(nameToken, endValueToken, sourceFile);
-
-  @override
-  String get name =>
-      _nameToken.lexeme.substring(1, _nameToken.lexeme.length - 1);
+  _ParsedBananaAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+      this.valueToken, this.equalSignToken)
+      : super.parsed(
+            beginToken,
+            (valueToken == null
+                ? valueToken.rightQuote
+                : nameToken.suffixToken),
+            sourceFile);
 
   @override
-  String get field => _fieldToken.lexeme;
+  String get name => nameToken.identifierToken.lexeme;
+
+  @override
+  int get nameOffset => nameToken.identifierToken.offset;
+
+  @override
+  int get equalSignOffset => equalSignToken?.offset;
+
+  @override
+  String get value => valueToken?.innerValue?.lexeme;
+
+  @override
+  int get valueOffset => valueToken?.innerValue?.offset;
+
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
+
+  @override
+  int get specialPrefixOffset => nameToken.prefixToken.offset;
+
+  @override
+  int get specialSuffixOffset => nameToken.suffixToken?.offset;
 }
 
 class _SyntheticBananaAst extends SyntheticTemplateAst with BananaAst {
@@ -90,14 +109,14 @@ class _SyntheticBananaAst extends SyntheticTemplateAst with BananaAst {
   final String name;
 
   @override
-  final String field;
+  final String value;
 
-  _SyntheticBananaAst(this.name, [this.field]);
+  _SyntheticBananaAst(this.name, [this.value]);
 
   _SyntheticBananaAst.from(
     TemplateAst origin,
     this.name, [
-    this.field,
+    this.value,
   ])
       : super.from(origin);
 }

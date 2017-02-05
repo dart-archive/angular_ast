@@ -29,12 +29,11 @@ abstract class EventAst implements TemplateAst {
 
   /// Create a new [EventAst] parsed from tokens in [sourceFile].
   factory EventAst.parsed(
-    SourceFile sourceFile,
-    NgToken beginToken,
-    NgToken nameToken,
-    ExpressionAst expression,
-    NgToken endToken,
-  ) = _ParsedEventAst;
+      SourceFile sourceFile,
+      NgToken beginToken,
+      NgSpecialAttributeToken nameToken,
+      NgAttributeValueToken valueToken,
+      NgToken equalSignToken) = _ParsedEventAst;
 
   @override
   bool operator ==(Object o) =>
@@ -71,24 +70,26 @@ abstract class EventAst implements TemplateAst {
   }
 }
 
-class _ParsedEventAst extends TemplateAst with EventAst {
-  final NgToken _nameToken;
+class _ParsedEventAst extends TemplateAst
+    with EventAst, OffsetInfo, SpecialOffsetInfo {
+  final NgSpecialAttributeToken nameToken;
+  final NgAttributeValueToken valueToken;
+  final NgToken equalSignToken;
 
-  _ParsedEventAst(
-    SourceFile sourceFile,
-    NgToken beginToken,
-    this._nameToken,
-    this.expression,
-    NgToken endToken,
-  )
-      : super.parsed(
+  _ParsedEventAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+      this.valueToken, this.equalSignToken)
+      : this.expression = valueToken != null
+            ? new ExpressionAst.parse(valueToken.innerValue.lexeme,
+                sourceUrl: sourceFile.url.toString())
+            : null,
+        super.parsed(
           beginToken,
-          endToken,
+          valueToken == null ? nameToken.suffixToken : valueToken.rightQuote,
           sourceFile,
         );
 
   String get _nameWithoutParentheses {
-    return _nameToken.lexeme.substring(1, _nameToken.lexeme.length - 1);
+    return nameToken.identifierToken.lexeme;
   }
 
   @override
@@ -96,6 +97,26 @@ class _ParsedEventAst extends TemplateAst with EventAst {
 
   @override
   String get name => _nameWithoutParentheses.split('.').first;
+
+  @override
+  int get nameOffset => nameToken.identifierToken.offset;
+
+  @override
+  int get specialPrefixOffset => nameToken.prefixToken.offset;
+
+  @override
+  int get specialSuffixOffset => nameToken.suffixToken.offset;
+
+  String get value => valueToken?.innerValue?.lexeme;
+
+  @override
+  int get valueOffset => valueToken?.innerValue?.offset;
+
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
+
+  @override
+  int get equalSignOffset => equalSignToken.offset;
 
   @override
   String get postfix {

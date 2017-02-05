@@ -11,7 +11,7 @@ import 'package:source_span/source_span.dart';
 
 /// A recursive descent AST parser from a series of tokens.
 class RecursiveAstParser {
-  final NgTokenReader _reader;
+  final NgTokenReversibleReader _reader;
   final SourceFile _source;
   final bool _toolFriendlyAstOrigin;
   final List<String> _voidElements;
@@ -20,7 +20,7 @@ class RecursiveAstParser {
       SourceFile sourceFile, Iterable<NgToken> tokens, this._voidElements,
       {bool toolFriendlyAstOrigin: false})
       : _toolFriendlyAstOrigin = toolFriendlyAstOrigin,
-        _reader = new NgTokenReader(sourceFile, tokens),
+        _reader = new NgTokenReversibleReader(sourceFile, tokens),
         _source = sourceFile;
 
   /// Iterates through and returns the top-level AST nodes from the tokens.
@@ -55,88 +55,46 @@ class RecursiveAstParser {
   }
 
   /// Parses and returns a template AST beginning at the token provided.
+  /// No desugaring of any kind occurs here.
   TemplateAst parseDecorator(NgToken beginToken) {
     // The first token is the decorator/name.
     final nameToken = _reader.expect(NgTokenType.elementDecorator);
-    bool isDoubleQuote;
-    NgToken valueToken;
-    NgToken endValueToken;
-    var endToken = nameToken;
+    NgAttributeValueToken valueToken;
+    NgToken equalSignToken;
 
-    if (_reader.peek().type == NgTokenType.beforeElementDecoratorValue) {
-      _reader.next();
-      NgAttributeValueToken attrToken = _reader
-          .expect(NgTokenType.elementDecoratorValue) as NgAttributeValueToken;
-      isDoubleQuote = attrToken.isDoubleQuote;
-      valueToken = attrToken.innerValue;
-      endValueToken = attrToken.rightQuote;
-      endToken = endValueToken;
+    if (_reader.peekTypeIgnoringType(NgTokenType.whitespace) ==
+        NgTokenType.beforeElementDecoratorValue) {
+      while (_reader.peekType() == NgTokenType.whitespace) {
+        _reader.next();
+      }
+      equalSignToken = _reader.next();
+      valueToken = _reader.expectTypeIgnoringType(
+              NgTokenType.elementDecoratorValue, NgTokenType.whitespace)
+          as NgAttributeValueToken;
     }
 
     if (nameToken is! NgSpecialAttributeToken) {
       return new AttributeAst.parsed(
-        _source,
-        nameToken,
-        isDoubleQuote,
-        valueToken,
-        endValueToken,
-      );
+          _source, beginToken, nameToken, valueToken, equalSignToken);
     } else {
       NgSpecialAttributeToken attrToken = nameToken as NgSpecialAttributeToken;
       NgTokenType prefixType = attrToken.prefixToken.type;
 
       if (prefixType == NgTokenType.bananaPrefix) {
-        return new PropertyAst.parsed(
-          _source,
-          beginToken,
-          nameToken,
-          endToken,
-          valueToken != null
-              ? new ExpressionAst.parse(
-                  valueToken.lexeme,
-                  sourceUrl: _source.url.toString(),
-                )
-              : null,
-        );
+        return new BananaAst.parsed(
+            _source, beginToken, attrToken, valueToken, equalSignToken);
       } else if (prefixType == NgTokenType.eventPrefix) {
         return new EventAst.parsed(
-          _source,
-          beginToken,
-          nameToken,
-          new ExpressionAst.parse(
-            valueToken.lexeme,
-            sourceUrl: _source.url.toString(),
-          ),
-          endToken,
-        );
+            _source, beginToken, attrToken, valueToken, equalSignToken);
       } else if (prefixType == NgTokenType.propertyPrefix) {
         return new PropertyAst.parsed(
-          _source,
-          beginToken,
-          nameToken,
-          endToken,
-          valueToken != null
-              ? new ExpressionAst.parse(
-                  valueToken.lexeme,
-                  sourceUrl: _source.url.toString(),
-                )
-              : null,
-        );
+            _source, beginToken, attrToken, valueToken, equalSignToken);
       } else if (prefixType == NgTokenType.referencePrefix) {
         return new ReferenceAst.parsed(
-          _source,
-          nameToken,
-          valueToken,
-          endValueToken,
-        );
+            _source, beginToken, attrToken, valueToken, equalSignToken);
       } else if (prefixType == NgTokenType.templatePrefix) {
-        return new AttributeAst.parsed(
-          _source,
-          nameToken,
-          isDoubleQuote,
-          valueToken,
-          endValueToken,
-        );
+        return new StarAst.parsed(
+            _source, beginToken, attrToken, valueToken, equalSignToken);
       }
     }
   }
@@ -237,6 +195,9 @@ class RecursiveAstParser {
       final closeName = _reader.expect(NgTokenType.elementIdentifier);
       if (closeName.lexeme != nameToken.lexeme) {
         _reader.error('Invalid closing tag: $closeName (expected $nameToken)');
+      }
+      while (_reader.peekType() == NgTokenType.whitespace) {
+        _reader.next();
       }
       endToken = _reader.expect(NgTokenType.closeElementEnd);
     }

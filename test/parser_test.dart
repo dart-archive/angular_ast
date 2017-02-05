@@ -24,7 +24,7 @@ void main() {
 
   test('should parse a DOM element', () {
     expect(
-      parse('<div></div>'),
+      parse('<div  ></div  >'),
       [
         new ElementAst('div'),
       ],
@@ -55,7 +55,7 @@ void main() {
 
   test('should parse an interpolation', () {
     expect(
-      parse('{{name}}'),
+      parse('{{ name }}'),
       [
         new InterpolationAst(new ExpressionAst.parse(
           'name',
@@ -101,7 +101,7 @@ void main() {
 
   test('should parse an attribute without a value', () {
     expect(
-      parse('<button disabled></button>'),
+      parse('<button disabled ></button>'),
       [
         new ElementAst('button', attributes: [
           new AttributeAst('disabled'),
@@ -115,7 +115,7 @@ void main() {
       parse('<button title="Submit"></button>'),
       [
         new ElementAst('button', attributes: [
-          new AttributeAst('title', true, 'Submit'),
+          new AttributeAst('title', 'Submit'),
         ]),
       ],
     );
@@ -123,7 +123,7 @@ void main() {
 
   test('should parse an event', () {
     expect(
-      parse('<button (click)="onClick()"></button>'),
+      parse('<button (click) = "onClick()"  ></button>'),
       [
         new ElementAst('button', events: [
           new EventAst(
@@ -233,7 +233,7 @@ void main() {
 
   test('should parse a <template> directive with a reference', () {
     expect(
-      parse('<template #named></template>'),
+      parse('<template #named ></template>'),
       [
         new EmbeddedTemplateAst(
           references: [
@@ -276,7 +276,7 @@ void main() {
 
   test('should parse a banana syntax', () {
     expect(
-      parse('<custom [(name)]="myName"></custom>'),
+      parse('<custom [(name)] ="myName"></custom>'),
       [
         new ElementAst(
           'custom',

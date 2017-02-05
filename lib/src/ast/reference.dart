@@ -26,12 +26,10 @@ abstract class ReferenceAst implements TemplateAst {
   ]) = _SyntheticReferenceAst.from;
 
   /// Create new reference from tokens in [sourceFile].
-  factory ReferenceAst.parsed(
-    SourceFile sourceFile,
-    NgToken nameToken, [
-    NgToken identifierToken,
-    NgToken endValueToken,
-  ]) = _ParsedReferenceAst;
+  factory ReferenceAst.parsed(SourceFile sourceFile, NgToken beginToken,
+      NgSpecialAttributeToken nameToken,
+      [NgAttributeValueToken valueToken,
+      NgToken equalSignToken]) = _ParsedReferenceAst;
 
   @override
   bool operator ==(Object o) {
@@ -66,28 +64,45 @@ abstract class ReferenceAst implements TemplateAst {
   }
 }
 
-class _ParsedReferenceAst extends TemplateAst with ReferenceAst {
-  final NgToken _identifierToken;
-  final NgToken _variableToken;
+class _ParsedReferenceAst extends TemplateAst
+    with ReferenceAst, OffsetInfo, SpecialOffsetInfo {
+  final NgSpecialAttributeToken nameToken;
+  final NgAttributeValueToken valueToken;
+  final NgToken equalSignToken;
 
-  _ParsedReferenceAst(
-    SourceFile sourceFile,
-    NgToken nameToken, [
-    this._identifierToken,
-    NgToken endValueToken,
-  ])
-      : _variableToken = nameToken,
-        super.parsed(
-          nameToken,
-          endValueToken ?? nameToken,
+  _ParsedReferenceAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+      [this.valueToken, this.equalSignToken])
+      : super.parsed(
+          beginToken,
+          valueToken != null
+              ? valueToken.rightQuote
+              : nameToken.identifierToken,
           sourceFile,
         );
 
   @override
-  String get identifier => _identifierToken?.lexeme;
+  int get nameOffset => nameToken.identifierToken.offset;
 
   @override
-  String get variable => _variableToken.lexeme.substring(1);
+  int get valueOffset => valueToken?.innerValue?.offset;
+
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
+
+  @override
+  int get equalSignOffset => equalSignToken.offset;
+
+  @override
+  int get specialPrefixOffset => nameToken.prefixToken.offset;
+
+  @override
+  int get specialSuffixOffset => null;
+
+  @override
+  String get identifier => valueToken?.innerValue?.lexeme;
+
+  @override
+  String get variable => nameToken.identifierToken.lexeme;
 }
 
 class _SyntheticReferenceAst extends SyntheticTemplateAst with ReferenceAst {

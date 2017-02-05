@@ -17,3 +17,5 @@ export 'package:angular_ast/src/ast/template.dart' show EmbeddedTemplateAst;
 export 'package:angular_ast/src/ast/text.dart' show TextAst;
 export 'package:angular_ast/src/ast/sugar/banana.dart' show BananaAst;
 export 'package:angular_ast/src/ast/sugar/star.dart' show StarAst;
+export 'package:angular_ast/src/ast/offset_info.dart'
+    show OffsetInfo, SpecialOffsetInfo;
