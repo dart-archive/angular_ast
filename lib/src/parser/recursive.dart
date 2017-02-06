@@ -138,7 +138,7 @@ class RecursiveAstParser {
                 'found ${decoratorAst.sourceSpan.highlight()}');
             return null;
           }
-          //stars.add(decoratorAst);
+          stars.add(decoratorAst);
           deSugarTemplateAst = decoratorAst;
         } else if (decoratorAst is EventAst) {
           events.add(decoratorAst);
@@ -184,45 +184,6 @@ class RecursiveAstParser {
         references: references,
         bananas: bananas,
         stars: stars);
-    if (deSugarTemplateAst != null) {
-      TemplateAst origin = deSugarTemplateAst;
-      final starExpression = deSugarTemplateAst.value;
-      final directiveName = deSugarTemplateAst.name;
-      if (isMicroExpression(starExpression)) {
-        // This is a micro expression, so we further parse it.
-        final micro = parseMicroExpression(
-          directiveName,
-          starExpression,
-          sourceUrl: _source.url.toString(),
-        );
-        return new EmbeddedTemplateAst.from(
-          origin,
-          childNodes: [
-            element,
-          ],
-          attributes: [
-            new AttributeAst(directiveName),
-          ],
-          properties: micro.properties,
-          references: micro.assignments,
-        );
-      }
-      return new EmbeddedTemplateAst.from(
-        origin,
-        childNodes: [
-          element,
-        ],
-        properties: [
-          new PropertyAst(
-            directiveName,
-            new ExpressionAst.parse(
-              starExpression,
-              sourceUrl: _source.url.toString(),
-            ),
-          ),
-        ],
-      );
-    }
     return element;
   }
 

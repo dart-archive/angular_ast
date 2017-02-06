@@ -4,6 +4,7 @@
 
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/visitor.dart';
+import 'package:angular_ast/src/expression/micro.dart';
 import 'package:meta/meta.dart';
 
 /// A visitor that desugars banana and template nodes
@@ -46,6 +47,50 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
         astNode.events.add(toAddEvent);
       }
       astNode.bananas = const [];
+    }
+
+    if (astNode.stars.isNotEmpty) {
+      StarAst starAst = astNode.stars[0];
+      final starExpression = starAst.value;
+      final directiveName = starAst.name;
+      TemplateAst newAst;
+      if (isMicroExpression(starExpression)) {
+        final micro = parseMicroExpression(
+          directiveName,
+          starExpression,
+          sourceUrl: astNode.sourceUrl,
+        );
+        newAst = new EmbeddedTemplateAst.from(
+          starAst,
+          childNodes: [
+            astNode,
+          ],
+          attributes: [
+            new AttributeAst(directiveName),
+          ],
+          properties: micro.properties,
+          references: micro.assignments,
+        );
+      } else {
+        newAst = new EmbeddedTemplateAst.from(
+          starAst,
+          childNodes: [
+            astNode,
+          ],
+          properties: [
+            new PropertyAst(
+              directiveName,
+              new ExpressionAst.parse(
+                starExpression,
+                sourceUrl: astNode.sourceUrl,
+              ),
+            ),
+          ],
+        );
+      }
+
+      astNode.stars = const [];
+      return newAst;
     }
 
     return astNode;

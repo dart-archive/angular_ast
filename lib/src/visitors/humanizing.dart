@@ -52,6 +52,16 @@ class HumanizingTemplateAstVisitor
         ..write(' ')
         ..writeAll(astNode.references.map(visitReference), ' ');
     }
+    if (astNode.bananas.isNotEmpty) {
+      context
+        ..write(' ')
+        ..writeAll(astNode.bananas.map(visitBanana), ' ');
+    }
+    if (astNode.stars.isNotEmpty) {
+      context
+        ..write(' ')
+        ..writeAll(astNode.stars.map(visitStar), ' ');
+    }
     context.write('>');
     if (astNode.childNodes.isNotEmpty) {
       context.writeAll(astNode.childNodes.map((c) => c.accept(this)));

@@ -13,10 +13,7 @@ void main() {
     );
 
     DesugarVisitor visitor = new DesugarVisitor();
-    asts.forEach((t) {
-      t.accept(visitor);
-    });
-    return asts;
+    return asts.map((t) => t.accept(visitor));
   }
 
   test('should parse a text node', () {
