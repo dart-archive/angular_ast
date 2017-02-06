@@ -110,15 +110,6 @@ void main() {
     );
   });
 
-  test('should preserve strict offset for attribute without a value', () {
-    List<StandaloneTemplateAst> asts =
-        parseAndDesugar('<button disabled  ></button>');
-    ElementAst element = asts[0] as ElementAst;
-    expect(element.beginToken.offset, 0);
-    expect(element.whitespaces[0].offset, 16);
-    expect(element.whitespaces[0].end, 18);
-  });
-
   test('should parse an attribute with a value', () {
     expect(
       parseAndDesugar('<button title="Submit"></button>'),
@@ -351,5 +342,29 @@ void main() {
         )
       ],
     );
+  });
+
+  test('should parse and preserve strict offset', () {
+    String templateString = '''
+<tab-button *ngFor="let tabLabel of tabLabels; let idx = index"  (trigger)="switchTo(idx)" [id]="tabId(idx)" class="tab-button"  ></tab-button>''';
+    List<StandaloneTemplateAst> asts =
+        parse(templateString, sourceUrl: '/test/parser_test.dart#inline');
+    ElementAst element = asts[0] as ElementAst;
+    expect(element.beginToken.offset, 0);
+
+    expect(element.stars[0].beginToken.offset, 11);
+    expect((element.stars[0] as ParsedStarAst).specialPrefixOffset, 12);
+
+    expect(element.events[0].beginToken.offset, 63);
+    expect((element.events[0] as ParsedEventAst).specialPrefixOffset, 65);
+
+    expect(element.properties[0].beginToken.offset, 90);
+    expect(
+        (element.properties[0] as ParsedPropertyAst).specialPrefixOffset, 91);
+
+    expect(element.attributes[0].beginToken.offset, 108);
+    expect((element.attributes[0] as ParsedAttributeAst).nameOffset, 109);
+
+    expect(element.whitespaces[0].offset, 127);
   });
 }
