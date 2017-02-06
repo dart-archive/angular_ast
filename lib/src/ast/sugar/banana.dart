@@ -34,7 +34,7 @@ abstract class BananaAst implements TemplateAst {
       NgToken beginToken,
       NgSpecialAttributeToken nameToken,
       NgAttributeValueToken valueToken,
-      NgToken equalSignToken) = _ParsedBananaAst;
+      NgToken equalSignToken) = ParsedBananaAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -64,13 +64,13 @@ abstract class BananaAst implements TemplateAst {
   }
 }
 
-class _ParsedBananaAst extends TemplateAst
+class ParsedBananaAst extends TemplateAst
     with BananaAst, OffsetInfo, SpecialOffsetInfo {
   final NgSpecialAttributeToken nameToken;
   final NgAttributeValueToken valueToken;
   final NgToken equalSignToken;
 
-  _ParsedBananaAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+  ParsedBananaAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
       this.valueToken, this.equalSignToken)
       : super.parsed(
             beginToken,

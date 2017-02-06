@@ -29,7 +29,7 @@ abstract class ReferenceAst implements TemplateAst {
   factory ReferenceAst.parsed(SourceFile sourceFile, NgToken beginToken,
       NgSpecialAttributeToken nameToken,
       [NgAttributeValueToken valueToken,
-      NgToken equalSignToken]) = _ParsedReferenceAst;
+      NgToken equalSignToken]) = ParsedReferenceAst;
 
   @override
   bool operator ==(Object o) {
@@ -64,13 +64,13 @@ abstract class ReferenceAst implements TemplateAst {
   }
 }
 
-class _ParsedReferenceAst extends TemplateAst
+class ParsedReferenceAst extends TemplateAst
     with ReferenceAst, OffsetInfo, SpecialOffsetInfo {
   final NgSpecialAttributeToken nameToken;
   final NgAttributeValueToken valueToken;
   final NgToken equalSignToken;
 
-  _ParsedReferenceAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+  ParsedReferenceAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
       [this.valueToken, this.equalSignToken])
       : super.parsed(
           beginToken,

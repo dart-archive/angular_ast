@@ -33,7 +33,7 @@ abstract class PropertyAst implements TemplateAst {
   factory PropertyAst.parsed(SourceFile sourceFile, NgToken beginToken,
       NgSpecialAttributeToken nameToken,
       [NgAttributeValueToken valueToken,
-      NgToken equalSignToken]) = _ParsedPropertyAst;
+      NgToken equalSignToken]) = ParsedPropertyAst;
 
   @override
   bool operator ==(Object o) {
@@ -95,13 +95,13 @@ abstract class PropertyAst implements TemplateAst {
   }
 }
 
-class _ParsedPropertyAst extends TemplateAst
+class ParsedPropertyAst extends TemplateAst
     with PropertyAst, OffsetInfo, SpecialOffsetInfo {
   final NgSpecialAttributeToken nameToken;
   final NgAttributeValueToken valueToken;
   final NgToken equalSignToken;
 
-  _ParsedPropertyAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+  ParsedPropertyAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
       [this.valueToken, this.equalSignToken])
       : this.expression = valueToken != null
             ? new ExpressionAst.parse(valueToken.innerValue.lexeme,

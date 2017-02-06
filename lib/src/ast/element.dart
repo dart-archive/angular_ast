@@ -24,7 +24,7 @@ abstract class ElementAst implements StandaloneTemplateAst {
       List<ReferenceAst> references,
       List<BananaAst> bananas,
       List<StarAst> stars,
-      List<WhitespaceAst> whitespaces}) = SyntheticElementAst;
+      List<WhitespaceAst> whitespaces}) = _SyntheticElementAst;
 
   /// Create a synthetic element AST from an existing AST node.
   factory ElementAst.from(TemplateAst origin, String name,
@@ -35,7 +35,7 @@ abstract class ElementAst implements StandaloneTemplateAst {
       List<ReferenceAst> references,
       List<BananaAst> bananas,
       List<StarAst> stars,
-      List<WhitespaceAst> whitespaces}) = SyntheticElementAst.from;
+      List<WhitespaceAst> whitespaces}) = _SyntheticElementAst.from;
 
   /// Create a new element AST from parsed source.
   factory ElementAst.parsed(SourceFile sourceFile, NgToken beginToken,
@@ -212,8 +212,8 @@ class ParsedElementAst extends TemplateAst with ElementAst {
   final List<WhitespaceAst> whitespaces;
 }
 
-class SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
-  SyntheticElementAst(this.name,
+class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
+  _SyntheticElementAst(this.name,
       {this.attributes: const [],
       this.childNodes: const [],
       this.events: const [],
@@ -223,7 +223,7 @@ class SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
       this.stars: const [],
       this.whitespaces: const []});
 
-  SyntheticElementAst.from(TemplateAst origin, this.name,
+  _SyntheticElementAst.from(TemplateAst origin, this.name,
       {this.attributes: const [],
       this.childNodes: const [],
       this.events: const [],

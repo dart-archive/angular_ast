@@ -18,16 +18,3 @@ abstract class SpecialOffsetInfo {
   int get specialPrefixOffset;
   int get specialSuffixOffset; //May be null for reference and template
 }
-
-/// Usage: Above two Mixins are useful to obtain extra offset information
-/// as needed without having to import NgTokens while dealing with parsed
-/// results. MUST verify of valid type and is NOT synthetic before usage.
-///
-/// For example:
-/// TemplateAst someAttr = ...
-/// if (someAttr is BananaAst && !someAttr.synthetic) {
-///   OffsetInfo bananaAstOffsets = someAttr as OffsetInfo;
-///   SpecialOffsetInfo bananaNameOffsets = someAttr as SpecialOffsetInfo;
-///   ... do something ...
-/// }
-/// Refer to parser_test.dart for more examples.

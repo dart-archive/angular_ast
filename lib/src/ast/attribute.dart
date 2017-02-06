@@ -26,7 +26,7 @@ abstract class AttributeAst implements TemplateAst {
   factory AttributeAst.parsed(
       SourceFile sourceFile, NgToken beginToken, NgToken nameToken,
       [NgAttributeValueToken valueToken,
-      NgToken equalSignToken]) = _ParsedAttributeAst;
+      NgToken equalSignToken]) = ParsedAttributeAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -63,12 +63,12 @@ abstract class AttributeAst implements TemplateAst {
   }
 }
 
-class _ParsedAttributeAst extends TemplateAst with AttributeAst, OffsetInfo {
+class ParsedAttributeAst extends TemplateAst with AttributeAst, OffsetInfo {
   final NgToken nameToken;
   final NgAttributeValueToken valueToken;
   final NgToken equalSignToken;
 
-  _ParsedAttributeAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+  ParsedAttributeAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
       [this.valueToken, this.equalSignToken])
       : super.parsed(
             beginToken,

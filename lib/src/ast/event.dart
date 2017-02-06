@@ -33,7 +33,7 @@ abstract class EventAst implements TemplateAst {
       NgToken beginToken,
       NgSpecialAttributeToken nameToken,
       NgAttributeValueToken valueToken,
-      NgToken equalSignToken) = _ParsedEventAst;
+      NgToken equalSignToken) = ParsedEventAst;
 
   @override
   bool operator ==(Object o) =>
@@ -70,13 +70,13 @@ abstract class EventAst implements TemplateAst {
   }
 }
 
-class _ParsedEventAst extends TemplateAst
+class ParsedEventAst extends TemplateAst
     with EventAst, OffsetInfo, SpecialOffsetInfo {
   final NgSpecialAttributeToken nameToken;
   final NgAttributeValueToken valueToken;
   final NgToken equalSignToken;
 
-  _ParsedEventAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+  ParsedEventAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
       this.valueToken, this.equalSignToken)
       : this.expression = valueToken != null
             ? new ExpressionAst.parse(valueToken.innerValue.lexeme,

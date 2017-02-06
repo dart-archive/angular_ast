@@ -32,7 +32,7 @@ abstract class StarAst implements TemplateAst {
   factory StarAst.parsed(SourceFile sourceFile, NgToken beginToken,
       NgSpecialAttributeToken nameToken,
       [NgAttributeValueToken valueToken,
-      NgToken equalSignToken]) = _ParsedStarAst;
+      NgToken equalSignToken]) = ParsedStarAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -68,13 +68,13 @@ abstract class StarAst implements TemplateAst {
   }
 }
 
-class _ParsedStarAst extends TemplateAst
+class ParsedStarAst extends TemplateAst
     with StarAst, OffsetInfo, SpecialOffsetInfo {
   final NgSpecialAttributeToken nameToken;
   final NgAttributeValueToken valueToken;
   final NgToken equalSignToken;
 
-  _ParsedStarAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
+  ParsedStarAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
       [this.valueToken, this.equalSignToken])
       : this.expression = valueToken != null
             ? new ExpressionAst.parse(valueToken.innerValue.lexeme,
