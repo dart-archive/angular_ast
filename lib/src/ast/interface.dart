@@ -36,6 +36,10 @@ abstract class TemplateAst {
     return _sourceFile.span(beginToken.offset, endToken.end);
   }
 
+  String get sourceUrl {
+    return _sourceFile.url.toString();
+  }
+
   /// Have the [visitor] start visiting this node.
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]);
 
@@ -121,6 +125,14 @@ abstract class SyntheticTemplateAst implements TemplateAst {
   SourceSpan get sourceSpan {
     if (origin != null) {
       return origin.sourceSpan;
+    }
+    throw _unsupported();
+  }
+
+  @override
+  String get sourceUrl {
+    if (origin != null) {
+      return origin.sourceUrl;
     }
     throw _unsupported();
   }

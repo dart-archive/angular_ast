@@ -117,6 +117,9 @@ class RecursiveAstParser {
     final events = <EventAst>[];
     final properties = <PropertyAst>[];
     final references = <ReferenceAst>[];
+    final bananas = <BananaAst>[];
+    final stars = <StarAst>[];
+
     NgToken nextToken;
     StarAst deSugarTemplateAst;
 
@@ -129,34 +132,20 @@ class RecursiveAstParser {
           attributes.add(decoratorAst);
         } else if (decoratorAst is StarAst) {
           // De-sugar into a EmbeddedTemplateAst or create a StarAst.
-          if (deSugarTemplateAst != null) {
+          if (stars.isNotEmpty) {
             _reader.error(''
                 'Already found an *-directive, limit 1 per element, but also '
                 'found ${decoratorAst.sourceSpan.highlight()}');
             return null;
           }
+          //stars.add(decoratorAst);
           deSugarTemplateAst = decoratorAst;
         } else if (decoratorAst is EventAst) {
           events.add(decoratorAst);
         } else if (decoratorAst is PropertyAst) {
           properties.add(decoratorAst);
         } else if (decoratorAst is BananaAst) {
-          TemplateAst origin = decoratorAst;
-          properties.add(new PropertyAst.from(
-              origin,
-              decoratorAst.name,
-              new ExpressionAst.parse(decoratorAst.value,
-                  sourceUrl: _source.url.toString())));
-          events.add(
-            new EventAst.from(
-              origin,
-              decoratorAst.name + 'Changed',
-              new ExpressionAst.parse(
-                '${decoratorAst.value} = \$event',
-                sourceUrl: _source.url.toString(),
-              ),
-            ),
-          );
+          bananas.add(decoratorAst);
         } else if (decoratorAst is ReferenceAst) {
           references.add(decoratorAst);
         } else {
@@ -187,16 +176,14 @@ class RecursiveAstParser {
     }
 
     final element = new ElementAst.parsed(
-      _source,
-      beginToken,
-      nameToken,
-      endToken,
-      attributes: attributes,
-      childNodes: childNodes,
-      events: events,
-      properties: properties,
-      references: references,
-    );
+        _source, beginToken, nameToken, endToken,
+        attributes: attributes,
+        childNodes: childNodes,
+        events: events,
+        properties: properties,
+        references: references,
+        bananas: bananas,
+        stars: stars);
     if (deSugarTemplateAst != null) {
       TemplateAst origin = deSugarTemplateAst;
       final starExpression = deSugarTemplateAst.value;

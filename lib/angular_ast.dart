@@ -31,7 +31,8 @@ export 'package:angular_ast/src/visitor.dart'
     show
         HumanizingTemplateAstVisitor,
         IdentityTemplateAstVisitor,
-        TemplateAstVisitor;
+        TemplateAstVisitor,
+        DesugarVisitor;
 
 /// Returns [template] parsed as an abstract syntax tree.
 List<TemplateAst> parse(

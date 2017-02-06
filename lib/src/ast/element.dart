@@ -16,38 +16,35 @@ const _listEquals = const ListEquality();
 /// Clients should not extend, implement, or mix-in this class.
 abstract class ElementAst implements StandaloneTemplateAst {
   /// Create a synthetic element AST.
-  factory ElementAst(
-    String name, {
-    List<AttributeAst> attributes,
-    List<StandaloneTemplateAst> childNodes,
-    List<EventAst> events,
-    List<PropertyAst> properties,
-    List<ReferenceAst> references,
-  }) = _SyntheticElementAst;
+  factory ElementAst(String name,
+      {List<AttributeAst> attributes,
+      List<StandaloneTemplateAst> childNodes,
+      List<EventAst> events,
+      List<PropertyAst> properties,
+      List<ReferenceAst> references,
+      List<BananaAst> bananas,
+      List<StarAst> stars}) = _SyntheticElementAst;
 
   /// Create a synthetic element AST from an existing AST node.
-  factory ElementAst.from(
-    TemplateAst origin,
-    String name, {
-    List<AttributeAst> attributes,
-    List<StandaloneTemplateAst> childNodes,
-    List<EventAst> events,
-    List<PropertyAst> properties,
-    List<ReferenceAst> references,
-  }) = _SyntheticElementAst.from;
+  factory ElementAst.from(TemplateAst origin, String name,
+      {List<AttributeAst> attributes,
+      List<StandaloneTemplateAst> childNodes,
+      List<EventAst> events,
+      List<PropertyAst> properties,
+      List<ReferenceAst> references,
+      List<BananaAst> bananas,
+      List<StarAst> stars}) = _SyntheticElementAst.from;
 
   /// Create a new element AST from parsed source.
-  factory ElementAst.parsed(
-    SourceFile sourceFile,
-    NgToken beginToken,
-    NgToken nameToken,
-    NgToken endToken, {
-    List<AttributeAst> attributes,
-    List<StandaloneTemplateAst> childNodes,
-    List<EventAst> events,
-    List<PropertyAst> properties,
-    List<ReferenceAst> references,
-  }) = _ParsedElementAst;
+  factory ElementAst.parsed(SourceFile sourceFile, NgToken beginToken,
+      NgToken nameToken, NgToken endToken,
+      {List<AttributeAst> attributes,
+      List<StandaloneTemplateAst> childNodes,
+      List<EventAst> events,
+      List<PropertyAst> properties,
+      List<ReferenceAst> references,
+      List<BananaAst> bananas,
+      List<StarAst> stars}) = _ParsedElementAst;
 
   @override
   bool operator ==(Object o) {
@@ -57,7 +54,9 @@ abstract class ElementAst implements StandaloneTemplateAst {
           _listEquals.equals(childNodes, o.childNodes) &&
           _listEquals.equals(events, o.events) &&
           _listEquals.equals(properties, o.properties) &&
-          _listEquals.equals(references, o.references);
+          _listEquals.equals(references, o.references) &&
+          _listEquals.equals(bananas, o.bananas) &&
+          _listEquals.equals(stars, o.stars);
     }
     return false;
   }
@@ -71,6 +70,8 @@ abstract class ElementAst implements StandaloneTemplateAst {
       _listEquals.hash(events),
       _listEquals.hash(properties),
       _listEquals.hash(references),
+      _listEquals.hash(bananas),
+      _listEquals.hash(stars)
     ]);
   }
 
@@ -96,6 +97,16 @@ abstract class ElementAst implements StandaloneTemplateAst {
 
   /// Reference assignments.
   List<ReferenceAst> get references;
+
+  /// Bananas assignments.
+  List<BananaAst> get bananas;
+
+  ///Star assignments.
+  List<StarAst> get stars;
+
+  void set bananas(List<BananaAst> l);
+
+  void set stars(List<StarAst> l);
 
   @override
   String toString() {
@@ -124,6 +135,18 @@ abstract class ElementAst implements StandaloneTemplateAst {
         ..writeAll(references, ', ')
         ..write(' ');
     }
+    if (bananas.isNotEmpty) {
+      buffer
+        ..write('bananas=')
+        ..writeAll(bananas, ', ')
+        ..write(' ');
+    }
+    if (stars.isNotEmpty) {
+      buffer
+        ..write('stars=')
+        ..writeAll(stars, ', ')
+        ..write(' ');
+    }
     if (childNodes.isNotEmpty) {
       buffer
         ..write('childNodes=')
@@ -137,17 +160,15 @@ abstract class ElementAst implements StandaloneTemplateAst {
 class _ParsedElementAst extends TemplateAst with ElementAst {
   final NgToken _nameToken;
 
-  _ParsedElementAst(
-    SourceFile sourceFile,
-    NgToken beginToken,
-    this._nameToken,
-    NgToken endToken, {
-    this.attributes: const [],
-    this.childNodes: const [],
-    this.events: const [],
-    this.properties: const [],
-    this.references: const [],
-  })
+  _ParsedElementAst(SourceFile sourceFile, NgToken beginToken, this._nameToken,
+      NgToken endToken,
+      {this.attributes: const [],
+      this.childNodes: const [],
+      this.events: const [],
+      this.properties: const [],
+      this.references: const [],
+      this.bananas: const [],
+      this.stars: const []})
       : super.parsed(beginToken, endToken, sourceFile);
 
   @override
@@ -167,27 +188,32 @@ class _ParsedElementAst extends TemplateAst with ElementAst {
 
   @override
   final List<ReferenceAst> references;
+
+  @override
+  List<BananaAst> bananas;
+
+  @override
+  List<StarAst> stars;
 }
 
 class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
-  _SyntheticElementAst(
-    this.name, {
-    this.attributes: const [],
-    this.childNodes: const [],
-    this.events: const [],
-    this.properties: const [],
-    this.references: const [],
-  });
+  _SyntheticElementAst(this.name,
+      {this.attributes: const [],
+      this.childNodes: const [],
+      this.events: const [],
+      this.properties: const [],
+      this.references: const [],
+      this.bananas: const [],
+      this.stars: const []});
 
-  _SyntheticElementAst.from(
-    TemplateAst origin,
-    this.name, {
-    this.attributes: const [],
-    this.childNodes: const [],
-    this.events: const [],
-    this.properties: const [],
-    this.references: const [],
-  })
+  _SyntheticElementAst.from(TemplateAst origin, this.name,
+      {this.attributes: const [],
+      this.childNodes: const [],
+      this.events: const [],
+      this.properties: const [],
+      this.references: const [],
+      this.bananas: const [],
+      this.stars: const []})
       : super.from(origin);
 
   @override
@@ -207,4 +233,10 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
 
   @override
   final List<ReferenceAst> references;
+
+  @override
+  List<BananaAst> bananas;
+
+  @override
+  List<StarAst> stars;
 }

@@ -34,4 +34,22 @@ void main() {
       '''),
     );
   });
+
+  //REMOVE LATER
+  test('printing test', () {
+//    List<TemplateAst> template = parse(
+//      '<widget *ngIf="someValue" [(value)]="value"></widget>',
+//      sourceUrl: '/test/visitor_test.dart#inline',
+//      toolFriendlyAst: false,
+//    );
+
+    List<TemplateAst> template = parse(
+      '<a *ngFor="let item of items; trackBy: byId; let i = index"></a>',
+      sourceUrl: '/test/visitor_test.dart#inline',
+      toolFriendlyAst: false,
+    );
+
+    print(template.toString());
+    print(template.map((t) => t.accept(visitor)).join(''));
+  });
 }

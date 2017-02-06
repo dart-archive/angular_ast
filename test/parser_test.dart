@@ -7,10 +7,16 @@ import 'package:test/test.dart';
 
 void main() {
   List<StandaloneTemplateAst> parse(String template) {
-    return const NgParser().parse(
+    List<TemplateAst> asts = const NgParser().parse(
       template,
       sourceUrl: '/test/parser_test.dart#inline',
     );
+
+    DesugarVisitor visitor = new DesugarVisitor();
+    asts.forEach((t) {
+      t.accept(visitor);
+    });
+    return asts;
   }
 
   test('should parse a text node', () {
