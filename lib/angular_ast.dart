@@ -22,7 +22,8 @@ export 'package:angular_ast/src/ast.dart'
         StarAst,
         SyntheticTemplateAst,
         TemplateAst,
-        TextAst;
+        TextAst,
+        WhitespaceAst;
 export 'package:angular_ast/src/lexer.dart' show NgLexer;
 export 'package:angular_ast/src/parser.dart' show NgParser;
 export 'package:angular_ast/src/token/tokens.dart'
@@ -35,13 +36,14 @@ export 'package:angular_ast/src/visitor.dart'
         DesugarVisitor;
 
 /// Returns [template] parsed as an abstract syntax tree.
-List<TemplateAst> parse(
-  String template, {
-  @required String sourceUrl,
-  bool toolFriendlyAst: false,
-}) {
+List<TemplateAst> parse(String template,
+    {@required String sourceUrl,
+    bool toolFriendlyAst: false,
+    bool desugar: false}) {
   final parser = toolFriendlyAst
       ? const NgParser(toolFriendlyAstOrigin: true)
       : const NgParser();
-  return parser.parse(template, sourceUrl: sourceUrl);
+  return desugar
+      ? parser.parseAndDesugar(template, sourceUrl: sourceUrl)
+      : parser.parse(template, sourceUrl: sourceUrl);
 }

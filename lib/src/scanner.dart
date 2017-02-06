@@ -90,10 +90,12 @@ class NgScanner {
     NgToken prefix;
     NgToken identifier;
     NgToken suffix;
+    int identifierPartsLimit = 1; //Number of identifiers split by '.'
 
     //Prefix
     if (_current.type == NgSimpleTokenType.openParen) {
       //Event
+      identifierPartsLimit = 2;
       prefix = new NgToken.eventPrefix(_current.offset);
     } else if (_current.type == NgSimpleTokenType.openBracket) {
       //Banana/Two-way
@@ -104,6 +106,7 @@ class NgScanner {
       }
       //Property
       else {
+        identifierPartsLimit = 3;
         prefix = new NgToken.propertyPrefix(_current.offset);
       }
     } else if (_current.type == NgSimpleTokenType.hash) {
@@ -116,16 +119,19 @@ class NgScanner {
 
     //Identifier
     _moveNextExpect(NgSimpleTokenType.identifier);
-    if (_reader.peekType() == NgSimpleTokenType.period) {
+    if (prefix.type == NgTokenType.propertyPrefix &&
+        _reader.peekType() == NgSimpleTokenType.period) {
       int propertyBeginOffset = _current.offset;
       StringBuffer mergedLexeme = new StringBuffer();
       mergedLexeme.write(_current.lexeme);
 
-      while (_reader.peekType() == NgSimpleTokenType.period) {
+      while (_reader.peekType() == NgSimpleTokenType.period &&
+          identifierPartsLimit > 1) {
         _moveNext();
         _moveNextExpect(NgSimpleTokenType.identifier);
         mergedLexeme.write('.');
         mergedLexeme.write(_current.lexeme);
+        identifierPartsLimit--;
       }
       identifier = new NgToken.elementDecoratorValue(
           propertyBeginOffset, mergedLexeme.toString());
@@ -176,9 +182,6 @@ class NgScanner {
         return new NgToken.whitespace(_current.offset, _current.lexeme);
       }
       return scanBeforeElementDecorator();
-    } else if (_current.type == NgSimpleTokenType.equalSign) {
-      _state = _NgScannerState.scanElementDecoratorValue;
-      return new NgToken.beforeElementDecoratorValue(_current.offset);
     }
     throw _unexpected();
   }

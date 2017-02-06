@@ -5,29 +5,32 @@
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:angular_ast/src/expression/micro.dart';
-import 'package:meta/meta.dart';
 
 /// A visitor that desugars banana and template nodes
 /// within a given AST. Ignores non-desugarable nodes.
 /// This modifies the structure, and the original version of
 /// each desugared node can be accessed by 'origin'.
 class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
-  const DesugarVisitor();
+  final bool _toolFriendlyAstOrigin;
+
+  DesugarVisitor({bool toolFriendlyAstOrigin: false})
+      : _toolFriendlyAstOrigin = toolFriendlyAstOrigin;
 
   @override
   TemplateAst visitAttribute(AttributeAst astNode, [_]) => astNode;
 
   @override
   TemplateAst visitBanana(BananaAst astNode, [DesugarFlag flag]) {
+    TemplateAst origin = _toolFriendlyAstOrigin ? astNode : null;
     if (flag == DesugarFlag.event) {
       return new EventAst.from(
-          astNode,
+          origin,
           astNode.name + 'Changed',
           new ExpressionAst.parse('${astNode.value} = \$event',
               sourceUrl: astNode.sourceUrl));
     }
     if (flag == DesugarFlag.property) {
-      return new PropertyAst.from(astNode, astNode.name,
+      return new PropertyAst.from(origin, astNode.name,
           new ExpressionAst.parse(astNode.value, sourceUrl: astNode.sourceUrl));
     }
     return astNode;
@@ -50,10 +53,14 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
     }
 
     if (astNode.stars.isNotEmpty) {
+      //TODO: Look into better structure for better AST visitor pattern
+      //in this area.
       StarAst starAst = astNode.stars[0];
+      TemplateAst origin = _toolFriendlyAstOrigin ? starAst : null;
       final starExpression = starAst.value;
       final directiveName = starAst.name;
       TemplateAst newAst;
+
       if (isMicroExpression(starExpression)) {
         final micro = parseMicroExpression(
           directiveName,
@@ -61,7 +68,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
           sourceUrl: astNode.sourceUrl,
         );
         newAst = new EmbeddedTemplateAst.from(
-          starAst,
+          origin,
           childNodes: [
             astNode,
           ],
@@ -73,7 +80,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
         );
       } else {
         newAst = new EmbeddedTemplateAst.from(
-          starAst,
+          origin,
           childNodes: [
             astNode,
           ],
@@ -123,6 +130,12 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
 
   @override
   TemplateAst visitText(TextAst astNode, [_]) => astNode;
+
+  @override
+  TemplateAst visitWhitespace(WhitespaceAst astNode, [_]) => astNode;
 }
 
-enum DesugarFlag { event, property }
+enum DesugarFlag {
+  event,
+  property,
+}

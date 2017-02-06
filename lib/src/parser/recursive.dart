@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
-import 'package:angular_ast/src/expression/micro.dart';
 import 'package:angular_ast/src/parser/reader.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:source_span/source_span.dart';
@@ -12,14 +11,12 @@ import 'package:source_span/source_span.dart';
 class RecursiveAstParser {
   final NgTokenReversibleReader _reader;
   final SourceFile _source;
-  final bool _toolFriendlyAstOrigin;
   final List<String> _voidElements;
 
   RecursiveAstParser(
       SourceFile sourceFile, Iterable<NgToken> tokens, this._voidElements,
       {bool toolFriendlyAstOrigin: false})
-      : _toolFriendlyAstOrigin = toolFriendlyAstOrigin,
-        _reader = new NgTokenReversibleReader(sourceFile, tokens),
+      : _reader = new NgTokenReversibleReader(sourceFile, tokens),
         _source = sourceFile;
 
   /// Iterates through and returns the top-level AST nodes from the tokens.
@@ -58,6 +55,7 @@ class RecursiveAstParser {
   TemplateAst parseDecorator(NgToken beginToken) {
     // The first token is the decorator/name.
     final nameToken = _reader.expect(NgTokenType.elementDecorator);
+
     NgAttributeValueToken valueToken;
     NgToken equalSignToken;
 
@@ -72,30 +70,28 @@ class RecursiveAstParser {
           as NgAttributeValueToken;
     }
 
-    if (nameToken is! NgSpecialAttributeToken) {
-      return new AttributeAst.parsed(
-          _source, beginToken, nameToken, valueToken, equalSignToken);
-    } else {
-      NgSpecialAttributeToken attrToken = nameToken as NgSpecialAttributeToken;
-      NgTokenType prefixType = attrToken.prefixToken.type;
+    if (nameToken is NgSpecialAttributeToken) {
+      NgTokenType prefixType = nameToken.prefixToken.type;
 
       if (prefixType == NgTokenType.bananaPrefix) {
         return new BananaAst.parsed(
-            _source, beginToken, attrToken, valueToken, equalSignToken);
+            _source, beginToken, nameToken, valueToken, equalSignToken);
       } else if (prefixType == NgTokenType.eventPrefix) {
         return new EventAst.parsed(
-            _source, beginToken, attrToken, valueToken, equalSignToken);
+            _source, beginToken, nameToken, valueToken, equalSignToken);
       } else if (prefixType == NgTokenType.propertyPrefix) {
         return new PropertyAst.parsed(
-            _source, beginToken, attrToken, valueToken, equalSignToken);
+            _source, beginToken, nameToken, valueToken, equalSignToken);
       } else if (prefixType == NgTokenType.referencePrefix) {
         return new ReferenceAst.parsed(
-            _source, beginToken, attrToken, valueToken, equalSignToken);
+            _source, beginToken, nameToken, valueToken, equalSignToken);
       } else if (prefixType == NgTokenType.templatePrefix) {
         return new StarAst.parsed(
-            _source, beginToken, attrToken, valueToken, equalSignToken);
+            _source, beginToken, nameToken, valueToken, equalSignToken);
       }
     }
+    return new AttributeAst.parsed(
+        _source, beginToken, nameToken, valueToken, equalSignToken);
   }
 
   /// Returns a DOM element AST starting at the provided token.
@@ -119,9 +115,8 @@ class RecursiveAstParser {
     final references = <ReferenceAst>[];
     final bananas = <BananaAst>[];
     final stars = <StarAst>[];
-
+    final whitespaces = <WhitespaceAst>[];
     NgToken nextToken;
-    StarAst deSugarTemplateAst;
 
     // Start looping and get all of the decorators within the element.
     do {
@@ -131,7 +126,6 @@ class RecursiveAstParser {
         if (decoratorAst is AttributeAst) {
           attributes.add(decoratorAst);
         } else if (decoratorAst is StarAst) {
-          // De-sugar into a EmbeddedTemplateAst or create a StarAst.
           if (stars.isNotEmpty) {
             _reader.error(''
                 'Already found an *-directive, limit 1 per element, but also '
@@ -139,7 +133,6 @@ class RecursiveAstParser {
             return null;
           }
           stars.add(decoratorAst);
-          deSugarTemplateAst = decoratorAst;
         } else if (decoratorAst is EventAst) {
           events.add(decoratorAst);
         } else if (decoratorAst is PropertyAst) {
@@ -152,11 +145,15 @@ class RecursiveAstParser {
           throw new StateError('Invalid decorator AST: $decoratorAst');
         }
       }
+      if (nextToken.type == NgTokenType.whitespace) {
+        whitespaces.add(new WhitespaceAst(_source, nextToken));
+      }
     } while (nextToken.type != NgTokenType.openElementEnd &&
         nextToken.type != NgTokenType.openElementEndVoid);
 
     // If this is a void element, skip this part
     var endToken = nextToken;
+    //Look for closing tag
     if (!isVoidElement && nextToken.type != NgTokenType.openElementEndVoid) {
       // Collect child nodes.
       nextToken = _reader.next();
@@ -183,7 +180,8 @@ class RecursiveAstParser {
         properties: properties,
         references: references,
         bananas: bananas,
-        stars: stars);
+        stars: stars,
+        whitespaces: whitespaces);
     return element;
   }
 

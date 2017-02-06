@@ -159,4 +159,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitText(TextAst astNode, [_]) => astNode.value;
+
+  @override
+  String visitWhitespace(WhitespaceAst astNode, [_]) => astNode.value;
 }
