@@ -57,17 +57,6 @@ class NgTokenReader {
     return null;
   }
 
-  NgBaseToken expectAny(List<NgBaseTokenType> types) {
-    final next = this.next();
-    for (NgBaseTokenType type in types) {
-      if (when(type)) {
-        return next;
-      }
-    }
-    error('${next.type} was not a type of expected types: ${types}');
-    return null;
-  }
-
   /// Returns the next token, if any, otherwise `null`.
   NgBaseToken next() {
     if (_peek != null) {

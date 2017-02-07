@@ -39,7 +39,7 @@ abstract class ElementAst implements StandaloneTemplateAst {
 
   /// Create a new element AST from parsed source.
   factory ElementAst.parsed(SourceFile sourceFile, NgToken beginToken,
-      NgToken nameToken, NgToken endToken,
+      NgToken nameToken, int openTagEnd, int closeTagStart, NgToken endToken,
       {List<AttributeAst> attributes,
       List<StandaloneTemplateAst> childNodes,
       List<EventAst> events,
@@ -171,9 +171,16 @@ abstract class ElementAst implements StandaloneTemplateAst {
 
 class ParsedElementAst extends TemplateAst with ElementAst {
   final NgToken identifierToken;
+  final int openTagEnd;
+  final int closeTagStart; //Can be null if void element
 
-  ParsedElementAst(SourceFile sourceFile, NgToken beginToken,
-      this.identifierToken, NgToken endToken,
+  ParsedElementAst(
+      SourceFile sourceFile,
+      NgToken beginToken,
+      this.identifierToken,
+      this.openTagEnd,
+      this.closeTagStart,
+      NgToken endToken,
       {this.attributes: const [],
       this.childNodes: const [],
       this.events: const [],

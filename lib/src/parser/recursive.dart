@@ -100,6 +100,7 @@ class RecursiveAstParser {
   StandaloneTemplateAst parseElement(NgToken beginToken) {
     // Parse the element identifier.
     final nameToken = _reader.expect(NgTokenType.elementIdentifier);
+    //TODO: do we want to allow trailing spaces in content/template tags?
     if (nameToken.lexeme == 'ng-content') {
       return parseEmbeddedContent(beginToken);
     } else if (nameToken.lexeme == 'template') {
@@ -116,6 +117,8 @@ class RecursiveAstParser {
     final bananas = <BananaAst>[];
     final stars = <StarAst>[];
     final whitespaces = <WhitespaceAst>[];
+    int openTagEnd;
+    int closeTagStart;
     NgToken nextToken;
 
     // Start looping and get all of the decorators within the element.
@@ -153,6 +156,7 @@ class RecursiveAstParser {
 
     // If this is a void element, skip this part
     var endToken = nextToken;
+    openTagEnd = endToken.offset;
     //Look for closing tag
     if (!isVoidElement && nextToken.type != NgTokenType.openElementEndVoid) {
       // Collect child nodes.
@@ -161,6 +165,7 @@ class RecursiveAstParser {
         childNodes.add(parseStandalone(nextToken));
         nextToken = _reader.next();
       }
+      closeTagStart = nextToken.offset;
       // Finally return the element.
       final closeName = _reader.expect(NgTokenType.elementIdentifier);
       if (closeName.lexeme != nameToken.lexeme) {
@@ -173,7 +178,7 @@ class RecursiveAstParser {
     }
 
     final element = new ElementAst.parsed(
-        _source, beginToken, nameToken, endToken,
+        _source, beginToken, nameToken, openTagEnd, closeTagStart, endToken,
         attributes: attributes,
         childNodes: childNodes,
         events: events,
@@ -269,10 +274,7 @@ class RecursiveAstParser {
     return new InterpolationAst.parsed(
       _source,
       beginToken,
-      new ExpressionAst.parse(
-        valueToken.lexeme,
-        sourceUrl: _source.url.toString(),
-      ),
+      valueToken.lexeme,
       endToken,
     );
   }

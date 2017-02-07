@@ -62,6 +62,9 @@ class HumanizingTemplateAstVisitor
         ..write(' ')
         ..writeAll(astNode.stars.map(visitStar), ' ');
     }
+    if (astNode.whitespaces.isNotEmpty) {
+      context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
+    }
     context.write('>');
     if (astNode.childNodes.isNotEmpty) {
       context.writeAll(astNode.childNodes.map((c) => c.accept(this)));

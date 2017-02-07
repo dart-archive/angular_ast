@@ -137,9 +137,6 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 10)) {
         String s = _scanner.substring(offset);
-//        if (s.contains("-")) {
-//          return new NgSimpleToken.dashedIdentifier(offset, s);
-//        }
         return new NgSimpleToken.identifier(offset, s);
       }
       if (matchesGroup(match, 12)) {
