@@ -49,7 +49,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
         astNode.properties.add(toAddProperty);
         astNode.events.add(toAddEvent);
       }
-      astNode.bananas = const [];
+      astNode.bananas.clear();
     }
 
     if (astNode.stars.isNotEmpty) {
@@ -95,7 +95,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
         );
       }
 
-      astNode.stars = const [];
+      astNode.stars.clear();
       return newAst;
     }
 

@@ -118,12 +118,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
   /// Star assignments.
   List<StarAst> get stars;
 
-  /// Banana assignments; empty if element is desugared.
-  set bananas(List<BananaAst> l);
-
-  /// Star assignments; empty if element is desugared.
-  set stars(List<StarAst> l);
-
   /// Whitespaces
   List<WhitespaceAst> get whitespaces;
 
@@ -241,11 +235,11 @@ class ParsedElementAst extends TemplateAst with ElementAst {
 
   /// Banana assignments.
   @override
-  List<BananaAst> bananas;
+  final List<BananaAst> bananas;
 
   /// Star assignments.
   @override
-  List<StarAst> stars;
+  final List<StarAst> stars;
 
   /// Whitespaces
   @override
@@ -298,10 +292,10 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
   final List<ReferenceAst> references;
 
   @override
-  List<BananaAst> bananas;
+  final List<BananaAst> bananas;
 
   @override
-  List<StarAst> stars;
+  final List<StarAst> stars;
 
   @override
   final List<WhitespaceAst> whitespaces;
