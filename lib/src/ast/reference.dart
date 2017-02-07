@@ -26,10 +26,13 @@ abstract class ReferenceAst implements TemplateAst {
   ]) = _SyntheticReferenceAst.from;
 
   /// Create new reference from tokens in [sourceFile].
-  factory ReferenceAst.parsed(SourceFile sourceFile, NgToken beginToken,
-      NgSpecialAttributeToken nameToken,
-      [NgAttributeValueToken valueToken,
-      NgToken equalSignToken]) = ParsedReferenceAst;
+  factory ReferenceAst.parsed(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    NgSpecialAttributeToken nameToken, [
+    NgAttributeValueToken valueToken,
+    NgToken equalSignToken,
+  ]) = ParsedReferenceAst;
 
   @override
   bool operator ==(Object o) {
@@ -64,10 +67,21 @@ abstract class ReferenceAst implements TemplateAst {
   }
 }
 
+/// Represents a real, non-synthetic reference to an element or exported
+/// directive instance.
+///
+/// Clients should not extend, implement, or mix-in this class.
 class ParsedReferenceAst extends TemplateAst
     with ReferenceAst, OffsetInfo, SpecialOffsetInfo {
+  /// [NgSpecialAttributeToken] that represents `variable` in `#variable`.
   final NgSpecialAttributeToken nameToken;
+
+  /// [NgAttributeValueToken] that represents `identifier` in
+  /// `#variable="reference"`.
   final NgAttributeValueToken valueToken;
+
+  /// [NgToken] that represents the equal sign token; may be `null` to have no
+  /// value.
   final NgToken equalSignToken;
 
   ParsedReferenceAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
@@ -80,27 +94,36 @@ class ParsedReferenceAst extends TemplateAst
           sourceFile,
         );
 
+  /// Offset of `variable` in `#variable="identifier"`.
   @override
   int get nameOffset => nameToken.identifierToken.offset;
 
-  @override
-  int get valueOffset => valueToken?.innerValue?.offset;
-
-  @override
-  int get quotedValueOffset => valueToken?.leftQuote?.offset;
-
+  /// Offset of equal sign; may be `null` if no value.
   @override
   int get equalSignOffset => equalSignToken.offset;
 
+  /// Offset of `identifier` in `#variable="identifier"`; may be `null` if no
+  /// value.
+  @override
+  int get valueOffset => valueToken?.innerValue?.offset;
+
+  /// Offset of `identifier` starting at left quote; may be `null` if no value.
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
+
+  /// Offset of `#` in `#variable`.
   @override
   int get specialPrefixOffset => nameToken.prefixToken.offset;
 
+  /// Always returns `null` since `#ref` has no suffix.
   @override
   int get specialSuffixOffset => null;
 
+  /// Name `identifier` in `#variable="identifier"`.
   @override
   String get identifier => valueToken?.innerValue?.lexeme;
 
+  /// Name `variable` in `#variable="identifier"`.
   @override
   String get variable => nameToken.identifierToken.lexeme;
 }

@@ -13,7 +13,10 @@ import 'package:quiver/core.dart';
 /// Clients should not extend, implement, or mix-in this class.
 abstract class AttributeAst implements TemplateAst {
   /// Create a new synthetic [AttributeAst] with a string [value].
-  factory AttributeAst(String name, [String value]) = _SyntheticAttributeAst;
+  factory AttributeAst(
+    String name, [
+    String value,
+  ]) = _SyntheticAttributeAst;
 
   /// Create a new synthetic [AttributeAst] that originated from node [origin].
   factory AttributeAst.from(
@@ -24,9 +27,12 @@ abstract class AttributeAst implements TemplateAst {
 
   /// Create a new [AttributeAst] parsed from tokens from [sourceFile].
   factory AttributeAst.parsed(
-      SourceFile sourceFile, NgToken beginToken, NgToken nameToken,
-      [NgAttributeValueToken valueToken,
-      NgToken equalSignToken]) = ParsedAttributeAst;
+    SourceFile sourceFile,
+    NgToken beginToken,
+    NgToken nameToken, [
+    NgAttributeValueToken valueToken,
+    NgToken equalSignToken,
+  ]) = ParsedAttributeAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -56,43 +62,66 @@ abstract class AttributeAst implements TemplateAst {
 
   @override
   String toString() {
-    if (value != null) {
+    if (quotedValue != null) {
       return '$AttributeAst {$name=$quotedValue}';
     }
     return '$AttributeAst {$name}';
   }
 }
 
+/// Represents a real(non-synthetic) parsed AttributeAst. Preserves offsets.
+///
+/// Clients should not extend, implement, or mix-in this class.
 class ParsedAttributeAst extends TemplateAst with AttributeAst, OffsetInfo {
+  /// [NgToken] that represents the attribute name.
   final NgToken nameToken;
+
+  /// [NgAttributeValueToken] that represents the attribute value. May be `null`
+  /// to have no value.
   final NgAttributeValueToken valueToken;
+
+  /// [NgToken] that represents the equal sign token. May be `null` to have no
+  /// value.
   final NgToken equalSignToken;
 
-  ParsedAttributeAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
-      [this.valueToken, this.equalSignToken])
+  ParsedAttributeAst(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    this.nameToken, [
+    this.valueToken,
+    this.equalSignToken,
+  ])
       : super.parsed(
             beginToken,
             (valueToken == null ? nameToken : valueToken.rightQuote),
             sourceFile);
 
+  /// Static attribute name.
   @override
   String get name => nameToken.lexeme;
 
+  /// Static attribute name offset.
   @override
   int get nameOffset => nameToken.offset;
 
+  /// Static offset of equal sign; may be `null` to have no value.
   @override
   int get equalSignOffset => equalSignToken?.offset;
 
+  /// Static attribute value; may be `null` to have no value.
   @override
   String get value => valueToken?.innerValue?.lexeme;
 
+  /// Static attribute value including quotes; may be `null` to have no value.
   @override
   String get quotedValue => valueToken?.lexeme;
 
+  /// Static attribute value offset; may be `null` to have no value.
   @override
   int get valueOffset => valueToken?.innerValue?.offset;
 
+  /// Static attribute value including quotes offset; may be `null` to have no
+  /// value.
   @override
   int get quotedValueOffset => valueToken?.leftQuote?.offset;
 }
@@ -105,7 +134,7 @@ class _SyntheticAttributeAst extends SyntheticTemplateAst with AttributeAst {
   final String value;
 
   @override
-  String get quotedValue => '"$value"';
+  String get quotedValue => value == null ? null : '"$value"';
 
   _SyntheticAttributeAst(this.name, [this.value]);
 

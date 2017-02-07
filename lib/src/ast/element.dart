@@ -16,38 +16,49 @@ const _listEquals = const ListEquality();
 /// Clients should not extend, implement, or mix-in this class.
 abstract class ElementAst implements StandaloneTemplateAst {
   /// Create a synthetic element AST.
-  factory ElementAst(String name,
-      {List<AttributeAst> attributes,
-      List<StandaloneTemplateAst> childNodes,
-      List<EventAst> events,
-      List<PropertyAst> properties,
-      List<ReferenceAst> references,
-      List<BananaAst> bananas,
-      List<StarAst> stars,
-      List<WhitespaceAst> whitespaces}) = _SyntheticElementAst;
+  factory ElementAst(
+    String name, {
+    List<AttributeAst> attributes,
+    List<StandaloneTemplateAst> childNodes,
+    List<EventAst> events,
+    List<PropertyAst> properties,
+    List<ReferenceAst> references,
+    List<BananaAst> bananas,
+    List<StarAst> stars,
+    List<WhitespaceAst> whitespaces,
+  }) = _SyntheticElementAst;
 
   /// Create a synthetic element AST from an existing AST node.
-  factory ElementAst.from(TemplateAst origin, String name,
-      {List<AttributeAst> attributes,
-      List<StandaloneTemplateAst> childNodes,
-      List<EventAst> events,
-      List<PropertyAst> properties,
-      List<ReferenceAst> references,
-      List<BananaAst> bananas,
-      List<StarAst> stars,
-      List<WhitespaceAst> whitespaces}) = _SyntheticElementAst.from;
+  factory ElementAst.from(
+    TemplateAst origin,
+    String name, {
+    List<AttributeAst> attributes,
+    List<StandaloneTemplateAst> childNodes,
+    List<EventAst> events,
+    List<PropertyAst> properties,
+    List<ReferenceAst> references,
+    List<BananaAst> bananas,
+    List<StarAst> stars,
+    List<WhitespaceAst> whitespaces,
+  }) = _SyntheticElementAst.from;
 
   /// Create a new element AST from parsed source.
-  factory ElementAst.parsed(SourceFile sourceFile, NgToken beginToken,
-      NgToken nameToken, int openTagEnd, int closeTagStart, NgToken endToken,
-      {List<AttributeAst> attributes,
-      List<StandaloneTemplateAst> childNodes,
-      List<EventAst> events,
-      List<PropertyAst> properties,
-      List<ReferenceAst> references,
-      List<BananaAst> bananas,
-      List<StarAst> stars,
-      List<WhitespaceAst> whitespaces}) = ParsedElementAst;
+  factory ElementAst.parsed(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    NgToken nameToken,
+    int openTagEnd,
+    int closeTagStart,
+    NgToken endToken, {
+    List<AttributeAst> attributes,
+    List<StandaloneTemplateAst> childNodes,
+    List<EventAst> events,
+    List<PropertyAst> properties,
+    List<ReferenceAst> references,
+    List<BananaAst> bananas,
+    List<StarAst> stars,
+    List<WhitespaceAst> whitespaces,
+  }) = ParsedElementAst;
 
   @override
   bool operator ==(Object o) {
@@ -104,14 +115,16 @@ abstract class ElementAst implements StandaloneTemplateAst {
   /// Bananas assignments.
   List<BananaAst> get bananas;
 
-  ///Star assignments.
+  /// Star assignments.
   List<StarAst> get stars;
 
+  /// Banana assignments; empty if element is desugared.
   set bananas(List<BananaAst> l);
 
+  /// Star assignments; empty if element is desugared.
   set stars(List<StarAst> l);
 
-  ///Whitespaces
+  /// Whitespaces
   List<WhitespaceAst> get whitespaces;
 
   @override
@@ -169,76 +182,101 @@ abstract class ElementAst implements StandaloneTemplateAst {
   }
 }
 
+/// Represents a real, non-synthetic DOM element that was parsed,
+/// that could be upgraded.
+///
+/// Clients should not extend, implement, or mix-in this class.
 class ParsedElementAst extends TemplateAst with ElementAst {
+  /// [NgToken] that represents the identifier tag in `<tag ...>`.
   final NgToken identifierToken;
-  final int openTagEnd;
-  final int closeTagStart; //Can be null if void element
+
+  /// Offset of `>` in `<tag ...>` or of `/` in `<voidtag ... />`.
+  final int openTagEndOffset;
+
+  /// Offset of `<` in `</tag>`.
+  /// May be null if a void <tag /> element (no closing tag).
+  final int closeTagStartOffset;
 
   ParsedElementAst(
-      SourceFile sourceFile,
-      NgToken beginToken,
-      this.identifierToken,
-      this.openTagEnd,
-      this.closeTagStart,
-      NgToken endToken,
-      {this.attributes: const [],
-      this.childNodes: const [],
-      this.events: const [],
-      this.properties: const [],
-      this.references: const [],
-      this.bananas: const [],
-      this.stars: const [],
-      this.whitespaces: const []})
+    SourceFile sourceFile,
+    NgToken beginToken,
+    this.identifierToken,
+    this.openTagEndOffset,
+    this.closeTagStartOffset,
+    NgToken endToken, {
+    this.attributes: const [],
+    this.childNodes: const [],
+    this.events: const [],
+    this.properties: const [],
+    this.references: const [],
+    this.bananas: const [],
+    this.stars: const [],
+    this.whitespaces: const [],
+  })
       : super.parsed(beginToken, endToken, sourceFile);
 
+  /// Name (tag) of the element.
   @override
   String get name => identifierToken.lexeme;
 
+  /// Attributes
   @override
   final List<AttributeAst> attributes;
 
+  /// Children nodes.
   @override
   final List<StandaloneTemplateAst> childNodes;
 
+  /// Event listeners.
   @override
   final List<EventAst> events;
 
+  /// Property assignments.
   @override
   final List<PropertyAst> properties;
 
+  /// Reference assignments.
   @override
   final List<ReferenceAst> references;
 
+  /// Banana assignments.
   @override
   List<BananaAst> bananas;
 
+  /// Star assignments.
   @override
   List<StarAst> stars;
 
+  /// Whitespaces
   @override
   final List<WhitespaceAst> whitespaces;
 }
 
 class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
-  _SyntheticElementAst(this.name,
-      {this.attributes: const [],
-      this.childNodes: const [],
-      this.events: const [],
-      this.properties: const [],
-      this.references: const [],
-      this.bananas: const [],
-      this.stars: const [],
-      this.whitespaces: const []});
+  _SyntheticElementAst(
+    this.name, {
+    this.attributes: const [],
+    this.childNodes: const [],
+    this.events: const [],
+    this.properties: const [],
+    this.references: const [],
+    this.bananas: const [],
+    this.stars: const [],
+    this.whitespaces: const [],
+  });
 
-  _SyntheticElementAst.from(TemplateAst origin, this.name,
-      {this.attributes: const [],
-      this.childNodes: const [],
-      this.events: const [],
-      this.properties: const [],
-      this.references: const [],
-      this.bananas: const [],
-      this.stars: const [],
-      this.whitespaces: const []})
+  _SyntheticElementAst.from(
+    TemplateAst origin,
+    this.name, {
+    this.attributes: const [],
+    this.childNodes: const [],
+    this.events: const [],
+    this.properties: const [],
+    this.references: const [],
+    this.bananas: const [],
+    this.stars: const [],
+    this.whitespaces: const [],
+  })
       : super.from(origin);
 
   @override

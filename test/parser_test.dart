@@ -347,8 +347,11 @@ void main() {
   test('should parse and preserve strict offset within elements', () {
     String templateString = '''
 <tab-button *ngFor="let tabLabel of tabLabels; let idx = index"  (trigger)="switchTo(idx)" [id]="tabId(idx)" class="tab-button"  ></tab-button>''';
-    List<StandaloneTemplateAst> asts =
-        parse(templateString, sourceUrl: '/test/parser_test.dart#inline');
+    List<StandaloneTemplateAst> asts = parse(
+      templateString,
+      sourceUrl: '/test/parser_test.dart#inline',
+      desugar: false,
+    );
     ParsedElementAst element = asts[0] as ParsedElementAst;
     expect(element.beginToken.offset, 0);
 
@@ -367,8 +370,8 @@ void main() {
 
     expect(element.whitespaces[0].offset, 127);
 
-    expect(element.openTagEnd, 129);
-    expect(element.closeTagStart, 130);
+    expect(element.openTagEndOffset, 129);
+    expect(element.closeTagStartOffset, 130);
     expect(element.endToken.offset, 142);
   });
 

@@ -14,7 +14,10 @@ import 'package:source_span/source_span.dart';
 class WhitespaceAst extends TemplateAst {
   final NgToken whitespaceToken;
 
-  WhitespaceAst(SourceFile sourceFile, NgToken whitespaceToken)
+  WhitespaceAst(
+    SourceFile sourceFile,
+    NgToken whitespaceToken,
+  )
       : whitespaceToken = whitespaceToken,
         super.parsed(whitespaceToken, whitespaceToken, sourceFile);
 

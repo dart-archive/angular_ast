@@ -30,11 +30,12 @@ abstract class BananaAst implements TemplateAst {
 
   /// Create a new [BananaAst] parsed from tokens from [sourceFile].
   factory BananaAst.parsed(
-      SourceFile sourceFile,
-      NgToken beginToken,
-      NgSpecialAttributeToken nameToken,
-      NgAttributeValueToken valueToken,
-      NgToken equalSignToken) = ParsedBananaAst;
+    SourceFile sourceFile,
+    NgToken beginToken,
+    NgSpecialAttributeToken nameToken,
+    NgAttributeValueToken valueToken,
+    NgToken equalSignToken,
+  ) = ParsedBananaAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -64,14 +65,32 @@ abstract class BananaAst implements TemplateAst {
   }
 }
 
+/// Represents a real, non-synthetic `[(property)]="value"` syntax.
+///
+/// This AST may only exist in the parses that do not de-sugar directives (i.e.
+/// useful for tooling, but not useful for compilers). Preserves offsets.
+///
+/// Clients should not extend, implement, or mix-in this class.
 class ParsedBananaAst extends TemplateAst
     with BananaAst, OffsetInfo, SpecialOffsetInfo {
+  /// [NgSpecialAttributeToken] that represents `[(property)]`.
   final NgSpecialAttributeToken nameToken;
+
+  /// [NgAttributeValueToken] that represents `"value"`; may be `null` to have
+  /// no value.
   final NgAttributeValueToken valueToken;
+
+  /// [NgToken] that represents the equal sign token; may be `null` to have
+  /// no value.
   final NgToken equalSignToken;
 
-  ParsedBananaAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
-      this.valueToken, this.equalSignToken)
+  ParsedBananaAst(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    this.nameToken,
+    this.valueToken,
+    this.equalSignToken,
+  )
       : super.parsed(
             beginToken,
             (valueToken == null
@@ -79,27 +98,35 @@ class ParsedBananaAst extends TemplateAst
                 : nameToken.suffixToken),
             sourceFile);
 
+  /// Inner name `property` in `[(property)]`.
   @override
   String get name => nameToken.identifierToken.lexeme;
 
+  /// Offset of `property` in `[(property)]`.
   @override
   int get nameOffset => nameToken.identifierToken.offset;
 
+  /// Offset of equal sign; may be `null` to have no value.
   @override
   int get equalSignOffset => equalSignToken?.offset;
 
+  /// Value bound to banana property; may be `null` to have no value.
   @override
   String get value => valueToken?.innerValue?.lexeme;
 
+  /// Offset of value; may be `null` to have no value.
   @override
   int get valueOffset => valueToken?.innerValue?.offset;
 
+  /// Offset of value starting at left quote; may be `null` to have no value.
   @override
   int get quotedValueOffset => valueToken?.leftQuote?.offset;
 
+  /// Offset of banana prefix `[(`.
   @override
   int get specialPrefixOffset => nameToken.prefixToken.offset;
 
+  /// Offset of banana suffix `)]`.
   @override
   int get specialSuffixOffset => nameToken.suffixToken?.offset;
 }

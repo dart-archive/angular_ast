@@ -43,10 +43,15 @@ export 'package:angular_ast/src/visitor.dart'
         DesugarVisitor;
 
 /// Returns [template] parsed as an abstract syntax tree.
+///
+/// Optional bool flag [desugar] desugars syntactic sugaring of * template
+/// notations and banana syntax used in two-way binding.
+/// Optional bool flag [toolFriendlyAst] provides a reference to the original
+/// non-desugared nodes after desugaring occurs.
 List<TemplateAst> parse(String template,
     {@required String sourceUrl,
     bool toolFriendlyAst: false,
-    bool desugar: false}) {
+    bool desugar: true}) {
   final parser = toolFriendlyAst
       ? const NgParser(toolFriendlyAstOrigin: true)
       : const NgParser();

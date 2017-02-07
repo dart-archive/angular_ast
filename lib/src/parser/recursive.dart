@@ -14,8 +14,11 @@ class RecursiveAstParser {
   final List<String> _voidElements;
 
   RecursiveAstParser(
-      SourceFile sourceFile, Iterable<NgToken> tokens, this._voidElements,
-      {bool toolFriendlyAstOrigin: false})
+    SourceFile sourceFile,
+    Iterable<NgToken> tokens,
+    this._voidElements, {
+    bool toolFriendlyAstOrigin: false,
+  })
       : _reader = new NgTokenReversibleReader(sourceFile, tokens),
         _source = sourceFile;
 
@@ -178,15 +181,21 @@ class RecursiveAstParser {
     }
 
     final element = new ElementAst.parsed(
-        _source, beginToken, nameToken, openTagEnd, closeTagStart, endToken,
-        attributes: attributes,
-        childNodes: childNodes,
-        events: events,
-        properties: properties,
-        references: references,
-        bananas: bananas,
-        stars: stars,
-        whitespaces: whitespaces);
+      _source,
+      beginToken,
+      nameToken,
+      openTagEnd,
+      closeTagStart,
+      endToken,
+      attributes: attributes,
+      childNodes: childNodes,
+      events: events,
+      properties: properties,
+      references: references,
+      bananas: bananas,
+      stars: stars,
+      whitespaces: whitespaces,
+    );
     return element;
   }
 
@@ -219,7 +228,11 @@ class RecursiveAstParser {
     }
     final endToken = _reader.expect(NgTokenType.closeElementEnd);
     return new EmbeddedContentAst.parsed(
-        _source, beginToken, endToken, valueToken?.innerValue);
+      _source,
+      beginToken,
+      endToken,
+      valueToken?.innerValue,
+    );
   }
 
   /// Returns and parses an embedded `<template>`.

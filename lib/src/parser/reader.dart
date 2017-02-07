@@ -44,7 +44,9 @@ class NgTokenReader {
   /// Returns the next token if it is the expect type. If it is the ignore type,
   /// it continuously scans until expect type is found or neither is found (error)
   NgBaseToken expectTypeIgnoringType(
-      NgBaseTokenType expect, NgBaseTokenType ignore) {
+    NgBaseTokenType expect,
+    NgBaseTokenType ignore,
+  ) {
     NgBaseToken next = this.next();
     while (when(ignore)) {
       next = this.next();
@@ -106,7 +108,10 @@ class NgTokenReversibleReader extends NgTokenReader {
     return new NgTokenReversibleReader._(source, tokens.iterator);
   }
 
-  NgTokenReversibleReader._(SourceFile source, Iterator<NgBaseToken> iterator)
+  NgTokenReversibleReader._(
+    SourceFile source,
+    Iterator<NgBaseToken> iterator,
+  )
       : super._(source, iterator);
 
   /// Scans forward for the next peek type that isn't ignoreType

@@ -14,7 +14,6 @@ abstract class NgBaseTokenType {
 class NgSimpleTokenType implements NgBaseTokenType {
   static const bang = const NgSimpleTokenType._('bang');
 
-  //probably not needed
   static const closeBrace = const NgSimpleTokenType._('closeBrace');
 
   static const closeBracket = const NgSimpleTokenType._('closeBracket');
@@ -27,13 +26,9 @@ class NgSimpleTokenType implements NgBaseTokenType {
 
   static const dash = const NgSimpleTokenType._('dash');
 
-  //static const dashedIdentifier = const NgSimpleTokenType._('dashedIdentifier');
-
   static const doubleQuote = const NgSimpleTokenType._('doubleQuote');
 
-  static const tagStart = const NgSimpleTokenType._(
-    'tagStart',
-  );
+  static const tagStart = const NgSimpleTokenType._('tagStart');
 
   static const tagEnd = const NgSimpleTokenType._('tagEnd');
 
@@ -51,7 +46,6 @@ class NgSimpleTokenType implements NgBaseTokenType {
 
   static const mustacheEnd = const NgSimpleTokenType._('mustacheEnd');
 
-  //Probably not needed
   static const openBrace = const NgSimpleTokenType._('openBrace');
 
   static const openBracket = const NgSimpleTokenType._('openBracket');

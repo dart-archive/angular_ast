@@ -8,7 +8,8 @@ import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
-/// Represents an event listener on an element.
+/// Represents an event listener `(eventName.postfix)="expression"` on an
+/// element.
 ///
 /// Clients should not extend, implement, or mix-in this class.
 abstract class EventAst implements TemplateAst {
@@ -29,11 +30,12 @@ abstract class EventAst implements TemplateAst {
 
   /// Create a new [EventAst] parsed from tokens in [sourceFile].
   factory EventAst.parsed(
-      SourceFile sourceFile,
-      NgToken beginToken,
-      NgSpecialAttributeToken nameToken,
-      NgAttributeValueToken valueToken,
-      NgToken equalSignToken) = ParsedEventAst;
+    SourceFile sourceFile,
+    NgToken beginToken,
+    NgSpecialAttributeToken nameToken,
+    NgAttributeValueToken valueToken,
+    NgToken equalSignToken,
+  ) = ParsedEventAst;
 
   @override
   bool operator ==(Object o) =>
@@ -70,14 +72,30 @@ abstract class EventAst implements TemplateAst {
   }
 }
 
+/// Represents a real, non-synthetic event listener `(event)="expression"`
+/// on an element.
+///
+/// Clients should not extend, implement, or mix-in this class.
 class ParsedEventAst extends TemplateAst
     with EventAst, OffsetInfo, SpecialOffsetInfo {
+  /// [NgSpecialAttributeToken] that represents `(eventName.postfix)`.
   final NgSpecialAttributeToken nameToken;
+
+  /// [NgAttributeValueToken] that represents `"expression"`; may be `null` to
+  /// have no value.
   final NgAttributeValueToken valueToken;
+
+  /// [NgToken] that represents the equal sign token; may be `null` to have no
+  /// value.
   final NgToken equalSignToken;
 
-  ParsedEventAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
-      this.valueToken, this.equalSignToken)
+  ParsedEventAst(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    this.nameToken,
+    this.valueToken,
+    this.equalSignToken,
+  )
       : this.expression = valueToken != null
             ? new ExpressionAst.parse(valueToken.innerValue.lexeme,
                 sourceUrl: sourceFile.url.toString())
@@ -92,32 +110,42 @@ class ParsedEventAst extends TemplateAst
     return nameToken.identifierToken.lexeme;
   }
 
+  /// ExpressionAst of `"expression"`; may be `null` to have no value.
   @override
   final ExpressionAst expression;
 
+  /// Name `eventName` in `(eventName.postfix)`.
   @override
   String get name => _nameWithoutParentheses.split('.').first;
 
+  /// Offset of name.
   @override
   int get nameOffset => nameToken.identifierToken.offset;
 
-  @override
-  int get specialPrefixOffset => nameToken.prefixToken.offset;
-
-  @override
-  int get specialSuffixOffset => nameToken.suffixToken.offset;
-
-  String get value => valueToken?.innerValue?.lexeme;
-
-  @override
-  int get valueOffset => valueToken?.innerValue?.offset;
-
-  @override
-  int get quotedValueOffset => valueToken?.leftQuote?.offset;
-
+  /// Offset of equal sign; may be `null` if no value.
   @override
   int get equalSignOffset => equalSignToken.offset;
 
+  /// Expression value as [String] bound to event; may be `null` if no value.
+  String get value => valueToken?.innerValue?.lexeme;
+
+  /// Offset of value; may be `null` to have no value.
+  @override
+  int get valueOffset => valueToken?.innerValue?.offset;
+
+  /// Offset of value starting at left quote; may be `null` to have no value.
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
+
+  /// Offset of `(` prefix in `(eventName.postfix)`.
+  @override
+  int get specialPrefixOffset => nameToken.prefixToken.offset;
+
+  /// Offset of `)` suffix in `(eventName.postfix)`.
+  @override
+  int get specialSuffixOffset => nameToken.suffixToken.offset;
+
+  /// Name `postfix` in `(eventName.postfix)`; may be `null` to have no value.
   @override
   String get postfix {
     final split = _nameWithoutParentheses.split('.');
