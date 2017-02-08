@@ -25,7 +25,6 @@ class NgSimpleToken implements NgBaseToken {
     return new NgSimpleToken._(NgSimpleTokenType.bang, offset, '!');
   }
 
-  //Probably don't need
   factory NgSimpleToken.closeBrace(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.closeBrace, offset, '}');
   }
@@ -49,11 +48,6 @@ class NgSimpleToken implements NgBaseToken {
   factory NgSimpleToken.dash(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.dash, offset, '-');
   }
-
-//  factory NgSimpleToken.dashedIdentifier(int offset, String lexeme) {
-//    return new NgSimpleToken(
-//        NgSimpleTokenType.dashedIdentifier, offset, lexeme);
-//  }
 
   factory NgSimpleToken.doubleQuote(int offset) {
     return new NgSimpleToken(NgSimpleTokenType.doubleQuote, offset, '"');
@@ -95,7 +89,6 @@ class NgSimpleToken implements NgBaseToken {
     return new NgSimpleToken._(NgSimpleTokenType.mustacheEnd, offset, "}}");
   }
 
-  //Probably don't need
   factory NgSimpleToken.openBrace(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.openBrace, offset, '{');
   }
