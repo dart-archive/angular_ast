@@ -8,8 +8,9 @@ part of angular_ast.src.token.tokens;
 //
 // For example, an `elementIdentifier` is (almost) any arbitrary string.
 class _LexemeNgToken extends NgToken {
-  const _LexemeNgToken(int offset, this.lexeme, NgTokenType type)
-      : super._(type, offset);
+  const _LexemeNgToken(int offset, this.lexeme, NgTokenType type,
+      {errorSynthetic: false})
+      : super._(type, offset, errorSynthetic: errorSynthetic);
 
   @override
   bool operator ==(Object o) {

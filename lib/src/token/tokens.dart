@@ -15,18 +15,20 @@ abstract class NgBaseToken {
   int get length;
   String get lexeme;
   NgBaseTokenType get type;
+  bool get errorSynthetic;
 }
 
 /// Represents string tokens that are of interest to the parser.
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class NgSimpleToken implements NgBaseToken {
-  factory NgSimpleToken.bang(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.bang, offset, '!');
+  factory NgSimpleToken.generateErrorSynthetic(
+      int offset, NgSimpleTokenType type) {
+    return new NgSimpleToken._(type, offset, "", errorSynthetic: true);
   }
 
-  factory NgSimpleToken.closeBrace(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.closeBrace, offset, '}');
+  factory NgSimpleToken.bang(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.bang, offset, '!');
   }
 
   factory NgSimpleToken.closeBracket(int offset) {
@@ -89,10 +91,6 @@ class NgSimpleToken implements NgBaseToken {
     return new NgSimpleToken._(NgSimpleTokenType.mustacheEnd, offset, "}}");
   }
 
-  factory NgSimpleToken.openBrace(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.openBrace, offset, '{');
-  }
-
   factory NgSimpleToken.openBracket(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.openBracket, offset, '[');
   }
@@ -125,9 +123,21 @@ class NgSimpleToken implements NgBaseToken {
     return new NgSimpleToken(NgSimpleTokenType.whitespace, offset, lexeme);
   }
 
-  const NgSimpleToken._(this.type, this.offset, this.lexeme);
+  const NgSimpleToken._(
+    this.type,
+    this.offset,
+    this.lexeme, {
+    bool errorSynthetic: false,
+  })
+      : errorSynthetic = errorSynthetic;
 
-  NgSimpleToken(this.type, this.offset, this.lexeme);
+  NgSimpleToken(
+    this.type,
+    this.offset,
+    this.lexeme, {
+    bool errorSynthetic: false,
+  })
+      : errorSynthetic = errorSynthetic;
 
   @override
   bool operator ==(Object o) {
@@ -150,37 +160,61 @@ class NgSimpleToken implements NgBaseToken {
   final NgSimpleTokenType type;
   @override
   final String lexeme;
+  @override
+  final bool errorSynthetic;
 
   @override
   String toString() => '#$NgSimpleToken(${type.name}) {$offset:$lexeme}';
 }
 
 class NgSimpleQuoteToken extends NgSimpleToken {
+  factory NgSimpleQuoteToken.generateErrorSynthetic(
+    int offset,
+  ) {
+    return new NgSimpleQuoteToken(
+        NgSimpleTokenType.doubleQuote, offset, "", true,
+        isErrorSynthetic: true);
+  }
+
   factory NgSimpleQuoteToken.doubleQuotedText(
-      int offset, String lexeme, bool isClosed) {
+    int offset,
+    String lexeme,
+    bool isClosed,
+  ) {
     return new NgSimpleQuoteToken(
         NgSimpleTokenType.doubleQuote, offset, lexeme, isClosed);
   }
 
   factory NgSimpleQuoteToken.singleQuotedText(
-      int offset, String lexeme, bool isClosed) {
+    int offset,
+    String lexeme,
+    bool isClosed, {
+    bool errorSynthetic: false,
+  }) {
     return new NgSimpleQuoteToken(
         NgSimpleTokenType.singleQuote, offset, lexeme, isClosed);
   }
 
-  final int
-      quoteOffset; //super.offset will be for text only; this is for Quote begin
-  final int quoteEndOffset; //If null, indicated unclosed
+  /// Offset of left quote.
+  final int quoteOffset;
+
+  /// Offset of right quote; may be `null` to indicate unclosed.
+  final int quoteEndOffset;
   String _quotedLexeme;
 
   NgSimpleQuoteToken(
-      NgSimpleTokenType type, this.quoteOffset, String lexeme, bool isClosed)
+      NgSimpleTokenType type, this.quoteOffset, String lexeme, bool isClosed,
+      {bool isErrorSynthetic: false})
       : quoteEndOffset = (isClosed ? quoteOffset + lexeme.length : null),
         super(
-            type,
-            quoteOffset + 1,
-            lexeme.substring(
-                1, (isClosed ? lexeme.length - 1 : lexeme.length))) {
+          type,
+          isErrorSynthetic ? quoteOffset : quoteOffset + 1,
+          lexeme.isEmpty
+              ? lexeme
+              : lexeme.substring(
+                  1, (isClosed ? lexeme.length - 1 : lexeme.length)),
+          errorSynthetic: isErrorSynthetic,
+        ) {
     _quotedLexeme = lexeme;
   }
 
@@ -195,8 +229,8 @@ class NgSimpleQuoteToken extends NgSimpleToken {
     return false;
   }
 
+  /// Lexeme including quotes.
   String get quotedLexeme => _quotedLexeme;
-  String get quote => (type == NgSimpleTokenType.doubleQuote) ? '"' : "'";
   bool get isClosed => quoteEndOffset != null;
   int get quotedLength => _quotedLexeme.length;
 
@@ -212,6 +246,10 @@ class NgSimpleQuoteToken extends NgSimpleToken {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class NgToken implements NgBaseToken {
+  factory NgToken.generateErrorSynthetic(int offset, NgTokenType type) {
+    return new _LexemeNgToken(offset, "", type, errorSynthetic: true);
+  }
+
   factory NgToken.afterElementDecoratorValue(int offset) {
     return new NgToken._(NgTokenType.afterElementDecoratorValue, offset);
   }
@@ -336,7 +374,8 @@ class NgToken implements NgBaseToken {
     return new _LexemeNgToken(offset, string, NgTokenType.whitespace);
   }
 
-  const NgToken._(this.type, this.offset);
+  const NgToken._(this.type, this.offset, {bool errorSynthetic: false})
+      : errorSynthetic = errorSynthetic;
 
   @override
   bool operator ==(Object o) {
@@ -368,6 +407,10 @@ class NgToken implements NgBaseToken {
   /// Type of token scanned.
   @override
   final NgTokenType type;
+
+  /// Indicates synthetic token generated from error.
+  @override
+  final bool errorSynthetic;
 
   @override
   String toString() => '#$NgToken(${type.name}) {$offset:$lexeme}';

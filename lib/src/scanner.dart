@@ -264,6 +264,7 @@ class NgScanner {
   @protected
   NgToken scanElementDecoratorValue() {
     if (_current is NgSimpleQuoteToken) {
+      // TODO:  Complete synthetic or right quote
       NgSimpleQuoteToken current = _current as NgSimpleQuoteToken;
       bool isDouble = current.type == NgSimpleTokenType.doubleQuote;
 
