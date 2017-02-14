@@ -121,6 +121,17 @@ void main() {
     );
   });
 
+  test('should parse and attribute with a value including interpolation', () {
+    expect(
+      parseAndDesugar('<div title="Hello {{myName}}"></div>'),
+      [
+        new ElementAst('div', attributes: [
+          new AttributeAst('title', 'Hello {{myName}}'),
+        ]),
+      ],
+    );
+  });
+
   test('should parse an event', () {
     expect(
       parseAndDesugar('<button (click) = "onClick()"  ></button>'),

@@ -117,7 +117,8 @@ class NgTokenReversibleReader extends NgTokenReader {
   final List<FormatException> errors;
 
   factory NgTokenReversibleReader(
-      SourceFile source, Iterable<NgBaseToken> tokens, {bool errorRecovery : false}) {
+      SourceFile source, Iterable<NgBaseToken> tokens,
+      {bool errorRecovery: false}) {
     return new NgTokenReversibleReader._(
         source, tokens.iterator, errorRecovery);
   }
@@ -140,29 +141,8 @@ class NgTokenReversibleReader extends NgTokenReader {
     // TODO: Figure out when to dump a token; if type is an openstate start?
     final next = this.next();
     String message = 'Expected a token of $type but got ${next.type}';
-    if (when(type)) {
+    if (next.type == type) {
       return next;
-    }
-    if (_errorRecovery) {
-      errors.add(new FormatException(
-        message,
-        _sourceString,
-        _iterator.current.offset,
-      ));
-
-      putBack(next);
-
-      if (type is NgSimpleTokenType) {
-        if (type == NgSimpleTokenType.doubleQuote ||
-            type == NgSimpleTokenType.singleQuote) {
-          return new NgSimpleQuoteToken.generateErrorSynthetic(next.offset);
-        }
-        return new NgSimpleToken.generateErrorSynthetic(next.offset, type);
-      }
-      else if (type is NgTokenType) {
-        //TODO: Handle extensions of NgToken
-        return new NgToken.generateErrorSynthetic(next.offset, type);
-      }
     }
     error(message);
     return null;
@@ -207,7 +187,7 @@ class NgTokenReversibleReader extends NgTokenReader {
 
   NgBaseToken putBack(NgBaseToken token) {
     if (_peek != null) {
-      _seen.add(_peek);
+      _seen.addFirst(_peek);
       _peek = token;
       return _peek;
     } else {

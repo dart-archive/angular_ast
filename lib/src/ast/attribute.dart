@@ -8,6 +8,8 @@ import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
+// TODO: Interpolation within the value
+
 /// Represents a static attribute assignment (i.e. not bound to an expression).
 ///
 /// Clients should not extend, implement, or mix-in this class.

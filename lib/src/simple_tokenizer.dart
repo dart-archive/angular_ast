@@ -20,6 +20,7 @@ class NgSimpleTokenizer {
       yield token;
       token = scanner.scan();
     }
+    yield token; // Explicitly yield the EOF token.
   }
 }
 
@@ -152,6 +153,13 @@ class NgSimpleScanner {
             offset, lexeme, isClosed);
       }
       if (matchesGroup(match, 16)) {
+        if (_scanner.peekChar() == $exclamation &&
+            _scanner.peekChar(1) == $dash &&
+            _scanner.peekChar(2) == $dash) {
+          _state = _NgSimpleScannerState.comment;
+          _scanner.position = offset + 4;
+          return new NgSimpleToken.commentBegin(offset);
+        }
         return new NgSimpleToken.tagStart(offset);
       }
       if (matchesGroup(match, 17)) {
@@ -188,9 +196,6 @@ class NgSimpleScanner {
       if (matchesGroup(match, 3)) {
         _state = _NgSimpleScannerState.element;
         return new NgSimpleToken.tagStart(offset);
-      }
-      if (matchesGroup(match, 4)) {
-        return new NgSimpleToken.mustacheBegin(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(

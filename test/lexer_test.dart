@@ -264,7 +264,7 @@ void main() {
     );
   });
 
-  test('should tokenize an HTML element with property attribute', () {
+  test('should tokenize an HTML element with property binding', () {
     expect(
       tokenize('<div [style.max-height.px]  =  "contentHeight"></div>'),
       [
@@ -273,7 +273,7 @@ void main() {
         new NgToken.beforeElementDecorator(4, ' '),
         new NgSpecialAttributeToken.generate(
             new NgToken.propertyPrefix(5),
-            new NgToken.elementDecoratorValue(6, 'style.max-height.px'),
+            new NgToken.elementDecorator(6, 'style.max-height.px'),
             new NgToken.propertySuffix(25)),
         new NgToken.whitespace(26, '  '),
         new NgToken.beforeElementDecoratorValue(28),
@@ -286,6 +286,45 @@ void main() {
         new NgToken.closeElementStart(47),
         new NgToken.elementIdentifier(49, 'div'),
         new NgToken.closeElementEnd(52)
+      ],
+    );
+  });
+
+  test('should tokenize an HTML element with event binding', () {
+    expect(
+      tokenize('<div (someEvent.someInnerValue)  =  "x + 5"></div>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgSpecialAttributeToken.generate(
+            new NgToken.eventPrefix(5),
+            new NgToken.elementDecorator(6, 'someEvent.someInnerValue'),
+            new NgToken.eventSuffix(30)),
+        new NgToken.whitespace(31, '  '),
+        new NgToken.beforeElementDecoratorValue(33),
+        new NgToken.whitespace(34, '  '),
+        new NgAttributeValueToken.generate(
+            new NgToken.doubleQuote(36),
+            new NgToken.elementDecoratorValue(37, 'x + 5'),
+            new NgToken.doubleQuote(42)),
+        new NgToken.openElementEnd(43),
+        new NgToken.closeElementStart(44),
+        new NgToken.elementIdentifier(46, 'div'),
+        new NgToken.closeElementEnd(49)
+      ],
+    );
+  });
+
+  test('should tokenize elementDecorator ending in period', () {
+    expect(
+      tokenize('<div blah.>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'blah.'),
+        new NgToken.openElementEnd(10)
       ],
     );
   });

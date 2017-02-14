@@ -22,9 +22,36 @@ abstract class NgBaseToken {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class NgSimpleToken implements NgBaseToken {
+  static final Map<NgSimpleTokenType, String> _syntheticLexemeMap = {
+    NgSimpleTokenType.bang: "!",
+    NgSimpleTokenType.closeBracket: "]",
+    NgSimpleTokenType.closeParen: ")",
+    NgSimpleTokenType.commentBegin: "<!--",
+    NgSimpleTokenType.commentEnd: "-->",
+    NgSimpleTokenType.dash: "-",
+    NgSimpleTokenType.tagStart: "<",
+    NgSimpleTokenType.tagEnd: ">",
+    NgSimpleTokenType.EOF: "",
+    NgSimpleTokenType.equalSign: "=",
+    NgSimpleTokenType.forwardSlash: "/",
+    NgSimpleTokenType.hash: "#",
+    NgSimpleTokenType.identifier: "",
+    NgSimpleTokenType.mustacheBegin: "{{",
+    NgSimpleTokenType.mustacheEnd: "}}",
+    NgSimpleTokenType.openBracket: "[",
+    NgSimpleTokenType.openParen: "(",
+    NgSimpleTokenType.period: ".",
+    NgSimpleTokenType.star: "*",
+    NgSimpleTokenType.text: "",
+    NgSimpleTokenType.unexpectedChar: "",
+    NgSimpleTokenType.voidCloseTag: "/>",
+    NgSimpleTokenType.whitespace: ""
+  };
+
   factory NgSimpleToken.generateErrorSynthetic(
       int offset, NgSimpleTokenType type) {
-    return new NgSimpleToken._(type, offset, "", errorSynthetic: true);
+    return new NgSimpleToken._(type, offset, _syntheticLexemeMap[type] ?? "",
+        errorSynthetic: true);
   }
 
   factory NgSimpleToken.bang(int offset) {
@@ -49,10 +76,6 @@ class NgSimpleToken implements NgBaseToken {
 
   factory NgSimpleToken.dash(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.dash, offset, '-');
-  }
-
-  factory NgSimpleToken.doubleQuote(int offset) {
-    return new NgSimpleToken(NgSimpleTokenType.doubleQuote, offset, '"');
   }
 
   factory NgSimpleToken.tagStart(int offset) {
@@ -152,7 +175,7 @@ class NgSimpleToken implements NgBaseToken {
   @override
   int get end => offset + length;
   @override
-  int get length => lexeme.length;
+  int get length => errorSynthetic ? 0 : lexeme.length;
 
   @override
   final int offset;
@@ -232,7 +255,7 @@ class NgSimpleQuoteToken extends NgSimpleToken {
   /// Lexeme including quotes.
   String get quotedLexeme => _quotedLexeme;
   bool get isClosed => quoteEndOffset != null;
-  int get quotedLength => _quotedLexeme.length;
+  int get quotedLength => errorSynthetic ? 0 : _quotedLexeme.length;
 
   @override
   int get hashCode => hash4(super.hashCode, lexeme, quoteOffset, end);
@@ -246,8 +269,18 @@ class NgSimpleQuoteToken extends NgSimpleToken {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class NgToken implements NgBaseToken {
-  factory NgToken.generateErrorSynthetic(int offset, NgTokenType type) {
-    return new _LexemeNgToken(offset, "", type, errorSynthetic: true);
+  factory NgToken.generateErrorSynthetic(int offset, NgTokenType type,
+      {String lexeme: ""}) {
+    if (type == NgTokenType.beforeElementDecorator ||
+        type == NgTokenType.beforeElementDecoratorValue ||
+        type == NgTokenType.elementDecorator ||
+        type == NgTokenType.elementIdentifier ||
+        type == NgTokenType.interpolationValue ||
+        type == NgTokenType.text ||
+        type == NgTokenType.whitespace) {
+      return new _LexemeNgToken(offset, lexeme, type, errorSynthetic: true);
+    }
+    return new NgToken._(type, offset, errorSynthetic: true);
   }
 
   factory NgToken.afterElementDecoratorValue(int offset) {
@@ -380,7 +413,12 @@ class NgToken implements NgBaseToken {
   @override
   bool operator ==(Object o) {
     if (o is NgToken) {
-      return o.offset == offset && o.type == type;
+      if (this.errorSynthetic || o.errorSynthetic) {
+        return o.offset == offset && o.type.name == type.name;
+      }
+      return o.offset == offset &&
+          o.type.name == type.name &&
+          o.type.lexeme == type.lexeme;
     }
     return false;
   }
@@ -394,7 +432,7 @@ class NgToken implements NgBaseToken {
 
   /// Number of characters in this token.
   @override
-  int get length => lexeme.length;
+  int get length => errorSynthetic ? 0 : lexeme.length;
 
   /// What characters were scanned and represent this token.
   @override
@@ -455,7 +493,8 @@ class NgAttributeValueToken extends NgToken {
 
   @override
   String toString() =>
-      '#$NgSpecialAttributeToken(${type.name}) {$offset:$lexeme}';
+      '#$NgAttributeValueToken(${type.name}) {$offset:$lexeme} '
+      '[\n\t$leftQuote,\n\t$innerValue,\n\t$rightQuote]';
 
   bool get isDoubleQuote => leftQuote.type == NgTokenType.doubleQuote;
   bool get isSingleQuote => leftQuote.type == NgTokenType.singleQuote;
@@ -508,5 +547,6 @@ class NgSpecialAttributeToken extends NgToken {
 
   @override
   String toString() =>
-      '#$NgSpecialAttributeToken(${type.name}) {$offset:$lexeme}';
+      '#$NgSpecialAttributeToken(${type.name}) {$offset:$lexeme} '
+      '[\n\t$prefixToken,\n\t$identifierToken,\n\t$suffixToken]';
 }
