@@ -125,6 +125,11 @@ class NgSimpleScanner {
         return new NgSimpleToken.tagEnd(offset);
       }
       if (matchesGroup(match, 6)) {
+        if (_scanner.peekChar() == $gt) {
+          _scanner.position++;
+          _state = _NgSimpleScannerState.text;
+          return new NgSimpleToken.voidCloseTag(offset);
+        }
         return new NgSimpleToken.forwardSlash(offset);
       }
       if (matchesGroup(match, 7)) {
@@ -160,7 +165,11 @@ class NgSimpleScanner {
           _scanner.position = offset + 4;
           return new NgSimpleToken.commentBegin(offset);
         }
-        return new NgSimpleToken.tagStart(offset);
+        if (_scanner.peekChar() == $slash) {
+          _scanner.position++;
+          return new NgSimpleToken.closeTagStart(offset);
+        }
+        return new NgSimpleToken.openTagStart(offset);
       }
       if (matchesGroup(match, 17)) {
         return new NgSimpleToken.equalSign(offset);
@@ -194,8 +203,13 @@ class NgSimpleScanner {
         return new NgSimpleToken.commentBegin(offset);
       }
       if (matchesGroup(match, 3)) {
+        if (_scanner.peekChar() == $slash) {
+          _scanner.position++;
+          _state = _NgSimpleScannerState.element;
+          return new NgSimpleToken.closeTagStart(offset);
+        }
         _state = _NgSimpleScannerState.element;
-        return new NgSimpleToken.tagStart(offset);
+        return new NgSimpleToken.openTagStart(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(

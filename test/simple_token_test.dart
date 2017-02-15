@@ -71,12 +71,12 @@ void main() {
   });
 
   test('tagStart', () {
-    token = new NgSimpleToken.tagStart(0);
+    token = new NgSimpleToken.openTagStart(0);
     expect(token.lexeme, '<');
     expect(token.end, 1);
     expect(token.length, 1);
     expect(token.offset, 0);
-    expect(token.type, NgSimpleTokenType.tagStart);
+    expect(token.type, NgSimpleTokenType.openTagStart);
   });
 
   test('tagEnd', () {

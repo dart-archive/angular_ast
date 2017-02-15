@@ -20,7 +20,7 @@ void main() {
   });
 
   test('text node: should tokenize elementStart tag', () {
-    expect(tokenize("<div></div>"), new NgSimpleToken.tagStart(0));
+    expect(tokenize("<div></div>"), new NgSimpleToken.openTagStart(0));
   });
 
   test('text node: should tokenize EOF', () {
@@ -53,8 +53,8 @@ void main() {
     expect(tokenizeTag("> some text </div>"), new NgSimpleToken.tagEnd(0));
   });
 
-  test('element: should tokenize forwardSlash', () {
-    expect(tokenizeTag("/><div></div>"), new NgSimpleToken.forwardSlash(0));
+  test('element: should tokenize voidCloseTag', () {
+    expect(tokenizeTag("/><div></div>"), new NgSimpleToken.voidCloseTag(0));
   });
 
   test('element: should tokenize openBracket', () {
@@ -105,7 +105,7 @@ void main() {
   });
 
   test('element: should tokenize elementStart tag', () {
-    expect(tokenizeTag("<div></div>"), new NgSimpleToken.tagStart(0));
+    expect(tokenizeTag("<div></div>"), new NgSimpleToken.openTagStart(0));
   });
 
   test('element: should tokenize equalSign', () {

@@ -552,6 +552,32 @@ void main() {
     expect(untokenize(results), '<div someName="someValue"><!-- comment -->');
   });
 
+  test('should resolve: unexpected - following afterElementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div someName="someValue"->');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'someName'),
+        new NgToken.beforeElementDecoratorValue(13),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(14),
+          new NgToken.elementDecoratorValue(15, 'someValue'),
+          new NgToken.doubleQuote(24),
+        ),
+        new NgToken.openElementEnd(26),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '-');
+    expect(e.offset, 25);
+
+    expect(untokenize(results), '<div someName="someValue">');
+  });
+
   test('should resolve: unexpected < following afterElementDecoratorValue', () {
     List<NgToken> results = tokenize('<div someName="someValue"<span>');
     expect(
@@ -606,6 +632,40 @@ void main() {
     expect(e.offset, 25);
 
     expect(untokenize(results), '<div someName="someValue">');
+  });
+
+  test('should resolve: unexpected = following afterElementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div someName="someValue"="otherValue">');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'someName'),
+        new NgToken.beforeElementDecoratorValue(13),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(14),
+          new NgToken.elementDecoratorValue(15, 'someValue'),
+          new NgToken.doubleQuote(24),
+        ),
+        new NgToken.beforeElementDecorator(25, ' '), // Synthetic
+        new NgToken.elementDecorator(25, ''), // Synthetic
+        new NgToken.beforeElementDecoratorValue(25),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(26),
+          new NgToken.elementDecoratorValue(27, 'otherValue'),
+          new NgToken.doubleQuote(37),
+        ),
+        new NgToken.openElementEnd(38),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '=');
+    expect(e.offset, 25);
+
+    expect(untokenize(results), '<div someName="someValue" ="otherValue">');
   });
 
   test('should resolve: unexpected * following afterElementDecoratorValue', () {
@@ -673,6 +733,62 @@ void main() {
   });
 
   test(
+      'should resolve: unexpected identifier following afterElementDecoratorValue',
+      () {
+    List<NgToken> results = tokenize('<div someName="someValue"someOther>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'someName'),
+        new NgToken.beforeElementDecoratorValue(13),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(14),
+          new NgToken.elementDecoratorValue(15, 'someValue'),
+          new NgToken.doubleQuote(24),
+        ),
+        new NgToken.beforeElementDecorator(25, ' '), // Synthetic
+        new NgToken.elementDecorator(25, 'someOther'),
+        new NgToken.openElementEnd(34),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, 'someOther');
+    expect(e.offset, 25);
+
+    expect(untokenize(results), '<div someName="someValue" someOther>');
+  });
+
+  test('should resolve: unexpected . following afterElementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div someName="someValue".>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'someName'),
+        new NgToken.beforeElementDecoratorValue(13),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(14),
+          new NgToken.elementDecoratorValue(15, 'someValue'),
+          new NgToken.doubleQuote(24),
+        ),
+        new NgToken.openElementEnd(26),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '.');
+    expect(e.offset, 25);
+
+    expect(untokenize(results), '<div someName="someValue">');
+  });
+
+  test(
       'should resolve: unexpected quotedText following afterElementDecoratorValue',
       () {
     List<NgToken> results = tokenize('<div someName="someValue""quotedText">');
@@ -711,6 +827,32 @@ void main() {
   test('should resolve: unexpected char following afterElementDecoratorValue',
       () {
     List<NgToken> results = tokenize('<div someName="someValue"@>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'someName'),
+        new NgToken.beforeElementDecoratorValue(13),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(14),
+          new NgToken.elementDecoratorValue(15, 'someValue'),
+          new NgToken.doubleQuote(24),
+        ),
+        new NgToken.openElementEnd(26),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '@');
+    expect(e.offset, 25);
+
+    expect(untokenize(results), '<div someName="someValue">');
+  });
+
+  test('should resolve: unexpected ! following elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div!>');
     expect(
       results,
       [

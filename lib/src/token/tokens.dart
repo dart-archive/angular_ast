@@ -26,10 +26,11 @@ class NgSimpleToken implements NgBaseToken {
     NgSimpleTokenType.bang: "!",
     NgSimpleTokenType.closeBracket: "]",
     NgSimpleTokenType.closeParen: ")",
+    NgSimpleTokenType.closeTagStart: "</",
     NgSimpleTokenType.commentBegin: "<!--",
     NgSimpleTokenType.commentEnd: "-->",
     NgSimpleTokenType.dash: "-",
-    NgSimpleTokenType.tagStart: "<",
+    NgSimpleTokenType.openTagStart: "<",
     NgSimpleTokenType.tagEnd: ">",
     NgSimpleTokenType.EOF: "",
     NgSimpleTokenType.equalSign: "=",
@@ -66,6 +67,10 @@ class NgSimpleToken implements NgBaseToken {
     return new NgSimpleToken._(NgSimpleTokenType.closeParen, offset, ')');
   }
 
+  factory NgSimpleToken.closeTagStart(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.closeTagStart, offset, '</');
+  }
+
   factory NgSimpleToken.commentBegin(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.commentBegin, offset, '<!--');
   }
@@ -78,8 +83,8 @@ class NgSimpleToken implements NgBaseToken {
     return new NgSimpleToken._(NgSimpleTokenType.dash, offset, '-');
   }
 
-  factory NgSimpleToken.tagStart(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.tagStart, offset, '<');
+  factory NgSimpleToken.openTagStart(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.openTagStart, offset, '<');
   }
 
   factory NgSimpleToken.tagEnd(int offset) {

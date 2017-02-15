@@ -20,6 +20,8 @@ class NgSimpleTokenType implements NgBaseTokenType {
 
   static const closeParen = const NgSimpleTokenType._('closeParen');
 
+  static const closeTagStart = const NgSimpleTokenType._('closeTagStart');
+
   static const commentBegin = const NgSimpleTokenType._('commentBegin');
 
   static const commentEnd = const NgSimpleTokenType._('commentEnd');
@@ -28,7 +30,7 @@ class NgSimpleTokenType implements NgBaseTokenType {
 
   static const doubleQuote = const NgSimpleTokenType._('doubleQuote');
 
-  static const tagStart = const NgSimpleTokenType._('tagStart');
+  static const openTagStart = const NgSimpleTokenType._('openTagStart');
 
   static const tagEnd = const NgSimpleTokenType._('tagEnd');
 
