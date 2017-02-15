@@ -4,6 +4,7 @@
 
 import 'package:angular_ast/src/scanner.dart';
 import 'package:angular_ast/src/token/tokens.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:meta/meta.dart';
 
 /// Separates an Angular template into a series of lexical tokens.
@@ -20,9 +21,10 @@ class NgLexer {
   const NgLexer._();
 
   /// Return a series of tokens by incrementally scanning [template].
-  Iterable<NgToken> tokenize(String template,
+  Iterable<NgToken> tokenize(String template, ExceptionHandler exceptionHandler,
       {bool recoverError: false}) sync* {
-    final scanner = new NgScanner(template, recoverError: recoverError);
+    final scanner =
+        new NgScanner(template, exceptionHandler, recoverError: recoverError);
     NgToken token = scanner.scan();
     while (token != null) {
       yield token;

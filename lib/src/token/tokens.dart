@@ -272,12 +272,13 @@ class NgToken implements NgBaseToken {
   factory NgToken.generateErrorSynthetic(int offset, NgTokenType type,
       {String lexeme: ""}) {
     if (type == NgTokenType.beforeElementDecorator ||
-        type == NgTokenType.beforeElementDecoratorValue ||
+        type == NgTokenType.elementDecoratorValue ||
         type == NgTokenType.elementDecorator ||
         type == NgTokenType.elementIdentifier ||
         type == NgTokenType.interpolationValue ||
         type == NgTokenType.text ||
-        type == NgTokenType.whitespace) {
+        type == NgTokenType.whitespace ||
+        type == NgTokenType.commentValue) {
       return new _LexemeNgToken(offset, lexeme, type, errorSynthetic: true);
     }
     return new NgToken._(type, offset, errorSynthetic: true);

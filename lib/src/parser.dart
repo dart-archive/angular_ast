@@ -5,6 +5,7 @@
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/lexer.dart';
 import 'package:angular_ast/src/parser/recursive.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:angular_ast/src/visitor.dart';
@@ -49,8 +50,9 @@ class NgParser {
   List<StandaloneTemplateAst> parse(
     String template, {
     @required String sourceUrl,
+    ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
   }) {
-    final tokens = const NgLexer().tokenize(template);
+    final tokens = const NgLexer().tokenize(template, exceptionHandler);
     final parser = new RecursiveAstParser(
       new SourceFile(
         template,
@@ -65,8 +67,9 @@ class NgParser {
   List<StandaloneTemplateAst> parseAndDesugar(
     String template, {
     @required String sourceUrl,
+    ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
   }) {
-    final tokens = const NgLexer().tokenize(template);
+    final tokens = const NgLexer().tokenize(template, exceptionHandler);
     final parser = new RecursiveAstParser(
       new SourceFile(
         template,

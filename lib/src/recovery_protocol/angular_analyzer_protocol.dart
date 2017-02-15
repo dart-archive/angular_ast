@@ -18,7 +18,20 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
 
   @override
   RecoverySolution scanAfterComment(
-      NgSimpleToken current, NgTokenReversibleReader reader) {}
+      NgSimpleToken current, NgTokenReversibleReader reader) {
+    NgScannerState returnState;
+    NgToken returnToken;
+
+    if (current.type == NgSimpleTokenType.EOF) {
+      reader.putBack(current);
+      returnState = NgScannerState.scanStart;
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.offset, NgTokenType.commentEnd);
+      return new RecoverySolution(returnState, returnToken);
+    }
+
+    return new RecoverySolution(null, null);
+  }
 
   @override
   RecoverySolution scanAfterElementDecorator(
@@ -70,12 +83,85 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
           current.offset, NgTokenType.openElementEnd);
       return new RecoverySolution(returnState, returnToken);
     }
+    if (current is NgSimpleQuoteToken) {
+      reader.putBack(current);
+      returnState = NgScannerState.scanElementDecoratorValue;
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.quoteOffset, NgTokenType.beforeElementDecoratorValue);
+      return new RecoverySolution(returnState, returnToken);
+    }
     return new RecoverySolution(null, null);
   }
 
   @override
   RecoverySolution scanAfterElementDecoratorValue(
-      NgSimpleToken current, NgTokenReversibleReader reader) {}
+      NgSimpleToken current, NgTokenReversibleReader reader) {
+    NgScannerState returnState;
+    NgToken returnToken;
+
+    if (current.type == NgSimpleTokenType.openBracket ||
+        current.type == NgSimpleTokenType.openParen ||
+        current.type == NgSimpleTokenType.hash ||
+        current.type == NgSimpleTokenType.star) {
+      reader.putBack(current);
+      returnState = NgScannerState.scanElementDecorator;
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.offset, NgTokenType.beforeElementDecorator,
+          lexeme: ' ');
+      return new RecoverySolution(returnState, returnToken);
+    }
+    if (current.type == NgSimpleTokenType.closeBracket) {
+      reader.putBack(current);
+      reader.putBack(new NgSimpleToken.generateErrorSynthetic(
+          current.offset, NgSimpleTokenType.identifier));
+      reader.putBack(new NgSimpleToken.generateErrorSynthetic(
+          current.offset, NgSimpleTokenType.openBracket));
+
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.offset, NgTokenType.beforeElementDecorator,
+          lexeme: ' ');
+      returnState = NgScannerState.scanElementDecorator;
+      return new RecoverySolution(returnState, returnToken);
+    }
+    if (current.type == NgSimpleTokenType.closeParen) {
+      reader.putBack(current);
+      reader.putBack(new NgSimpleToken.generateErrorSynthetic(
+          current.offset, NgSimpleTokenType.identifier));
+      reader.putBack(new NgSimpleToken.generateErrorSynthetic(
+          current.offset, NgSimpleTokenType.openParen));
+
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.offset, NgTokenType.beforeElementDecorator,
+          lexeme: ' ');
+      returnState = NgScannerState.scanElementDecorator;
+      return new RecoverySolution(returnState, returnToken);
+    }
+    if (current.type == NgSimpleTokenType.EOF ||
+        current.type == NgSimpleTokenType.commentBegin ||
+        current.type == NgSimpleTokenType.tagStart) {
+      reader.putBack(current);
+
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.offset, NgTokenType.openElementEnd);
+      returnState = NgScannerState.scanStart;
+      return new RecoverySolution(returnState, returnToken);
+    }
+    if (current is NgSimpleQuoteToken) {
+      reader.putBack(current);
+      reader.putBack(new NgSimpleToken.generateErrorSynthetic(
+          current.quoteOffset, NgSimpleTokenType.equalSign));
+      reader.putBack(new NgSimpleToken.generateErrorSynthetic(
+          current.quoteOffset, NgSimpleTokenType.identifier));
+
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.quoteOffset, NgTokenType.beforeElementDecorator,
+          lexeme: ' ');
+      returnState = NgScannerState.scanElementDecorator;
+      return new RecoverySolution(returnState, returnToken);
+    }
+
+    return new RecoverySolution(null, null);
+  }
 
   @override
   RecoverySolution scanAfterInterpolation(

@@ -7,6 +7,7 @@ import 'package:angular_ast/src/simple_tokenizer.dart';
 import 'package:angular_ast/src/parser/reader.dart';
 import 'package:angular_ast/src/recovery_protocol/angular_analyzer_protocol.dart';
 import 'package:angular_ast/src/recovery_protocol/recovery_protocol.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:meta/meta.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:source_span/source_span.dart';
@@ -18,6 +19,7 @@ class NgScanner {
 
   final NgTokenReversibleReader _reader;
   NgScannerState _state = NgScannerState.scanStart;
+  final ExceptionHandler exceptionHandler;
 
   final bool _recoverErrors;
   RecoveryProtocol _rp = new NgAnalyzerRecoveryProtocol();
@@ -27,20 +29,20 @@ class NgScanner {
   NgSimpleToken _moveNextExpect(NgBaseTokenType type) =>
       _current = _reader.expect(type);
 
-  factory NgScanner(String html, {sourceUrl, bool recoverError: false}) {
+  factory NgScanner(String html, ExceptionHandler exceptionHandler,
+      {sourceUrl, bool recoverError: false}) {
     NgTokenReader reader = new NgTokenReversibleReader(
         new SourceFile(html, url: sourceUrl),
         new NgSimpleTokenizer().tokenize(html));
 
-    return new NgScanner._(reader, recoverError);
+    return new NgScanner._(reader, recoverError, exceptionHandler);
   }
 
-  NgScanner._(this._reader, this._recoverErrors);
+  NgScanner._(this._reader, this._recoverErrors, this.exceptionHandler);
 
   /// Scans and returns the next token, or `null` if there is none more.
   NgToken scan() {
     _moveNext();
-    //print("$_current :: $_state");
     NgToken returnToken;
 
     while (returnToken == null) {
@@ -112,7 +114,6 @@ class NgScanner {
           break;
       }
     }
-    //print("RETURNING: " + returnToken.toString());
     return returnToken;
   }
 
@@ -198,14 +199,11 @@ class NgScanner {
       _state = NgScannerState.scanStart;
       return new NgToken.commentEnd(_current.offset);
     }
-    throw _unexpected();
+    return handleError();
   }
 
   @protected
   NgToken scanAfterElementDecorator() {
-    if (_current == null) {
-      return handleError();
-    }
     if (_current.type == NgSimpleTokenType.equalSign) {
       _state = NgScannerState.scanElementDecoratorValue;
       return new NgToken.beforeElementDecoratorValue(_current.offset);
@@ -238,7 +236,7 @@ class NgScanner {
       }
       return scanBeforeElementDecorator();
     }
-    throw _unexpected();
+    return handleError();
   }
 
   @protected
@@ -247,7 +245,7 @@ class NgScanner {
       _state = NgScannerState.scanStart;
       return new NgToken.interpolationEnd(_current.offset);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   @protected
@@ -256,7 +254,7 @@ class NgScanner {
       _state = NgScannerState.scanComment;
       return new NgToken.commentStart(_current.offset);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   @protected
@@ -271,7 +269,7 @@ class NgScanner {
       return new NgToken.beforeElementDecorator(
           _current.offset, _current.lexeme);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   @protected
@@ -280,7 +278,7 @@ class NgScanner {
       _state = NgScannerState.scanInterpolation;
       return new NgToken.interpolationStart(_current.offset);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   @protected
@@ -289,7 +287,7 @@ class NgScanner {
       _state = NgScannerState.scanAfterComment;
       return new NgToken.commentValue(_current.offset, _current.lexeme);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   @protected
@@ -314,7 +312,7 @@ class NgScanner {
       _state = NgScannerState.scanAfterElementDecorator;
       return evaluateSpecialElementDecorator();
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   @protected
@@ -336,7 +334,7 @@ class NgScanner {
         if (_recoverErrors) {
           rightQuoteOffset = current.end;
         } else {
-          throw _unexpectedSpecific(current.end);
+          exceptionHandler.handle(_unexpectedSpecific(current.end));
         }
       } else {
         rightQuoteOffset = current.quoteEndOffset - 1;
@@ -359,7 +357,7 @@ class NgScanner {
     if (_current.type == NgSimpleTokenType.whitespace) {
       return new NgToken.whitespace(_current.offset, _current.lexeme);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   @protected
@@ -377,7 +375,7 @@ class NgScanner {
 
       return new NgToken.elementIdentifier(_current.offset, _current.lexeme);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   @protected
@@ -388,7 +386,8 @@ class NgScanner {
         _moveNext();
         _state = NgScannerState.scanStart;
         if (!wasOpenTag) {
-          throw _unexpected(new NgSimpleToken.voidCloseTag(slashOffset));
+          exceptionHandler.handle(
+              _generateException(new NgSimpleToken.voidCloseTag(slashOffset)));
         }
         return new NgToken.openElementEndVoid(slashOffset);
       }
@@ -400,7 +399,7 @@ class NgScanner {
     } else if (_current.type == NgSimpleTokenType.whitespace) {
       return new NgToken.whitespace(_current.offset, _current.lexeme);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   @protected
@@ -415,7 +414,7 @@ class NgScanner {
       _state = NgScannerState.scanElementIdentifierOpen;
       return new NgToken.openElementStart(offset);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   //TODO: Check for errorcase: another interpolation within interpolation
@@ -442,7 +441,7 @@ class NgScanner {
 
       return new NgToken.interpolationValue(_current.offset, _current.lexeme);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   @protected
@@ -475,23 +474,29 @@ class NgScanner {
       _state = NgScannerState.scanStart;
       return new NgToken.text(_current.offset, _current.lexeme);
     }
-    throw _unexpected();
+    exceptionHandler.handle(_generateException());
   }
 
   NgToken handleError([NgSimpleToken override]) {
+    NgScannerState currentState = _state;
+    _state = NgScannerState.hasError;
+    exceptionHandler.handle(_generateException(override));
+
     if (_recoverErrors) {
       RecoverySolution solution;
-      switch (_state) {
+      switch (currentState) {
         case NgScannerState.hasError:
           break;
         case NgScannerState.isEndOfFile:
           break;
         case NgScannerState.scanAfterComment:
+          solution = _rp.scanAfterComment(_current, _reader);
           break;
         case NgScannerState.scanAfterElementDecorator:
           solution = _rp.scanAfterElementDecorator(_current, _reader);
           break;
         case NgScannerState.scanAfterElementDecoratorValue:
+          solution = _rp.scanAfterElementDecoratorValue(_current, _reader);
           break;
         case NgScannerState.scanAfterInterpolation:
           break;
@@ -522,32 +527,43 @@ class NgScanner {
         case NgScannerState.scanText:
           break;
       }
-
-      _state = solution.nextState ?? _state;
+      _state = solution.nextState ?? currentState;
       if (solution.tokenToReturn == null) {
         _moveNext();
         return null;
       }
       return solution.tokenToReturn;
     } else {
-      throw _unexpected(override);
+      return null;
     }
   }
 
-  FormatException _unexpected([NgSimpleToken override]) {
+  FormatException _generateException([NgSimpleToken override]) {
     NgSimpleToken token = override ?? _current;
-    _state = NgScannerState.hasError;
+    // TODO: Delete small block later
+    if (!_recoverErrors) {
+      _state = NgScannerState.hasError;
+    }
+    String lexeme =
+        (token is NgSimpleQuoteToken) ? token.quotedLexeme : token.lexeme;
+    int offset =
+        (token is NgSimpleQuoteToken) ? token.quoteOffset : token.offset;
+
     return new FormatException(
       'Unexpected character: $token',
-      token.lexeme,
-      token.offset,
+      lexeme,
+      offset,
     );
   }
 
+  // TODO: Remove this later and better universalize above method.
   FormatException _unexpectedSpecific(int errorOffset,
       [NgSimpleToken override]) {
     NgSimpleToken token = override ?? _current;
-    _state = NgScannerState.hasError;
+    // TODO: Delete small block later
+    if (!_recoverErrors) {
+      _state = NgScannerState.hasError;
+    }
     String errorString = token.lexeme.substring(errorOffset - token.offset);
     return new FormatException(
         'Unexpected character in token at offset: $errorString : $errorOffset',
