@@ -39,45 +39,60 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
   @override
   RecoverySolution scanAfterElementDecorator(
       NgSimpleToken current, NgTokenReversibleReader reader) {
+    // TODO Merge with both scanAfterIdentifier
     NgScannerState returnState;
     NgToken returnToken;
+    NgSimpleTokenType type = current.type;
+    int offset = current.offset;
 
-    if (current.type == NgSimpleTokenType.openBracket ||
-        current.type == NgSimpleTokenType.openParen ||
-        current.type == NgSimpleTokenType.hash ||
-        current.type == NgSimpleTokenType.star) {
+    if (type == NgSimpleTokenType.openBracket ||
+        type == NgSimpleTokenType.openParen ||
+        type == NgSimpleTokenType.openBanana ||
+        type == NgSimpleTokenType.hash ||
+        type == NgSimpleTokenType.star) {
       reader.putBack(current);
       returnState = NgScannerState.scanElementDecorator;
       returnToken = new NgToken.generateErrorSynthetic(
-          current.offset, NgTokenType.beforeElementDecorator,
+          offset, NgTokenType.beforeElementDecorator,
           lexeme: " ");
-    } else if (current.type == NgSimpleTokenType.closeBracket) {
+    } else if (type == NgSimpleTokenType.closeBracket) {
       reader.putBack(current);
       reader.putBack(new NgSimpleToken.generateErrorSynthetic(
-          current.offset, NgSimpleTokenType.identifier));
+          offset, NgSimpleTokenType.identifier));
       reader.putBack(new NgSimpleToken.generateErrorSynthetic(
-          current.offset, NgSimpleTokenType.openBracket));
+          offset, NgSimpleTokenType.openBracket));
       returnState = NgScannerState.scanElementDecorator;
       returnToken = new NgToken.generateErrorSynthetic(
-          current.offset, NgTokenType.beforeElementDecorator,
+          offset, NgTokenType.beforeElementDecorator,
           lexeme: " ");
-    } else if (current.type == NgSimpleTokenType.closeParen) {
+    } else if (type == NgSimpleTokenType.closeParen) {
       reader.putBack(current);
       reader.putBack(new NgSimpleToken.generateErrorSynthetic(
-          current.offset, NgSimpleTokenType.identifier));
+          offset, NgSimpleTokenType.identifier));
       reader.putBack(new NgSimpleToken.generateErrorSynthetic(
-          current.offset, NgSimpleTokenType.openParen));
+          offset, NgSimpleTokenType.openParen));
       returnState = NgScannerState.scanElementDecorator;
       returnToken = new NgToken.generateErrorSynthetic(
-          current.offset, NgTokenType.beforeElementDecorator,
+          offset, NgTokenType.beforeElementDecorator,
           lexeme: " ");
-    } else if (current.type == NgSimpleTokenType.EOF ||
-        current.type == NgSimpleTokenType.commentBegin ||
-        current.type == NgSimpleTokenType.openTagStart) {
+    } else if (type == NgSimpleTokenType.closeBanana) {
+      reader.putBack(current);
+      reader.putBack(new NgSimpleToken.generateErrorSynthetic(
+          offset, NgSimpleTokenType.identifier));
+      reader.putBack(new NgSimpleToken.generateErrorSynthetic(
+          offset, NgSimpleTokenType.openBanana));
+      returnState = NgScannerState.scanElementDecorator;
+      returnToken = new NgToken.generateErrorSynthetic(
+          offset, NgTokenType.beforeElementDecorator,
+          lexeme: " ");
+    } else if (type == NgSimpleTokenType.EOF ||
+        type == NgSimpleTokenType.commentBegin ||
+        type == NgSimpleTokenType.openTagStart ||
+        type == NgSimpleTokenType.closeTagStart) {
       reader.putBack(current);
       returnState = NgScannerState.scanStart;
       returnToken = new NgToken.generateErrorSynthetic(
-          current.offset, NgTokenType.openElementEnd);
+          offset, NgTokenType.openElementEnd);
     } else if (current is NgSimpleQuoteToken) {
       reader.putBack(current);
       returnState = NgScannerState.scanElementDecoratorValue;
@@ -90,54 +105,68 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
   @override
   RecoverySolution scanAfterElementDecoratorValue(
       NgSimpleToken current, NgTokenReversibleReader reader) {
+    // TODO Merge with both scanAfterIdentifier
     NgScannerState returnState;
     NgToken returnToken;
+    NgSimpleTokenType type = current.type;
+    int offset = current.offset;
 
-    if (current.type == NgSimpleTokenType.openBracket ||
-        current.type == NgSimpleTokenType.openParen ||
-        current.type == NgSimpleTokenType.hash ||
-        current.type == NgSimpleTokenType.star ||
-        current.type == NgSimpleTokenType.identifier) {
+    if (type == NgSimpleTokenType.openBracket ||
+        type == NgSimpleTokenType.openParen ||
+        type == NgSimpleTokenType.openBanana ||
+        type == NgSimpleTokenType.hash ||
+        type == NgSimpleTokenType.star ||
+        type == NgSimpleTokenType.identifier) {
       reader.putBack(current);
       returnState = NgScannerState.scanElementDecorator;
       returnToken = new NgToken.generateErrorSynthetic(
-          current.offset, NgTokenType.beforeElementDecorator,
+          offset, NgTokenType.beforeElementDecorator,
           lexeme: ' ');
-    } else if (current.type == NgSimpleTokenType.closeBracket) {
+    } else if (type == NgSimpleTokenType.closeBracket) {
       reader.putBack(current);
       reader.putBack(new NgSimpleToken.generateErrorSynthetic(
-          current.offset, NgSimpleTokenType.identifier));
+          offset, NgSimpleTokenType.identifier));
       reader.putBack(new NgSimpleToken.generateErrorSynthetic(
-          current.offset, NgSimpleTokenType.openBracket));
+          offset, NgSimpleTokenType.openBracket));
 
       returnToken = new NgToken.generateErrorSynthetic(
-          current.offset, NgTokenType.beforeElementDecorator,
+          offset, NgTokenType.beforeElementDecorator,
           lexeme: ' ');
       returnState = NgScannerState.scanElementDecorator;
-    } else if (current.type == NgSimpleTokenType.closeParen) {
+    } else if (type == NgSimpleTokenType.closeParen) {
       reader.putBack(current);
       reader.putBack(new NgSimpleToken.generateErrorSynthetic(
-          current.offset, NgSimpleTokenType.identifier));
+          offset, NgSimpleTokenType.identifier));
       reader.putBack(new NgSimpleToken.generateErrorSynthetic(
-          current.offset, NgSimpleTokenType.openParen));
+          offset, NgSimpleTokenType.openParen));
       returnToken = new NgToken.generateErrorSynthetic(
-          current.offset, NgTokenType.beforeElementDecorator,
+          offset, NgTokenType.beforeElementDecorator,
           lexeme: ' ');
       returnState = NgScannerState.scanElementDecorator;
-    } else if (current.type == NgSimpleTokenType.EOF ||
-        current.type == NgSimpleTokenType.commentBegin ||
-        current.type == NgSimpleTokenType.openTagStart) {
+    } else if (type == NgSimpleTokenType.closeBanana) {
       reader.putBack(current);
-
+      reader.putBack(new NgSimpleToken.generateErrorSynthetic(
+          offset, NgSimpleTokenType.identifier));
+      reader.putBack(new NgSimpleToken.generateErrorSynthetic(
+          offset, NgSimpleTokenType.openBanana));
       returnToken = new NgToken.generateErrorSynthetic(
-          current.offset, NgTokenType.openElementEnd);
+          offset, NgTokenType.beforeElementDecorator,
+          lexeme: ' ');
+      returnState = NgScannerState.scanElementDecorator;
+    } else if (type == NgSimpleTokenType.EOF ||
+        type == NgSimpleTokenType.commentBegin ||
+        type == NgSimpleTokenType.openTagStart ||
+        type == NgSimpleTokenType.closeTagStart) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          offset, NgTokenType.openElementEnd);
       returnState = NgScannerState.scanStart;
-    } else if (current.type == NgSimpleTokenType.equalSign) {
+    } else if (type == NgSimpleTokenType.equalSign) {
       reader.putBack(current);
       reader.putBack(new NgSimpleToken.generateErrorSynthetic(
-          current.offset, NgSimpleTokenType.identifier));
+          offset, NgSimpleTokenType.identifier));
       returnToken = new NgToken.generateErrorSynthetic(
-          current.offset, NgTokenType.beforeElementDecorator,
+          offset, NgTokenType.beforeElementDecorator,
           lexeme: ' ');
       returnState = NgScannerState.scanElementDecorator;
     } else if (current is NgSimpleQuoteToken) {
@@ -163,7 +192,43 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
   @override
   RecoverySolution scanAfterElementIdentifierOpen(
       NgSimpleToken current, NgTokenReversibleReader reader) {
-    return new RecoverySolution.skip();
+    NgScannerState returnState;
+    NgToken returnToken;
+    NgSimpleTokenType type = current.type;
+    int offset = current.offset;
+
+    if (type == NgSimpleTokenType.openBracket ||
+        type == NgSimpleTokenType.openParen ||
+        type == NgSimpleTokenType.openBanana ||
+        type == NgSimpleTokenType.hash ||
+        type == NgSimpleTokenType.star ||
+        type == NgSimpleTokenType.equalSign ||
+        type == NgSimpleTokenType.closeBracket ||
+        type == NgSimpleTokenType.closeParen ||
+        type == NgSimpleTokenType.closeBanana) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          offset, NgTokenType.beforeElementDecorator,
+          lexeme: " ");
+      returnState = NgScannerState.scanElementDecorator;
+    } else if (type == NgSimpleTokenType.commentBegin ||
+        type == NgSimpleTokenType.openTagStart ||
+        type == NgSimpleTokenType.closeTagStart ||
+        type == NgSimpleTokenType.tagEnd ||
+        type == NgSimpleTokenType.EOF) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.offset, NgTokenType.openElementEnd);
+      returnState = NgScannerState.scanStart;
+    } else if (current is NgSimpleQuoteToken) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.quoteOffset, NgTokenType.beforeElementDecorator,
+          lexeme: " ");
+      returnState = NgScannerState.scanElementDecorator;
+    }
+
+    return new RecoverySolution(returnState, returnToken);
   }
 
   @override
@@ -206,7 +271,47 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
   @override
   RecoverySolution scanElementDecorator(
       NgSimpleToken current, NgTokenReversibleReader reader) {
-    return new RecoverySolution.skip();
+    NgScannerState returnState;
+    NgToken returnToken;
+    NgSimpleTokenType type = current.type;
+    int offset = current.offset;
+
+    if (type == NgSimpleTokenType.equalSign) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          offset, NgTokenType.elementDecorator);
+      returnState = NgScannerState.scanAfterElementDecorator;
+    } else if (current is NgSimpleQuoteToken) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.quoteOffset, NgTokenType.elementDecorator);
+      returnState = NgScannerState.scanAfterElementDecorator;
+    } else if (type == NgSimpleTokenType.closeBracket ||
+        type == NgSimpleTokenType.closeParen ||
+        type == NgSimpleTokenType.closeBanana) {
+      NgTokenType leftsideTokenType;
+      NgToken suffix;
+      if (type == NgSimpleTokenType.closeBracket) {
+        leftsideTokenType = NgTokenType.propertyPrefix;
+        suffix = new NgToken.propertySuffix(offset);
+      } else if (type == NgSimpleTokenType.closeParen) {
+        leftsideTokenType = NgTokenType.eventPrefix;
+        suffix = new NgToken.eventSuffix(offset);
+      } else {
+        leftsideTokenType = NgTokenType.bananaPrefix;
+        suffix = new NgToken.bananaSuffix(offset);
+      }
+
+      NgToken identifier = new NgToken.generateErrorSynthetic(
+          offset, NgTokenType.elementDecorator);
+      NgToken prefix =
+          new NgToken.generateErrorSynthetic(offset, leftsideTokenType);
+      returnToken =
+          new NgSpecialAttributeToken.generate(prefix, identifier, suffix);
+      returnState = NgScannerState.scanAfterElementDecorator;
+    }
+
+    return new RecoverySolution(returnState, returnToken);
   }
 
   @override
@@ -238,8 +343,41 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
+    NgSimpleTokenType type = current.type;
+    int offset = current.offset;
 
-    return new RecoverySolution.skip();
+    if (type == NgSimpleTokenType.bang ||
+        type == NgSimpleTokenType.dash ||
+        type == NgSimpleTokenType.period) {
+      returnToken = new NgToken.generateErrorSynthetic(
+          offset, NgTokenType.elementIdentifier);
+      returnState = NgScannerState.scanAfterElementIdentifierOpen;
+    } else if (type == NgSimpleTokenType.openBracket ||
+        type == NgSimpleTokenType.openParen ||
+        type == NgSimpleTokenType.openBanana ||
+        type == NgSimpleTokenType.hash ||
+        type == NgSimpleTokenType.star ||
+        type == NgSimpleTokenType.closeBracket ||
+        type == NgSimpleTokenType.closeParen ||
+        type == NgSimpleTokenType.closeBanana ||
+        type == NgSimpleTokenType.commentBegin ||
+        type == NgSimpleTokenType.commentEnd ||
+        type == NgSimpleTokenType.openTagStart ||
+        type == NgSimpleTokenType.closeTagStart ||
+        type == NgSimpleTokenType.tagEnd ||
+        type == NgSimpleTokenType.EOF ||
+        type == NgSimpleTokenType.equalSign) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          offset, NgTokenType.elementIdentifier);
+      returnState = NgScannerState.scanAfterElementIdentifierOpen;
+    } else if (current is NgSimpleQuoteToken) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.quoteOffset, NgTokenType.elementIdentifier);
+      returnState = NgScannerState.scanAfterElementIdentifierOpen;
+    }
+    return new RecoverySolution(returnState, returnToken);
   }
 
   @override

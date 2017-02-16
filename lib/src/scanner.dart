@@ -26,6 +26,7 @@ class NgScanner {
 
   NgSimpleToken _current;
   NgSimpleToken _lastToken;
+  NgSimpleToken _lastErrorToken;
 
   NgSimpleToken _moveNext() {
     _lastToken = _current;
@@ -40,10 +41,11 @@ class NgScanner {
   }
 
   factory NgScanner(String html, ExceptionHandler exceptionHandler,
-      {sourceUrl, bool recoverError: false}) {
+      {sourceUrl}) {
     NgTokenReader reader = new NgTokenReversibleReader(
         new SourceFile(html, url: sourceUrl),
         new NgSimpleTokenizer().tokenize(html));
+    bool recoverError = exceptionHandler is RecoveringExceptionHandler;
 
     return new NgScanner._(reader, recoverError, exceptionHandler);
   }
@@ -148,17 +150,11 @@ class NgScanner {
       identifierPartsLimit = 1;
       prefix = new NgToken.eventPrefix(_current.offset);
     } else if (_current.type == NgSimpleTokenType.openBracket) {
-      // Banana/Two-way
-      if (_reader.peekType() == NgSimpleTokenType.openParen) {
-        int offset = _current.offset;
-        _moveNext();
-        prefix = new NgToken.bananaPrefix(offset);
-      }
-      // Property
-      else {
-        identifierPartsLimit = 2;
-        prefix = new NgToken.propertyPrefix(_current.offset);
-      }
+      identifierPartsLimit = 2;
+      prefix = new NgToken.propertyPrefix(_current.offset);
+    } else if (_current.type == NgSimpleTokenType.openBanana) {
+      identifierPartsLimit = 2;
+      prefix = new NgToken.bananaPrefix(_current.offset);
     } else if (_current.type == NgSimpleTokenType.hash) {
       // Reference
       prefix = new NgToken.referencePrefix(_current.offset);
@@ -168,10 +164,11 @@ class NgScanner {
     }
 
     // Identifier
-    // TODO: Catch unexpected types here after opening prefix
-    // TODO: Example: [=blah]="hello"
     _moveNextExpect(NgSimpleTokenType.identifier);
-    if ((prefix.type == NgTokenType.propertyPrefix ||
+    if (_current.errorSynthetic) {
+      identifier = new NgToken.generateErrorSynthetic(
+          _current.offset, NgTokenType.elementDecorator);
+    } else if ((prefix.type == NgTokenType.propertyPrefix ||
             prefix.type == NgTokenType.eventPrefix) &&
         _reader.peekType() == NgSimpleTokenType.period) {
       int propertyBeginOffset = _current.offset;
@@ -196,15 +193,28 @@ class NgScanner {
     // Suffix
     if (prefix.type == NgTokenType.eventPrefix) {
       _moveNextExpect(NgSimpleTokenType.closeParen);
-      suffix = new NgToken.eventSuffix(_current.offset);
+      if (_current.errorSynthetic) {
+        suffix = new NgToken.generateErrorSynthetic(
+            _current.offset, NgTokenType.eventSuffix);
+      } else {
+        suffix = new NgToken.eventSuffix(_current.offset);
+      }
     } else if (prefix.type == NgTokenType.bananaPrefix) {
-      _moveNextExpect(NgSimpleTokenType.closeParen);
-      int offset = _current.offset;
-      _moveNextExpect(NgSimpleTokenType.closeBracket);
-      suffix = new NgToken.bananaSuffix(offset);
+      _moveNextExpect(NgSimpleTokenType.closeBanana);
+      if (_current.errorSynthetic) {
+        suffix = new NgToken.generateErrorSynthetic(
+            _current.offset, NgTokenType.bananaSuffix);
+      } else {
+        suffix = new NgToken.bananaSuffix(_current.offset);
+      }
     } else if (prefix.type == NgTokenType.propertyPrefix) {
       _moveNextExpect(NgSimpleTokenType.closeBracket);
-      suffix = new NgToken.propertySuffix(_current.offset);
+      if (_current.errorSynthetic) {
+        suffix = new NgToken.generateErrorSynthetic(
+            _current.offset, NgTokenType.propertySuffix);
+      } else {
+        suffix = new NgToken.propertySuffix(_current.offset);
+      }
     }
 
     return new NgSpecialAttributeToken.generate(prefix, identifier, suffix);
@@ -355,6 +365,7 @@ class NgScanner {
     }
     if (type == NgSimpleTokenType.openParen ||
         type == NgSimpleTokenType.openBracket ||
+        type == NgSimpleTokenType.openBanana ||
         type == NgSimpleTokenType.hash ||
         type == NgSimpleTokenType.star) {
       _state = NgScannerState.scanAfterElementDecorator;
@@ -601,10 +612,14 @@ class NgScanner {
 
   FormatException _generateException([NgSimpleToken override]) {
     NgSimpleToken token = override ?? _current;
-    // TODO: Delete small block later
     if (_recoverErrors && _lastToken != null && _lastToken.errorSynthetic) {
       return null;
     }
+    // Avoid throwing same error
+    if (_lastErrorToken == token) {
+      return null;
+    }
+    _lastErrorToken = token;
     String lexeme =
         (token is NgSimpleQuoteToken) ? token.quotedLexeme : token.lexeme;
     int offset =
@@ -621,8 +636,10 @@ class NgScanner {
   FormatException _unexpectedSpecific(int errorOffset,
       [NgSimpleToken override]) {
     NgSimpleToken token = override ?? _current;
-    // TODO: Delete small block later
-    if (_recoverErrors || (_lastToken != null && _lastToken.errorSynthetic)) {
+    if (_recoverErrors && _lastToken != null && _lastToken.errorSynthetic) {
+      return null;
+    }
+    if (_lastErrorToken == token) {
       return null;
     }
     String errorString = token.lexeme.substring(errorOffset - token.offset);
@@ -651,7 +668,6 @@ enum NgScannerState {
   scanBeforeElementDecorator,
   scanBeforeInterpolation,
   scanComment,
-  scanInterpolation,
   scanElementDecorator,
   scanElementDecoratorValue,
   scanElementEndClose,
@@ -659,6 +675,7 @@ enum NgScannerState {
   scanElementIdentifierClose,
   scanElementIdentifierOpen,
   scanElementStart,
+  scanInterpolation,
   scanStart,
   scanText,
 }

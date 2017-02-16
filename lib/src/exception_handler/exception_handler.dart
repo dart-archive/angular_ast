@@ -19,7 +19,7 @@ class ThrowingExceptionHandler implements ExceptionHandler {
   const ThrowingExceptionHandler._();
 }
 
-class AccumulatingExceptionHandler implements ExceptionHandler {
+class RecoveringExceptionHandler implements ExceptionHandler {
   final List<Exception> exceptions = new List<Exception>();
 
   @override

@@ -318,6 +318,27 @@ void main() {
     );
   });
 
+  test('should tokenize an HTML element with banana binding', () {
+    expect(tokenize('<div [(banana)]="doSomething"></div>'), [
+      new NgToken.openElementStart(0),
+      new NgToken.elementIdentifier(1, 'div'),
+      new NgToken.beforeElementDecorator(4, ' '),
+      new NgSpecialAttributeToken.generate(
+          new NgToken.bananaPrefix(5),
+          new NgToken.elementDecorator(7, 'banana'),
+          new NgToken.bananaSuffix(13)),
+      new NgToken.beforeElementDecoratorValue(15),
+      new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(16),
+          new NgToken.elementDecoratorValue(17, 'doSomething'),
+          new NgToken.doubleQuote(28)),
+      new NgToken.openElementEnd(29),
+      new NgToken.closeElementStart(30),
+      new NgToken.elementIdentifier(32, 'div'),
+      new NgToken.closeElementEnd(35),
+    ]);
+  });
+
   test('should tokenize elementDecorator ending in period', () {
     expect(
       tokenize('<div blah.>'),

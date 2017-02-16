@@ -39,6 +39,7 @@ class NgSimpleScanner {
       r'(\()|' //8  (
       r'([\s]+)|' //9 whitespace
       r'([a-zA-Z]([\w\_\-])*[a-zA-Z0-9]?)|' //10 any alphanumeric + '-' + '_'
+      //r'([a-zA-Z]+([\_\-][a-zA-Z0-9]+)*)|' //10 any alphanumeric + '-' + '_'
       r'("([^"\\]|\\.)*"?)|' //12 closed double quote (includes group 13)
       r"('([^'\\]|\\.)*'?)|" //14 closed single quote (includes group 15)
       r"(<)|" //16 <
@@ -118,6 +119,10 @@ class NgSimpleScanner {
         return new NgSimpleToken.dash(offset);
       }
       if (matchesGroup(match, 4)) {
+        if (_scanner.peekChar() == $close_bracket) {
+          _scanner.position++;
+          return new NgSimpleToken.closeBanana(offset);
+        }
         return new NgSimpleToken.closeParen(offset);
       }
       if (matchesGroup(match, 5)) {
@@ -133,6 +138,10 @@ class NgSimpleScanner {
         return new NgSimpleToken.forwardSlash(offset);
       }
       if (matchesGroup(match, 7)) {
+        if (_scanner.peekChar() == $open_paren) {
+          _scanner.position++;
+          return new NgSimpleToken.openBanana(offset);
+        }
         return new NgSimpleToken.openBracket(offset);
       }
       if (matchesGroup(match, 8)) {

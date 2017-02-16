@@ -24,6 +24,7 @@ abstract class NgBaseToken {
 class NgSimpleToken implements NgBaseToken {
   static final Map<NgSimpleTokenType, String> _syntheticLexemeMap = {
     NgSimpleTokenType.bang: "!",
+    NgSimpleTokenType.closeBanana: ")]",
     NgSimpleTokenType.closeBracket: "]",
     NgSimpleTokenType.closeParen: ")",
     NgSimpleTokenType.closeTagStart: "</",
@@ -39,6 +40,7 @@ class NgSimpleToken implements NgBaseToken {
     NgSimpleTokenType.identifier: "",
     NgSimpleTokenType.mustacheBegin: "{{",
     NgSimpleTokenType.mustacheEnd: "}}",
+    NgSimpleTokenType.openBanana: "[(",
     NgSimpleTokenType.openBracket: "[",
     NgSimpleTokenType.openParen: "(",
     NgSimpleTokenType.period: ".",
@@ -57,6 +59,10 @@ class NgSimpleToken implements NgBaseToken {
 
   factory NgSimpleToken.bang(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.bang, offset, '!');
+  }
+
+  factory NgSimpleToken.closeBanana(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.closeBanana, offset, ')]');
   }
 
   factory NgSimpleToken.closeBracket(int offset) {
@@ -117,6 +123,10 @@ class NgSimpleToken implements NgBaseToken {
 
   factory NgSimpleToken.mustacheEnd(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.mustacheEnd, offset, "}}");
+  }
+
+  factory NgSimpleToken.openBanana(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.openBanana, offset, '[(');
   }
 
   factory NgSimpleToken.openBracket(int offset) {
@@ -471,6 +481,8 @@ class NgAttributeValueToken extends NgToken {
   final NgToken innerValue;
   final NgToken rightQuote;
 
+  bool get containsErrorSynthetic => rightQuote.errorSynthetic;
+
   const NgAttributeValueToken._(
       offset, this.leftQuote, this.innerValue, this.rightQuote)
       : super._(NgTokenType.elementDecoratorValue, offset);
@@ -508,19 +520,35 @@ class NgAttributeValueToken extends NgToken {
 
 class NgSpecialAttributeToken extends NgToken {
   factory NgSpecialAttributeToken.generate(
-      NgToken prefixToken, NgToken identifier, NgToken suffixToken) {
+    NgToken prefixToken,
+    NgToken identifier, [
+    NgToken suffixToken,
+  ]) {
     return new NgSpecialAttributeToken._(
-        prefixToken.offset, prefixToken, identifier, suffixToken);
+      prefixToken.offset,
+      prefixToken,
+      identifier,
+      suffixToken,
+    );
   }
 
   final NgToken prefixToken;
   final NgToken identifierToken;
   final NgToken suffixToken;
 
+  bool get containsErrorSynthetic =>
+      prefixToken.errorSynthetic ||
+      identifierToken.errorSynthetic ||
+      (suffixToken == null ? false : suffixToken.errorSynthetic);
+
   bool get isReference => suffixToken == null;
 
   const NgSpecialAttributeToken._(
-      offset, this.prefixToken, this.identifierToken, this.suffixToken)
+    offset,
+    this.prefixToken,
+    this.identifierToken,
+    this.suffixToken,
+  )
       : super._(NgTokenType.elementDecorator, offset);
 
   @override

@@ -165,6 +165,19 @@ void main() {
     ]);
   });
 
+  test('should tokenize an HTML element with banana open and close', () {
+    expect(tokenize('''<my-tag [(banana)]>'''), [
+      new NgSimpleToken.openTagStart(0),
+      new NgSimpleToken.identifier(1, 'my-tag'),
+      new NgSimpleToken.whitespace(7, ' '),
+      new NgSimpleToken.openBanana(8),
+      new NgSimpleToken.identifier(10, 'banana'),
+      new NgSimpleToken.closeBanana(16),
+      new NgSimpleToken.tagEnd(18),
+      new NgSimpleToken.EOF(19),
+    ]);
+  });
+
   test('should tokenize a HTML template with decorator values and back', () {
     const html = r'''
       <div>

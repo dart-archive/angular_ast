@@ -42,10 +42,7 @@ export 'package:angular_ast/src/visitor.dart'
         TemplateAstVisitor,
         DesugarVisitor;
 export 'package:angular_ast/src/exception_handler/exception_handler.dart'
-    show
-        AccumulatingExceptionHandler,
-        ExceptionHandler,
-        ThrowingExceptionHandler;
+    show RecoveringExceptionHandler, ExceptionHandler, ThrowingExceptionHandler;
 
 /// Returns [template] parsed as an abstract syntax tree.
 ///

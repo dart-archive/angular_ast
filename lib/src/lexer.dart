@@ -23,8 +23,7 @@ class NgLexer {
   /// Return a series of tokens by incrementally scanning [template].
   Iterable<NgToken> tokenize(String template, ExceptionHandler exceptionHandler,
       {bool recoverError: false}) sync* {
-    final scanner =
-        new NgScanner(template, exceptionHandler, recoverError: recoverError);
+    final scanner = new NgScanner(template, exceptionHandler);
     NgToken token = scanner.scan();
     while (token != null) {
       yield token;
