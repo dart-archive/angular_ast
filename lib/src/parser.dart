@@ -7,6 +7,7 @@ import 'package:angular_ast/src/lexer.dart';
 import 'package:angular_ast/src/parser/recursive.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
+import 'package:angular_ast/src/visitor.dart';
 
 class NgParser {
   // Elements that explicitly don't have a closing tag.
@@ -57,8 +58,26 @@ class NgParser {
       ),
       tokens,
       _voidElements,
-      toolFriendlyAstOrigin: _toolFriendlyAstOrigin,
     );
     return parser.parse();
+  }
+
+  List<StandaloneTemplateAst> parseAndDesugar(
+    String template, {
+    @required String sourceUrl,
+  }) {
+    final tokens = const NgLexer().tokenize(template);
+    final parser = new RecursiveAstParser(
+      new SourceFile(
+        template,
+        url: sourceUrl,
+      ),
+      tokens,
+      _voidElements,
+    );
+    List<StandaloneTemplateAst> asts = parser.parse();
+    DesugarVisitor visitor =
+        new DesugarVisitor(toolFriendlyAstOrigin: _toolFriendlyAstOrigin);
+    return asts.map((t) => t.accept(visitor)).toList();
   }
 }

@@ -67,5 +67,8 @@ class ExpressionAst implements TemplateAst {
   SourceSpan get sourceSpan => null;
 
   @override
+  String get sourceUrl => null;
+
+  @override
   String toString() => '$ExpressionAst {$expression}';
 }

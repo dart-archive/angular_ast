@@ -1,4 +1,7 @@
-import 'package:angular_ast/src/simple_token.dart';
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -59,12 +62,12 @@ void main() {
   });
 
   test('dashedIdenifier', () {
-    token = new NgSimpleToken.dashedIdentifier(0, 'some_dashed-identifier');
+    token = new NgSimpleToken.identifier(0, 'some_dashed-identifier');
     expect(token.lexeme, 'some_dashed-identifier');
     expect(token.end, 22);
     expect(token.length, 22);
     expect(token.offset, 0);
-    expect(token.type, NgSimpleTokenType.dashedIdentifier);
+    expect(token.type, NgSimpleTokenType.identifier);
   });
 
   test('tagStart', () {
@@ -119,6 +122,24 @@ void main() {
     expect(token.length, 19);
     expect(token.offset, 0);
     expect(token.type, NgSimpleTokenType.identifier);
+  });
+
+  test('mustacheBegin', () {
+    token = new NgSimpleToken.mustacheBegin(0);
+    expect(token.lexeme, '{{');
+    expect(token.end, 2);
+    expect(token.length, 2);
+    expect(token.offset, 0);
+    expect(token.type, NgSimpleTokenType.mustacheBegin);
+  });
+
+  test('mustacheEnd', () {
+    token = new NgSimpleToken.mustacheEnd(0);
+    expect(token.lexeme, '}}');
+    expect(token.end, 2);
+    expect(token.length, 2);
+    expect(token.offset, 0);
+    expect(token.type, NgSimpleTokenType.mustacheEnd);
   });
 
   test('openBracket', () {

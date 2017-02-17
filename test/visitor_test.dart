@@ -8,25 +8,24 @@ import 'package:test/test.dart';
 void main() {
   final visitor = const HumanizingTemplateAstVisitor();
 
-  test('should humanize a simple template', () {
+  test('should humanize a simple template and preserve inner spaces', () {
+    String templateString = '<button [title]="aTitle">Hello {{name}}</button>';
     final template = parse(
-      '<button [title]="aTitle">Hello {{name}}</button>',
+      templateString,
       sourceUrl: '/test/visitor_test.dart#inline',
     );
     expect(
       template.map((t) => t.accept(visitor)).join(''),
-      equalsIgnoringWhitespace(r'''
-        <button [title]="aTitle">Hello {{name}}</button>
-      '''),
+      equals(templateString),
     );
   });
 
   test('should humanize a simple template *with* de-sugaring applied', () {
-    final template = parse(
-      '<widget *ngIf="someValue" [(value)]="value"></widget>',
-      sourceUrl: '/test/visitor_test.dart#inline',
-      toolFriendlyAst: false,
-    );
+    List<TemplateAst> template = parse(
+        '<widget *ngIf="someValue" [(value)]="value"></widget>',
+        sourceUrl: '/test/visitor_test.dart#inline',
+        toolFriendlyAst: false,
+        desugar: true);
     expect(
       template.map((t) => t.accept(visitor)).join(''),
       equalsIgnoringWhitespace(r'''

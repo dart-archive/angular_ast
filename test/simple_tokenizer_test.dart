@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/simple_tokenizer.dart';
-import 'package:angular_ast/src/simple_token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -44,11 +44,11 @@ void main() {
   test('should tokenize an HTML element with dash', () {
     expect(tokenize('''<my-tag></my-tag>'''), [
       new NgSimpleToken.tagStart(0),
-      new NgSimpleToken.dashedIdentifier(1, 'my-tag'),
+      new NgSimpleToken.identifier(1, 'my-tag'),
       new NgSimpleToken.tagEnd(7),
       new NgSimpleToken.tagStart(8),
       new NgSimpleToken.forwardSlash(9),
-      new NgSimpleToken.dashedIdentifier(10, 'my-tag'),
+      new NgSimpleToken.identifier(10, 'my-tag'),
       new NgSimpleToken.tagEnd(16)
     ]);
   });
@@ -146,7 +146,7 @@ void main() {
       () {
     expect(tokenize('''<my-tag [attr.x]="y"></my-tag>'''), [
       new NgSimpleToken.tagStart(0),
-      new NgSimpleToken.dashedIdentifier(1, 'my-tag'),
+      new NgSimpleToken.identifier(1, 'my-tag'),
       new NgSimpleToken.whitespace(7, ' '),
       new NgSimpleToken.openBracket(8),
       new NgSimpleToken.identifier(9, 'attr'),
@@ -158,7 +158,7 @@ void main() {
       new NgSimpleToken.tagEnd(20),
       new NgSimpleToken.tagStart(21),
       new NgSimpleToken.forwardSlash(22),
-      new NgSimpleToken.dashedIdentifier(23, 'my-tag'),
+      new NgSimpleToken.identifier(23, 'my-tag'),
       new NgSimpleToken.tagEnd(29)
     ]);
   });

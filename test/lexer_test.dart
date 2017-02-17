@@ -48,11 +48,12 @@ void main() {
 
   test('should tokenize an HTML element that is explicitly void', () {
     expect(
-      tokenize('<hr/>'),
+      tokenize('<hr  />'),
       [
         new NgToken.openElementStart(0),
         new NgToken.elementIdentifier(1, 'hr'),
-        new NgToken.openElementEndVoid(3),
+        new NgToken.whitespace(3, '  '),
+        new NgToken.openElementEndVoid(5),
       ],
     );
   });
@@ -79,15 +80,16 @@ void main() {
 
   test('should tokenize HTML elements mixed with plain text', () {
     expect(
-      tokenize('<div>Hello</div>'),
+      tokenize('<div >Hello</div>'),
       [
         new NgToken.openElementStart(0),
         new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.openElementEnd(4),
-        new NgToken.text(5, 'Hello'),
-        new NgToken.closeElementStart(10),
-        new NgToken.elementIdentifier(12, 'div'),
-        new NgToken.closeElementEnd(15),
+        new NgToken.whitespace(4, ' '),
+        new NgToken.openElementEnd(5),
+        new NgToken.text(6, 'Hello'),
+        new NgToken.closeElementStart(11),
+        new NgToken.elementIdentifier(13, 'div'),
+        new NgToken.closeElementEnd(16),
       ],
     );
   });
@@ -166,19 +168,24 @@ void main() {
 
   test('should tokenize an element with a decorator with a value', () {
     expect(
-      tokenize('<button title="Submit"></button>'),
+      tokenize('<button title =  "Submit"  ></button>'),
       [
         new NgToken.openElementStart(0),
         new NgToken.elementIdentifier(1, 'button'),
         new NgToken.beforeElementDecorator(7, ' '),
         new NgToken.elementDecorator(8, 'title'),
-        new NgToken.beforeElementDecoratorValue(13),
-        new NgToken.elementDecoratorValue(15, 'Submit'),
-        new NgToken.afterElementDecoratorValue(21),
-        new NgToken.openElementEnd(22),
-        new NgToken.closeElementStart(23),
-        new NgToken.elementIdentifier(25, 'button'),
-        new NgToken.closeElementEnd(31),
+        new NgToken.whitespace(13, ' '),
+        new NgToken.beforeElementDecoratorValue(14),
+        new NgToken.whitespace(15, '  '),
+        new NgAttributeValueToken.generate(
+            new NgToken.doubleQuote(17),
+            new NgToken.elementDecoratorValue(18, "Submit"),
+            new NgToken.doubleQuote(24)),
+        new NgToken.whitespace(25, '  '),
+        new NgToken.openElementEnd(27),
+        new NgToken.closeElementStart(28),
+        new NgToken.elementIdentifier(30, 'button'),
+        new NgToken.closeElementEnd(36),
       ],
     );
   });
@@ -193,7 +200,7 @@ void main() {
         <ul>
           <li>1</li>
           <li>
-            <textarea disabled name="box" readonly>Test</textarea>
+            <textarea disabled name  =  "box" readonly>Test</textarea>
           </li>
           <li>
             <button disabled>3</button>
@@ -253,6 +260,32 @@ void main() {
           'msgCharacterCounter(inputTextLength, maxCount)',
         ),
         new NgToken.interpolationEnd(48),
+      ],
+    );
+  });
+
+  test('should tokenize an HTML element with property attribute', () {
+    expect(
+      tokenize('<div [style.max-height.px]  =  "contentHeight"></div>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgSpecialAttributeToken.generate(
+            new NgToken.propertyPrefix(5),
+            new NgToken.elementDecoratorValue(6, 'style.max-height.px'),
+            new NgToken.propertySuffix(25)),
+        new NgToken.whitespace(26, '  '),
+        new NgToken.beforeElementDecoratorValue(28),
+        new NgToken.whitespace(29, '  '),
+        new NgAttributeValueToken.generate(
+            new NgToken.doubleQuote(31),
+            new NgToken.elementDecoratorValue(32, 'contentHeight'),
+            new NgToken.doubleQuote(45)),
+        new NgToken.openElementEnd(46),
+        new NgToken.closeElementStart(47),
+        new NgToken.elementIdentifier(49, 'div'),
+        new NgToken.closeElementEnd(52)
       ],
     );
   });

@@ -16,30 +16,46 @@ export 'package:angular_ast/src/ast.dart'
         EventAst,
         ExpressionAst,
         InterpolationAst,
+        ParsedAttributeAst,
+        ParsedBananaAst,
+        ParsedEventAst,
+        ParsedElementAst,
+        ParsedPropertyAst,
+        ParsedReferenceAst,
+        ParsedStarAst,
         PropertyAst,
         ReferenceAst,
         StandaloneTemplateAst,
         StarAst,
         SyntheticTemplateAst,
         TemplateAst,
-        TextAst;
+        TextAst,
+        WhitespaceAst;
 export 'package:angular_ast/src/lexer.dart' show NgLexer;
 export 'package:angular_ast/src/parser.dart' show NgParser;
-export 'package:angular_ast/src/token.dart' show NgToken, NgTokenType;
+export 'package:angular_ast/src/token/tokens.dart'
+    show NgToken, NgTokenType, NgAttributeValueToken, NgSpecialAttributeToken;
 export 'package:angular_ast/src/visitor.dart'
     show
         HumanizingTemplateAstVisitor,
         IdentityTemplateAstVisitor,
-        TemplateAstVisitor;
+        TemplateAstVisitor,
+        DesugarVisitor;
 
 /// Returns [template] parsed as an abstract syntax tree.
-List<TemplateAst> parse(
-  String template, {
-  @required String sourceUrl,
-  bool toolFriendlyAst: false,
-}) {
+///
+/// Optional bool flag [desugar] desugars syntactic sugaring of * template
+/// notations and banana syntax used in two-way binding.
+/// Optional bool flag [toolFriendlyAst] provides a reference to the original
+/// non-desugared nodes after desugaring occurs.
+List<TemplateAst> parse(String template,
+    {@required String sourceUrl,
+    bool toolFriendlyAst: false,
+    bool desugar: true}) {
   final parser = toolFriendlyAst
       ? const NgParser(toolFriendlyAstOrigin: true)
       : const NgParser();
-  return parser.parse(template, sourceUrl: sourceUrl);
+  return desugar
+      ? parser.parseAndDesugar(template, sourceUrl: sourceUrl)
+      : parser.parse(template, sourceUrl: sourceUrl);
 }

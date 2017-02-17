@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/simple_tokenizer.dart';
-import 'package:angular_ast/src/simple_token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -73,7 +73,7 @@ void main() {
 
   test('element: should tokenize identifier', () {
     expect(tokenizeTag("my-element_tag [a]='y'>"),
-        new NgSimpleToken.dashedIdentifier(0, "my-element_tag"));
+        new NgSimpleToken.identifier(0, "my-element_tag"));
   });
 
   test('element: should tokenize single letter text', () {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:angular_ast/src/simple_token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:meta/meta.dart';
@@ -137,9 +137,6 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 10)) {
         String s = _scanner.substring(offset);
-        if (s.contains("-")) {
-          return new NgSimpleToken.dashedIdentifier(offset, s);
-        }
         return new NgSimpleToken.identifier(offset, s);
       }
       if (matchesGroup(match, 12)) {
@@ -191,6 +188,9 @@ class NgSimpleScanner {
       if (matchesGroup(match, 3)) {
         _state = _NgSimpleScannerState.element;
         return new NgSimpleToken.tagStart(offset);
+      }
+      if (matchesGroup(match, 4)) {
+        return new NgSimpleToken.mustacheBegin(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(
