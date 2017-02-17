@@ -58,6 +58,6 @@ List<TemplateAst> parse(String template,
       ? const NgParser(toolFriendlyAstOrigin: true)
       : const NgParser();
   return desugar
-      ? parser.parseAndDesugar(template, sourceUrl: sourceUrl)
-      : parser.parse(template, sourceUrl: sourceUrl);
+      ? parser.parse(template, sourceUrl: sourceUrl)
+      : parser.parsePreserve(template, sourceUrl: sourceUrl);
 }

@@ -47,7 +47,7 @@ class NgParser {
       : _toolFriendlyAstOrigin = toolFriendlyAstOrigin;
 
   /// Return a series of tokens by incrementally scanning [template].
-  List<StandaloneTemplateAst> parse(
+  List<StandaloneTemplateAst> parsePreserve(
     String template, {
     @required String sourceUrl,
     ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
@@ -64,7 +64,7 @@ class NgParser {
     return parser.parse();
   }
 
-  List<StandaloneTemplateAst> parseAndDesugar(
+  List<StandaloneTemplateAst> parse(
     String template, {
     @required String sourceUrl,
     ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),

@@ -6,8 +6,15 @@ import 'package:angular_ast/angular_ast.dart';
 import 'package:test/test.dart';
 
 void main() {
-  List<StandaloneTemplateAst> parseAndDesugar(String template) {
-    return const NgParser().parseAndDesugar(
+  List<StandaloneTemplateAst> parse(String template) {
+    return const NgParser().parse(
+      template,
+      sourceUrl: '/test/parser_test.dart#inline',
+    );
+  }
+
+  List<StandaloneTemplateAst> parsePreserve(String template) {
+    return const NgParser().parsePreserve(
       template,
       sourceUrl: '/test/parser_test.dart#inline',
     );
@@ -15,7 +22,7 @@ void main() {
 
   test('should parse a text node', () {
     expect(
-      parseAndDesugar('Hello World'),
+      parse('Hello World'),
       [
         new TextAst('Hello World'),
       ],
@@ -24,7 +31,7 @@ void main() {
 
   test('should parse a DOM element', () {
     expect(
-      parseAndDesugar('<div></div  >'),
+      parse('<div></div  >'),
       [
         new ElementAst('div'),
       ],
@@ -33,7 +40,7 @@ void main() {
 
   test('should parse a comment', () {
     expect(
-      parseAndDesugar('<!--Hello World-->'),
+      parse('<!--Hello World-->'),
       [
         new CommentAst('Hello World'),
       ],
@@ -41,12 +48,12 @@ void main() {
   });
 
   test('should parse multi-line comments', () {
-    expect(parseAndDesugar('<!--Hello\nWorld-->'), [
+    expect(parse('<!--Hello\nWorld-->'), [
       new CommentAst('Hello\nWorld'),
     ]);
 
     expect(
-      parseAndDesugar('<!--\nHello\nWorld\n-->'),
+      parse('<!--\nHello\nWorld\n-->'),
       [
         new CommentAst('\nHello\nWorld\n'),
       ],
@@ -55,7 +62,7 @@ void main() {
 
   test('should parse an interpolation', () {
     expect(
-      parseAndDesugar('{{ name }}'),
+      parse('{{ name }}'),
       [
         new InterpolationAst(new ExpressionAst.parse(
           'name',
@@ -67,7 +74,7 @@ void main() {
 
   test('should parse all the standalone ASTs', () {
     expect(
-      parseAndDesugar('Hello<div></div><!--Goodbye-->{{name}}'),
+      parse('Hello<div></div><!--Goodbye-->{{name}}'),
       [
         new TextAst('Hello'),
         new ElementAst('div'),
@@ -82,7 +89,7 @@ void main() {
 
   test('shoud parse a nested DOM structure', () {
     expect(
-      parseAndDesugar(''
+      parse(''
           '<div>\n'
           '  <span>Hello World</span>\n'
           '</div>\n'),
@@ -101,7 +108,7 @@ void main() {
 
   test('should parse an attribute without a value', () {
     expect(
-      parseAndDesugar('<button disabled ></button>'),
+      parse('<button disabled ></button>'),
       [
         new ElementAst('button', attributes: [
           new AttributeAst('disabled'),
@@ -112,7 +119,7 @@ void main() {
 
   test('should parse an attribute with a value', () {
     expect(
-      parseAndDesugar('<button title="Submit"></button>'),
+      parse('<button title="Submit"></button>'),
       [
         new ElementAst('button', attributes: [
           new AttributeAst('title', 'Submit'),
@@ -123,7 +130,7 @@ void main() {
 
   test('should parse and attribute with a value including interpolation', () {
     expect(
-      parseAndDesugar('<div title="Hello {{myName}}"></div>'),
+      parse('<div title="Hello {{myName}}"></div>'),
       [
         new ElementAst('div', attributes: [
           new AttributeAst('title', 'Hello {{myName}}'),
@@ -134,7 +141,7 @@ void main() {
 
   test('should parse an event', () {
     expect(
-      parseAndDesugar('<button (click) = "onClick()"  ></button>'),
+      parse('<button (click) = "onClick()"  ></button>'),
       [
         new ElementAst('button', events: [
           new EventAst(
@@ -150,7 +157,7 @@ void main() {
 
   test('should parse a property without a value', () {
     expect(
-      parseAndDesugar('<button [value]></button>'),
+      parse('<button [value]></button>'),
       [
         new ElementAst('button', properties: [
           new PropertyAst('value'),
@@ -161,7 +168,7 @@ void main() {
 
   test('should parse a property with a value', () {
     expect(
-      parseAndDesugar('<button [value]="btnValue"></button>'),
+      parse('<button [value]="btnValue"></button>'),
       [
         new ElementAst('button', properties: [
           new PropertyAst(
@@ -177,7 +184,7 @@ void main() {
 
   test('should parse a reference', () {
     expect(
-      parseAndDesugar('<button #btnRef></button>'),
+      parse('<button #btnRef></button>'),
       [
         new ElementAst('button', references: [
           new ReferenceAst('btnRef'),
@@ -188,7 +195,7 @@ void main() {
 
   test('should parse a reference with an identifier', () {
     expect(
-      parseAndDesugar('<mat-button #btnRef="mat-button"></mat-button>'),
+      parse('<mat-button #btnRef="mat-button"></mat-button>'),
       [
         new ElementAst('mat-button', references: [
           new ReferenceAst('btnRef', 'mat-button'),
@@ -199,7 +206,7 @@ void main() {
 
   test('should parse an embedded content directive', () {
     expect(
-      parseAndDesugar('<ng-content></ng-content>'),
+      parse('<ng-content></ng-content>'),
       [
         new EmbeddedContentAst(),
       ],
@@ -208,7 +215,7 @@ void main() {
 
   test('should parse an embedded content directive with a selector', () {
     expect(
-      parseAndDesugar('<ng-content select="tab"></ng-content>'),
+      parse('<ng-content select="tab"></ng-content>'),
       [
         new EmbeddedContentAst('tab'),
       ],
@@ -217,7 +224,7 @@ void main() {
 
   test('should parse a <template> directive', () {
     expect(
-      parseAndDesugar('<template></template>'),
+      parse('<template></template>'),
       [
         new EmbeddedTemplateAst(),
       ],
@@ -226,7 +233,7 @@ void main() {
 
   test('should parse a <template> directive with a property', () {
     expect(
-      parseAndDesugar('<template [ngIf]="someValue"></template>'),
+      parse('<template [ngIf]="someValue"></template>'),
       [
         new EmbeddedTemplateAst(
           properties: [
@@ -244,7 +251,7 @@ void main() {
 
   test('should parse a <template> directive with a reference', () {
     expect(
-      parseAndDesugar('<template #named ></template>'),
+      parse('<template #named ></template>'),
       [
         new EmbeddedTemplateAst(
           references: [
@@ -257,7 +264,7 @@ void main() {
 
   test('should parse a <template> directive with children', () {
     expect(
-      parseAndDesugar('<template>Hello World</template>'),
+      parse('<template>Hello World</template>'),
       [
         new EmbeddedTemplateAst(
           childNodes: [
@@ -270,15 +277,14 @@ void main() {
 
   test('should parse a structural directive with the * sugar syntax', () {
     expect(
-      parseAndDesugar('<div *ngIf="someValue">Hello World</div>'),
-      parseAndDesugar(
-          '<template [ngIf]="someValue"><div>Hello World</div></template>'),
+      parse('<div *ngIf="someValue">Hello World</div>'),
+      parse('<template [ngIf]="someValue"><div>Hello World</div></template>'),
     );
   });
 
   test('should parse a void element (implicit)', () {
     expect(
-      parseAndDesugar('<input><div></div>'),
+      parse('<input><div></div>'),
       [
         new ElementAst('input'),
         new ElementAst('div'),
@@ -288,7 +294,7 @@ void main() {
 
   test('should parse a banana syntax', () {
     expect(
-      parseAndDesugar('<custom [(name)] ="myName"></custom>'),
+      parse('<custom [(name)] ="myName"></custom>'),
       [
         new ElementAst(
           'custom',
@@ -315,8 +321,7 @@ void main() {
 
   test('should parse an *ngFor multi-expression', () {
     expect(
-      parseAndDesugar(
-          '<a *ngFor="let item of items; trackBy: byId; let i = index"></a>'),
+      parse('<a *ngFor="let item of items; trackBy: byId; let i = index"></a>'),
       [
         new EmbeddedTemplateAst(
           attributes: [
@@ -358,10 +363,8 @@ void main() {
   test('should parse and preserve strict offset within elements', () {
     String templateString = '''
 <tab-button *ngFor="let tabLabel of tabLabels; let idx = index"  (trigger)="switchTo(idx)" [id]="tabId(idx)" class="tab-button"  ></tab-button>''';
-    List<StandaloneTemplateAst> asts = parse(
+    List<StandaloneTemplateAst> asts = parsePreserve(
       templateString,
-      sourceUrl: '/test/parser_test.dart#inline',
-      desugar: false,
     );
     ParsedElementAst element = asts[0] as ParsedElementAst;
     expect(element.beginToken.offset, 0);
@@ -389,8 +392,7 @@ void main() {
   test('should parse and preserve strict offsets within interpolations', () {
     String templateString = '''
 <div>{{ 1 + 2 + 3 + 4 }}</div>''';
-    List<StandaloneTemplateAst> asts =
-        parse(templateString, sourceUrl: '/test/parser_test.dart#inline');
+    List<StandaloneTemplateAst> asts = parse(templateString);
     ElementAst element = asts[0] as ElementAst;
     InterpolationAst interpolation = element.childNodes[0] as InterpolationAst;
 
