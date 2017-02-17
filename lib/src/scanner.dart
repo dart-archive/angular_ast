@@ -631,23 +631,6 @@ class NgScanner {
       offset,
     );
   }
-
-  // TODO: Remove this later and better universalize above method.
-  FormatException _unexpectedSpecific(int errorOffset,
-      [NgSimpleToken override]) {
-    NgSimpleToken token = override ?? _current;
-    if (_recoverErrors && _lastToken != null && _lastToken.errorSynthetic) {
-      return null;
-    }
-    if (_lastErrorToken == token) {
-      return null;
-    }
-    String errorString = token.lexeme.substring(errorOffset - token.offset);
-    return new FormatException(
-        'Unexpected character in token at offset: $errorString : $errorOffset',
-        token.lexeme,
-        errorOffset);
-  }
 }
 
 /// For consistency purposes:

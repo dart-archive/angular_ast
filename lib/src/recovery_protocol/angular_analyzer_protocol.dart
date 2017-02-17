@@ -123,7 +123,25 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
   @override
   RecoverySolution scanAfterElementIdentifierClose(
       NgSimpleToken current, NgTokenReversibleReader reader) {
-    return new RecoverySolution.skip();
+    NgScannerState returnState;
+    NgToken returnToken;
+    NgSimpleTokenType type = current.type;
+    int offset = current.offset;
+
+    if (type == NgSimpleTokenType.commentBegin ||
+        type == NgSimpleTokenType.openTagStart ||
+        type == NgSimpleTokenType.closeTagStart ||
+        type == NgSimpleTokenType.EOF ||
+        type == NgSimpleTokenType.voidCloseTag) {
+      if (type != NgSimpleTokenType.voidCloseTag) {
+        reader.putBack(current);
+      }
+      returnToken = new NgToken.generateErrorSynthetic(
+          offset, NgTokenType.closeElementEnd);
+      returnState = NgScannerState.scanStart;
+    }
+
+    return new RecoverySolution(returnState, returnToken);
   }
 
   @override
@@ -303,7 +321,25 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
   @override
   RecoverySolution scanElementEndClose(
       NgSimpleToken current, NgTokenReversibleReader reader) {
-    return new RecoverySolution.skip();
+    NgScannerState returnState;
+    NgToken returnToken;
+    NgSimpleTokenType type = current.type;
+    int offset = current.offset;
+
+    if (type == NgSimpleTokenType.commentBegin ||
+        type == NgSimpleTokenType.openTagStart ||
+        type == NgSimpleTokenType.closeTagStart ||
+        type == NgSimpleTokenType.EOF ||
+        type == NgSimpleTokenType.whitespace) {
+      if (type != NgSimpleTokenType.whitespace) {
+        reader.putBack(current);
+      }
+      returnToken = new NgToken.generateErrorSynthetic(
+          offset, NgTokenType.closeElementEnd);
+      returnState = NgScannerState.scanStart;
+    }
+
+    return new RecoverySolution(returnState, returnToken);
   }
 
   @override
@@ -315,7 +351,24 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
   @override
   RecoverySolution scanElementIdentifierClose(
       NgSimpleToken current, NgTokenReversibleReader reader) {
-    return new RecoverySolution.skip();
+    NgScannerState returnState;
+    NgToken returnToken;
+    NgSimpleTokenType type = current.type;
+    int offset = current.offset;
+
+    if (type == NgSimpleTokenType.closeTagStart ||
+        type == NgSimpleTokenType.openTagStart ||
+        type == NgSimpleTokenType.tagEnd ||
+        type == NgSimpleTokenType.commentBegin ||
+        type == NgSimpleTokenType.EOF ||
+        type == NgSimpleTokenType.whitespace) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          offset, NgTokenType.elementIdentifier);
+      returnState = NgScannerState.scanAfterElementIdentifierClose;
+    }
+
+    return new RecoverySolution(returnState, returnToken);
   }
 
   @override

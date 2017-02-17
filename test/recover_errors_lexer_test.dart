@@ -23,7 +23,10 @@ void main() {
   elementDecorator();
   elementDecoratorValue();
   elementIdentifierOpen();
-  scanAfterElementIdentifierOpen();
+  elementIdentifierClose();
+  afterElementIdentifierClose();
+  afterElementIdentifierOpen();
+  elementEndClose();
 }
 
 void afterComment() {
@@ -41,6 +44,1613 @@ void afterComment() {
     FormatException e = exceptionHandler.exceptions[0];
     expect(e.source, '');
     expect(e.offset, 18);
+  });
+}
+
+void elementIdentifierClose() {
+  test('should resolve: unexpected < in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</<div>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, ''), // Synthetic
+        new NgToken.closeElementEnd(2), // Synthetic
+        new NgToken.openElementStart(2),
+        new NgToken.elementIdentifier(3, 'div'),
+        new NgToken.openElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<');
+    expect(e.offset, 2);
+
+    expect(untokenize(results), '</><div>');
+  });
+
+  test('should resolve: unexpected <!-- in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</<!--comment-->');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, ''), // Synthetic
+        new NgToken.closeElementEnd(2), // Synthetic
+        new NgToken.commentStart(2),
+        new NgToken.commentValue(6, 'comment'),
+        new NgToken.commentEnd(13),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<!--');
+    expect(e.offset, 2);
+
+    expect(untokenize(results), '</><!--comment-->');
+  });
+
+  test('should resolve: unexpected </ in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</</div>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, ''), // Synthetic
+        new NgToken.closeElementEnd(2), // Synthetic
+        new NgToken.closeElementStart(2),
+        new NgToken.elementIdentifier(4, 'div'),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '</');
+    expect(e.offset, 2);
+
+    expect(untokenize(results), '</></div>');
+  });
+
+  test('should resolve: unexpected > in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, ''), // Synthetic
+        new NgToken.closeElementEnd(2),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '>');
+    expect(e.offset, 2);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected EOF in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, ''), // Synthetic
+        new NgToken.closeElementEnd(2), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '');
+    expect(e.offset, 2);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected whitespace in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</ <div>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, ''), // Synthetic
+        new NgToken.whitespace(2, ' '),
+        new NgToken.closeElementEnd(3), // Synthetic
+        new NgToken.openElementStart(3),
+        new NgToken.elementIdentifier(4, 'div'),
+        new NgToken.openElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, ' ');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '<');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</ ><div>');
+  });
+
+  test('should resolve: unexpected ! in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</!');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '!');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected [ in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</[');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '[');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected ] in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</]');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, ']');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected ( in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</(');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '(');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected ) in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</)');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, ')');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected [( in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</[(');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(4, ''), // Synthetic
+        new NgToken.closeElementEnd(4), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '[(');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 4);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected )] in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</)]');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(4, ''), // Synthetic
+        new NgToken.closeElementEnd(4), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, ')]');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 4);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected - in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</-');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '-');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected = in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</=');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '=');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected ! in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('<//');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '/');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected # in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</#');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '#');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected * in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</*');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '*');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected . in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</.');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '.');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected quotedText in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</"blah"');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(8, ''), // Synthetic
+        new NgToken.closeElementEnd(8), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '"blah"');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 8);
+
+    expect(untokenize(results), '</>');
+  });
+
+  test('should resolve: unexpected char in elementIdentifierClose', () {
+    List<NgToken> results = tokenize('</@');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(3, ''), // Synthetic
+        new NgToken.closeElementEnd(3), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '@');
+    expect(e1.offset, 2);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '');
+    expect(e2.offset, 3);
+
+    expect(untokenize(results), '</>');
+  });
+}
+
+void elementIdentifierOpen() {
+  test('should resolve: unexpected ! in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<!>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.openElementEnd(2),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '!');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '<>');
+  });
+
+  test('should resolve: unexpected - in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<->');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.openElementEnd(2),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '-');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '<>');
+  });
+
+  test('should resolve: unexpected . in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<.>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.openElementEnd(2),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '.');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '<>');
+  });
+
+  test('should resolve: unexpected [ in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<[someProp]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.propertyPrefix(1),
+          new NgToken.elementDecorator(2, 'someProp'),
+          new NgToken.propertySuffix(10),
+        ),
+        new NgToken.openElementEnd(11),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '[');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< [someProp]>');
+  });
+
+  test('should resolve: unexpected ] in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.propertyPrefix(1), // Synthetic
+          new NgToken.elementDecorator(1, ''), //Synthetic
+          new NgToken.propertySuffix(1),
+        ),
+        new NgToken.openElementEnd(2),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ']');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< []>');
+  });
+
+  test('should resolve: unexpected ( in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<(someEvnt)>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.eventPrefix(1),
+          new NgToken.elementDecorator(2, 'someEvnt'),
+          new NgToken.eventSuffix(10),
+        ),
+        new NgToken.openElementEnd(11),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '(');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< (someEvnt)>');
+  });
+
+  test('should resolve: unexpected ) in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<)>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.eventPrefix(1), // Synthetic
+          new NgToken.elementDecorator(1, ''), //Synthetic
+          new NgToken.eventSuffix(1),
+        ),
+        new NgToken.openElementEnd(2),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ')');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< ()>');
+  });
+
+  test('should resolve: unexpected [( in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<[(someBnna)]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.bananaPrefix(1),
+          new NgToken.elementDecorator(3, 'someBnna'),
+          new NgToken.bananaSuffix(11),
+        ),
+        new NgToken.openElementEnd(13),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '[(');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< [(someBnna)]>');
+  });
+
+  test('should resolve: unexpected )] in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<)]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.bananaPrefix(1), // Synthetic
+          new NgToken.elementDecorator(1, ''), //Synthetic
+          new NgToken.bananaSuffix(1),
+        ),
+        new NgToken.openElementEnd(3),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ')]');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< [()]>');
+  });
+
+  test('should resolve: unexpected # in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<#someRef>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.referencePrefix(1),
+          new NgToken.elementDecorator(2, 'someRef'),
+        ),
+        new NgToken.openElementEnd(9),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '#');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< #someRef>');
+  });
+
+  test('should resolve: unexpected * in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<*someTemp>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.templatePrefix(1),
+          new NgToken.elementDecorator(2, 'someTemp'),
+        ),
+        new NgToken.openElementEnd(10),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '*');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< *someTemp>');
+  });
+
+  test('should resolve: unexpected <!-- in ElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<<!-- comment -->');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.openElementEnd(1), // Synthetic
+        new NgToken.commentStart(1),
+        new NgToken.commentValue(5, ' comment '),
+        new NgToken.commentEnd(14),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<!--');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '<><!-- comment -->');
+  });
+
+  test('should resolve: unexpected < in ElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<<div>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.openElementEnd(1), // Synthetic
+        new NgToken.openElementStart(1),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.openElementEnd(5),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '<><div>');
+  });
+
+  test('should resolve: unexpected </ in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<</div>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.openElementEnd(1), // Synthetic
+        new NgToken.closeElementStart(1),
+        new NgToken.elementIdentifier(3, 'div'),
+        new NgToken.closeElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '</');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '<></div>');
+  });
+
+  test('should resolve: unexpected > in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.openElementEnd(1),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '>');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '<>');
+  });
+
+  test('should resolve: unexpected EOF in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.openElementEnd(1), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '<>');
+  });
+
+  test('should resolve: unexpected quotedText in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<"blah">');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
+        new NgToken.elementDecorator(1, ''), //Synthetic
+        new NgToken.beforeElementDecoratorValue(1), // Synthetic
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(1),
+          new NgToken.elementDecoratorValue(2, 'blah'),
+          new NgToken.doubleQuote(6),
+        ),
+        new NgToken.openElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '"blah"');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< ="blah">');
+  });
+
+  test('should resolve: unexpected = in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<="blah">');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
+        new NgToken.elementDecorator(1, ''), //Synthetic
+        new NgToken.beforeElementDecoratorValue(1),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(2),
+          new NgToken.elementDecoratorValue(3, 'blah'),
+          new NgToken.doubleQuote(7),
+        ),
+        new NgToken.openElementEnd(8),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '=');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< ="blah">');
+  });
+
+  test('should resolve: unexpected whitespace in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('< >');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.whitespace(1, ' '),
+        new NgToken.openElementEnd(2),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ' ');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< >');
+  });
+
+  test('should resolve: unexpected char in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<@>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.openElementEnd(2),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '@');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '<>');
+  });
+}
+
+void afterElementIdentifierClose() {
+  test('should resolve: unexpected < in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div<div>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(5), // Synthetic
+        new NgToken.openElementStart(5),
+        new NgToken.elementIdentifier(6, 'div'),
+        new NgToken.openElementEnd(9),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div><div>');
+  });
+
+  test('should resolve: unexpected <!-- in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div<!--comment-->');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(5), // Synthetic
+        new NgToken.commentStart(5),
+        new NgToken.commentValue(9, 'comment'),
+        new NgToken.commentEnd(16),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<!--');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div><!--comment-->');
+  });
+
+  test('should resolve: unexpected </ in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div</div>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(5), // Synthetic
+        new NgToken.closeElementStart(5),
+        new NgToken.elementIdentifier(7, 'div'),
+        new NgToken.closeElementEnd(10),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '</');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div></div>');
+  });
+
+  test('should resolve: unexpected EOF in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(5), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected /> in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div/>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(5),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '/>');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected ! in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div!>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '!');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected [ in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div[>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '[');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected ] in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div]>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ']');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected ( in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div(>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '(');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected ) in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div)>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ')');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected [( in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div[(>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '[(');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected )] in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div)]>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ')]');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected = in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div=>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '=');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected / in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div/ >');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(6, ' '),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '/');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected # in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div#>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '#');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected * in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div*>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '*');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected @ in afterElementIdentifierClose', () {
+    List<NgToken> results = tokenize('</div@>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '@');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+
+  test('should resolve: unexpected quotedText in afterElementIdentifierClose',
+      () {
+    List<NgToken> results = tokenize('</div"blah">');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.closeElementEnd(11),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '"blah"');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '</div>');
+  });
+}
+
+void afterElementIdentifierOpen() {
+  test('should resolve: unexpected ! in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div!>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(5),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '!');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div>');
+  });
+
+  test('should resolve: unexpected . in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div.>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(5),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '.');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div>');
+  });
+
+  test('should resolve: unexpected [ in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div[someProp]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.propertyPrefix(4),
+          new NgToken.elementDecorator(5, 'someProp'),
+          new NgToken.propertySuffix(13),
+        ),
+        new NgToken.openElementEnd(14),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '[');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div [someProp]>');
+  });
+
+  test('should resolve: unexpected ] in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.propertyPrefix(4), // Synthetic
+          new NgToken.elementDecorator(4, ''), //Synthetic
+          new NgToken.propertySuffix(4),
+        ),
+        new NgToken.openElementEnd(5),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ']');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div []>');
+  });
+
+  test('should resolve: unexpected ( in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div(someEvnt)>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.eventPrefix(4),
+          new NgToken.elementDecorator(5, 'someEvnt'),
+          new NgToken.eventSuffix(13),
+        ),
+        new NgToken.openElementEnd(14),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '(');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div (someEvnt)>');
+  });
+
+  test('should resolve: unexpected ) in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div)>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.eventPrefix(4), // Synthetic
+          new NgToken.elementDecorator(4, ''), //Synthetic
+          new NgToken.eventSuffix(4),
+        ),
+        new NgToken.openElementEnd(5),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ')');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div ()>');
+  });
+
+  test('should resolve: unexpected [( in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div[(someBnna)]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.bananaPrefix(4),
+          new NgToken.elementDecorator(6, 'someBnna'),
+          new NgToken.bananaSuffix(14),
+        ),
+        new NgToken.openElementEnd(16),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '[(');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div [(someBnna)]>');
+  });
+
+  test('should resolve: unexpected )] in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div)]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.bananaPrefix(4), // Synthetic
+          new NgToken.elementDecorator(4, ''), //Synthetic
+          new NgToken.bananaSuffix(4),
+        ),
+        new NgToken.openElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ')]');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div [()]>');
+  });
+
+  test('should resolve: unexpected # in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div#someRef>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.referencePrefix(4),
+          new NgToken.elementDecorator(5, 'someRef'),
+        ),
+        new NgToken.openElementEnd(12),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '#');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div #someRef>');
+  });
+
+  test('should resolve: unexpected * in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div*someTemp>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.templatePrefix(4),
+          new NgToken.elementDecorator(5, 'someTemp'),
+        ),
+        new NgToken.openElementEnd(13),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '*');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div *someTemp>');
+  });
+
+  test('should resolve: unexpected <!-- in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div<!-- comment -->');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(4), // Synthetic
+        new NgToken.commentStart(4),
+        new NgToken.commentValue(8, ' comment '),
+        new NgToken.commentEnd(17),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<!--');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div><!-- comment -->');
+  });
+
+  test('should resolve: unexpected < in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div<div>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(4), // Synthetic
+        new NgToken.openElementStart(4),
+        new NgToken.elementIdentifier(5, 'div'),
+        new NgToken.openElementEnd(8),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div><div>');
+  });
+
+  test('should resolve: unexpected </ in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div</div>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(4), // Synthetic
+        new NgToken.closeElementStart(4),
+        new NgToken.elementIdentifier(6, 'div'),
+        new NgToken.closeElementEnd(9),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '</');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div></div>');
+  });
+
+  test('should resolve: unexpected EOF in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(4), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div>');
+  });
+
+  test('should resolve: unexpected quotedText in afterElementIdentifierOpen',
+      () {
+    List<NgToken> results = tokenize('<div"blah">');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
+        new NgToken.elementDecorator(4, ''), // Synthetic
+        new NgToken.beforeElementDecoratorValue(4), // Synthetic
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(4),
+          new NgToken.elementDecoratorValue(5, 'blah'),
+          new NgToken.doubleQuote(9),
+        ),
+        new NgToken.openElementEnd(10),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '"blah"');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div ="blah">');
+  });
+
+  test('should resolve: unexpected = in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div="blah">');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
+        new NgToken.elementDecorator(4, ''), //Synthetic
+        new NgToken.beforeElementDecoratorValue(4),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(5),
+          new NgToken.elementDecoratorValue(6, 'blah'),
+          new NgToken.doubleQuote(10),
+        ),
+        new NgToken.openElementEnd(11),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '=');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div ="blah">');
+  });
+
+  test('should resolve: unexpected char in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div@>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(5),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '@');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div>');
   });
 }
 
@@ -2338,816 +3948,398 @@ void elementDecoratorValue() {
   });
 }
 
-void elementIdentifierOpen() {
-  test('should resolve: unexpected ! in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<!>');
+void elementEndClose() {
+  test('should resolve: unexpected < in elementEndClose', () {
+    List<NgToken> results = tokenize('</div <div>');
     expect(
       results,
       [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.openElementEnd(2),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '!');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '<>');
-  });
-
-  test('should resolve: unexpected - in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<->');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.openElementEnd(2),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '-');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '<>');
-  });
-
-  test('should resolve: unexpected . in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<.>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.openElementEnd(2),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '.');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '<>');
-  });
-
-  test('should resolve: unexpected [ in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<[someProp]>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.propertyPrefix(1),
-          new NgToken.elementDecorator(2, 'someProp'),
-          new NgToken.propertySuffix(10),
-        ),
-        new NgToken.openElementEnd(11),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '[');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< [someProp]>');
-  });
-
-  test('should resolve: unexpected ] in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<]>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.propertyPrefix(1), // Synthetic
-          new NgToken.elementDecorator(1, ''), //Synthetic
-          new NgToken.propertySuffix(1),
-        ),
-        new NgToken.openElementEnd(2),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, ']');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< []>');
-  });
-
-  test('should resolve: unexpected ( in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<(someEvnt)>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.eventPrefix(1),
-          new NgToken.elementDecorator(2, 'someEvnt'),
-          new NgToken.eventSuffix(10),
-        ),
-        new NgToken.openElementEnd(11),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '(');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< (someEvnt)>');
-  });
-
-  test('should resolve: unexpected ) in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<)>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.eventPrefix(1), // Synthetic
-          new NgToken.elementDecorator(1, ''), //Synthetic
-          new NgToken.eventSuffix(1),
-        ),
-        new NgToken.openElementEnd(2),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, ')');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< ()>');
-  });
-
-  test('should resolve: unexpected [( in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<[(someBnna)]>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.bananaPrefix(1),
-          new NgToken.elementDecorator(3, 'someBnna'),
-          new NgToken.bananaSuffix(11),
-        ),
-        new NgToken.openElementEnd(13),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '[(');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< [(someBnna)]>');
-  });
-
-  test('should resolve: unexpected )] in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<)]>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.bananaPrefix(1), // Synthetic
-          new NgToken.elementDecorator(1, ''), //Synthetic
-          new NgToken.bananaSuffix(1),
-        ),
-        new NgToken.openElementEnd(3),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, ')]');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< [()]>');
-  });
-
-  test('should resolve: unexpected # in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<#someRef>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.referencePrefix(1),
-          new NgToken.elementDecorator(2, 'someRef'),
-        ),
-        new NgToken.openElementEnd(9),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '#');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< #someRef>');
-  });
-
-  test('should resolve: unexpected * in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<*someTemp>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.templatePrefix(1),
-          new NgToken.elementDecorator(2, 'someTemp'),
-        ),
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(6), // Synthetic
+        new NgToken.openElementStart(6),
+        new NgToken.elementIdentifier(7, 'div'),
         new NgToken.openElementEnd(10),
       ],
     );
     expect(exceptionHandler.exceptions.length, 1);
     FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '*');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< *someTemp>');
-  });
-
-  test('should resolve: unexpected <!-- in ElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<<!-- comment -->');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.openElementEnd(1), // Synthetic
-        new NgToken.commentStart(1),
-        new NgToken.commentValue(5, ' comment '),
-        new NgToken.commentEnd(14),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '<!--');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '<><!-- comment -->');
-  });
-
-  test('should resolve: unexpected < in ElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<<div>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.openElementEnd(1), // Synthetic
-        new NgToken.openElementStart(1),
-        new NgToken.elementIdentifier(2, 'div'),
-        new NgToken.openElementEnd(5),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
     expect(e.source, '<');
-    expect(e.offset, 1);
+    expect(e.offset, 6);
 
-    expect(untokenize(results), '<><div>');
+    expect(untokenize(results), '</div ><div>');
   });
 
-  test('should resolve: unexpected </ in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<</div>');
+  test('should resolve: unexpected <!-- in elementEndClose', () {
+    List<NgToken> results = tokenize('</div <!--comment-->');
     expect(
       results,
       [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.openElementEnd(1), // Synthetic
-        new NgToken.closeElementStart(1),
-        new NgToken.elementIdentifier(3, 'div'),
-        new NgToken.closeElementEnd(6),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '</');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '<></div>');
-  });
-
-  test('should resolve: unexpected > in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.openElementEnd(1),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '>');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '<>');
-  });
-
-  test('should resolve: unexpected EOF in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.openElementEnd(1), // Synthetic
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '<>');
-  });
-
-  test('should resolve: unexpected quotedText in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<"blah">');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
-        new NgToken.elementDecorator(1, ''), //Synthetic
-        new NgToken.beforeElementDecoratorValue(1), // Synthetic
-        new NgAttributeValueToken.generate(
-          new NgToken.doubleQuote(1),
-          new NgToken.elementDecoratorValue(2, 'blah'),
-          new NgToken.doubleQuote(6),
-        ),
-        new NgToken.openElementEnd(7),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '"blah"');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< ="blah">');
-  });
-
-  test('should resolve: unexpected = in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<="blah">');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.beforeElementDecorator(1, ' '), // Synthetic
-        new NgToken.elementDecorator(1, ''), //Synthetic
-        new NgToken.beforeElementDecoratorValue(1),
-        new NgAttributeValueToken.generate(
-          new NgToken.doubleQuote(2),
-          new NgToken.elementDecoratorValue(3, 'blah'),
-          new NgToken.doubleQuote(7),
-        ),
-        new NgToken.openElementEnd(8),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '=');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< ="blah">');
-  });
-
-  test('should resolve: unexpected whitespace in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('< >');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.whitespace(1, ' '),
-        new NgToken.openElementEnd(2),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, ' ');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '< >');
-  });
-
-  test('should resolve: unexpected char in elementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<@>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, ''), // Synthetic
-        new NgToken.openElementEnd(2),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '@');
-    expect(e.offset, 1);
-
-    expect(untokenize(results), '<>');
-  });
-}
-
-void scanAfterElementIdentifierOpen() {
-  test('should resolve: unexpected ! in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div!>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.openElementEnd(5),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '!');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div>');
-  });
-
-  test('should resolve: unexpected . in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div.>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.openElementEnd(5),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '.');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div>');
-  });
-
-  test('should resolve: unexpected [ in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div[someProp]>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.propertyPrefix(4),
-          new NgToken.elementDecorator(5, 'someProp'),
-          new NgToken.propertySuffix(13),
-        ),
-        new NgToken.openElementEnd(14),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '[');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div [someProp]>');
-  });
-
-  test('should resolve: unexpected ] in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div]>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.propertyPrefix(4), // Synthetic
-          new NgToken.elementDecorator(4, ''), //Synthetic
-          new NgToken.propertySuffix(4),
-        ),
-        new NgToken.openElementEnd(5),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, ']');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div []>');
-  });
-
-  test('should resolve: unexpected ( in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div(someEvnt)>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.eventPrefix(4),
-          new NgToken.elementDecorator(5, 'someEvnt'),
-          new NgToken.eventSuffix(13),
-        ),
-        new NgToken.openElementEnd(14),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '(');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div (someEvnt)>');
-  });
-
-  test('should resolve: unexpected ) in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div)>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.eventPrefix(4), // Synthetic
-          new NgToken.elementDecorator(4, ''), //Synthetic
-          new NgToken.eventSuffix(4),
-        ),
-        new NgToken.openElementEnd(5),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, ')');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div ()>');
-  });
-
-  test('should resolve: unexpected [( in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div[(someBnna)]>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.bananaPrefix(4),
-          new NgToken.elementDecorator(6, 'someBnna'),
-          new NgToken.bananaSuffix(14),
-        ),
-        new NgToken.openElementEnd(16),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '[(');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div [(someBnna)]>');
-  });
-
-  test('should resolve: unexpected )] in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div)]>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.bananaPrefix(4), // Synthetic
-          new NgToken.elementDecorator(4, ''), //Synthetic
-          new NgToken.bananaSuffix(4),
-        ),
-        new NgToken.openElementEnd(6),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, ')]');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div [()]>');
-  });
-
-  test('should resolve: unexpected # in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div#someRef>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.referencePrefix(4),
-          new NgToken.elementDecorator(5, 'someRef'),
-        ),
-        new NgToken.openElementEnd(12),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '#');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div #someRef>');
-  });
-
-  test('should resolve: unexpected * in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div*someTemp>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
-        new NgSpecialAttributeToken.generate(
-          new NgToken.templatePrefix(4),
-          new NgToken.elementDecorator(5, 'someTemp'),
-        ),
-        new NgToken.openElementEnd(13),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '*');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div *someTemp>');
-  });
-
-  test('should resolve: unexpected <!-- in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div<!-- comment -->');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.openElementEnd(4), // Synthetic
-        new NgToken.commentStart(4),
-        new NgToken.commentValue(8, ' comment '),
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(6), // Synthetic
+        new NgToken.commentStart(6),
+        new NgToken.commentValue(10, 'comment'),
         new NgToken.commentEnd(17),
       ],
     );
     expect(exceptionHandler.exceptions.length, 1);
     FormatException e = exceptionHandler.exceptions[0];
     expect(e.source, '<!--');
-    expect(e.offset, 4);
+    expect(e.offset, 6);
 
-    expect(untokenize(results), '<div><!-- comment -->');
+    expect(untokenize(results), '</div ><!--comment-->');
   });
 
-  test('should resolve: unexpected < in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div<div>');
+  test('should resolve: unexpected </ in elementEndClose', () {
+    List<NgToken> results = tokenize('</div </div>');
     expect(
       results,
       [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.openElementEnd(4), // Synthetic
-        new NgToken.openElementStart(4),
-        new NgToken.elementIdentifier(5, 'div'),
-        new NgToken.openElementEnd(8),
-      ],
-    );
-    expect(exceptionHandler.exceptions.length, 1);
-    FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '<');
-    expect(e.offset, 4);
-
-    expect(untokenize(results), '<div><div>');
-  });
-
-  test('should resolve: unexpected </ in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div</div>');
-    expect(
-      results,
-      [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.openElementEnd(4), // Synthetic
-        new NgToken.closeElementStart(4),
-        new NgToken.elementIdentifier(6, 'div'),
-        new NgToken.closeElementEnd(9),
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(6), // Synthetic
+        new NgToken.closeElementStart(6),
+        new NgToken.elementIdentifier(8, 'div'),
+        new NgToken.closeElementEnd(11),
       ],
     );
     expect(exceptionHandler.exceptions.length, 1);
     FormatException e = exceptionHandler.exceptions[0];
     expect(e.source, '</');
-    expect(e.offset, 4);
+    expect(e.offset, 6);
 
-    expect(untokenize(results), '<div></div>');
+    expect(untokenize(results), '</div ></div>');
   });
 
-  test('should resolve: unexpected EOF in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div');
+  test('should resolve: unexpected EOF in elementEndClose', () {
+    List<NgToken> results = tokenize('</div ');
     expect(
       results,
       [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.openElementEnd(4), // Synthetic
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(6), // Synthetic
       ],
     );
     expect(exceptionHandler.exceptions.length, 1);
     FormatException e = exceptionHandler.exceptions[0];
     expect(e.source, '');
-    expect(e.offset, 4);
+    expect(e.offset, 6);
 
-    expect(untokenize(results), '<div>');
+    expect(untokenize(results), '</div >');
   });
 
-  test('should resolve: unexpected quotedText in afterElementIdentifierOpen',
-      () {
-    List<NgToken> results = tokenize('<div"blah">');
+  test('should resolve: unexpected /> in elementEndClose', () {
+    List<NgToken> results = tokenize('</div /><div>');
     expect(
       results,
       [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
-        new NgToken.elementDecorator(4, ''), // Synthetic
-        new NgToken.beforeElementDecoratorValue(4), // Synthetic
-        new NgAttributeValueToken.generate(
-          new NgToken.doubleQuote(4),
-          new NgToken.elementDecoratorValue(5, 'blah'),
-          new NgToken.doubleQuote(9),
-        ),
-        new NgToken.openElementEnd(10),
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(8), // Synthetic
+        new NgToken.openElementStart(8),
+        new NgToken.elementIdentifier(9, 'div'),
+        new NgToken.openElementEnd(12),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '/>');
+    expect(e1.offset, 6);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '<');
+    expect(e2.offset, 8);
+
+    expect(untokenize(results), '</div ><div>');
+  });
+
+  test('should resolve: unexpected ! in elementEndClose', () {
+    List<NgToken> results = tokenize('</div !>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
       ],
     );
     expect(exceptionHandler.exceptions.length, 1);
     FormatException e = exceptionHandler.exceptions[0];
-    expect(e.source, '"blah"');
-    expect(e.offset, 4);
+    expect(e.source, '!');
+    expect(e.offset, 6);
 
-    expect(untokenize(results), '<div ="blah">');
+    expect(untokenize(results), '</div >');
   });
 
-  test('should resolve: unexpected = in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div="blah">');
+  test('should resolve: unexpected [ in elementEndClose', () {
+    List<NgToken> results = tokenize('</div [>');
     expect(
       results,
       [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.beforeElementDecorator(4, ' '), // Synthetic
-        new NgToken.elementDecorator(4, ''), //Synthetic
-        new NgToken.beforeElementDecoratorValue(4),
-        new NgAttributeValueToken.generate(
-          new NgToken.doubleQuote(5),
-          new NgToken.elementDecoratorValue(6, 'blah'),
-          new NgToken.doubleQuote(10),
-        ),
-        new NgToken.openElementEnd(11),
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '[');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected ] in elementEndClose', () {
+    List<NgToken> results = tokenize('</div ]>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ']');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected ( in elementEndClose', () {
+    List<NgToken> results = tokenize('</div (>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '(');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected ) in elementEndClose', () {
+    List<NgToken> results = tokenize('</div )>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ')');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected [( in elementEndClose', () {
+    List<NgToken> results = tokenize('</div [(>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(8),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '[(');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected )] in elementEndClose', () {
+    List<NgToken> results = tokenize('</div )]>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(8),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ')]');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected - in elementEndClose', () {
+    List<NgToken> results = tokenize('</div ->');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '-');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected = in elementEndClose', () {
+    List<NgToken> results = tokenize('</div =>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
       ],
     );
     expect(exceptionHandler.exceptions.length, 1);
     FormatException e = exceptionHandler.exceptions[0];
     expect(e.source, '=');
-    expect(e.offset, 4);
+    expect(e.offset, 6);
 
-    expect(untokenize(results), '<div ="blah">');
+    expect(untokenize(results), '</div >');
   });
-
-  test('should resolve: unexpected char in afterElementIdentifierOpen', () {
-    List<NgToken> results = tokenize('<div@>');
+  test('should resolve: unexpected . in elementEndClose', () {
+    List<NgToken> results = tokenize('</div .>');
     expect(
       results,
       [
-        new NgToken.openElementStart(0),
-        new NgToken.elementIdentifier(1, 'div'),
-        new NgToken.openElementEnd(5),
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '.');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected # in elementEndClose', () {
+    List<NgToken> results = tokenize('</div #>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '#');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected * in elementEndClose', () {
+    List<NgToken> results = tokenize('</div *>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '*');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected char in elementEndClose', () {
+    List<NgToken> results = tokenize('</div @>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(7),
       ],
     );
     expect(exceptionHandler.exceptions.length, 1);
     FormatException e = exceptionHandler.exceptions[0];
     expect(e.source, '@');
-    expect(e.offset, 4);
+    expect(e.offset, 6);
 
-    expect(untokenize(results), '<div>');
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected identifier in elementEndClose', () {
+    List<NgToken> results = tokenize('</div blah>');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(10),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, 'blah');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
+  });
+
+  test('should resolve: unexpected quotedText in elementEndClose', () {
+    List<NgToken> results = tokenize('</div "blah">');
+    expect(
+      results,
+      [
+        new NgToken.closeElementStart(0),
+        new NgToken.elementIdentifier(2, 'div'),
+        new NgToken.whitespace(5, ' '),
+        new NgToken.closeElementEnd(12),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '"blah"');
+    expect(e.offset, 6);
+
+    expect(untokenize(results), '</div >');
   });
 }
