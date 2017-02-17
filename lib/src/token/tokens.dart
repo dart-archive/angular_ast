@@ -481,7 +481,10 @@ class NgAttributeValueToken extends NgToken {
   final NgToken innerValue;
   final NgToken rightQuote;
 
-  bool get containsErrorSynthetic => rightQuote.errorSynthetic;
+  bool get containsErrorSynthetic =>
+      leftQuote.errorSynthetic ||
+      innerValue.errorSynthetic ||
+      rightQuote.errorSynthetic;
 
   const NgAttributeValueToken._(
       offset, this.leftQuote, this.innerValue, this.rightQuote)

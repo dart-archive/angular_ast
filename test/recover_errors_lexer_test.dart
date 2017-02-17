@@ -21,6 +21,7 @@ void main() {
   afterElementDecorator();
   afterElementDecoratorValue();
   elementDecorator();
+  elementDecoratorValue();
   elementIdentifierOpen();
   scanAfterElementIdentifierOpen();
 }
@@ -1532,6 +1533,155 @@ void elementDecorator() {
     expect(untokenize(results), '<div [()]>');
   });
 
+  test('should resolve: unexpected <!-- in elementDecorator', () {
+    List<NgToken> results = tokenize('<div <!-- comment -->');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, ''), // Synthetic
+        new NgToken.openElementEnd(5), // Synthetic
+        new NgToken.commentStart(5),
+        new NgToken.commentValue(9, ' comment '),
+        new NgToken.commentEnd(18),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<!--');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '<div ><!-- comment -->');
+  });
+
+  test('should resolve: unexpected < in elementDecorator', () {
+    List<NgToken> results = tokenize('<div <span>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, ''), // Synthetic
+        new NgToken.openElementEnd(5), // Synthetic
+        new NgToken.openElementStart(5),
+        new NgToken.elementIdentifier(6, 'span'),
+        new NgToken.openElementEnd(10),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '<div ><span>');
+  });
+
+  test('should resolve: unexpected </ in elementDecorator', () {
+    List<NgToken> results = tokenize('<div </div>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, ''), // Synthetic
+        new NgToken.openElementEnd(5), // Synthetic
+        new NgToken.closeElementStart(5),
+        new NgToken.elementIdentifier(7, 'div'),
+        new NgToken.closeElementEnd(10),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '</');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '<div ></div>');
+  });
+
+  test('should resolve: unexpected EOF in elementDecorator', () {
+    List<NgToken> results = tokenize('<div ');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, ''), // Synthetic
+        new NgToken.openElementEnd(5), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '<div >');
+  });
+
+  test('should resolve: unexpected - in elementDecorator', () {
+    List<NgToken> results = tokenize('<div ->');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, ''), // Synthetic
+        new NgToken.openElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '-');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '<div >');
+  });
+
+  test('should resolve: unexpected char in elementDecorator', () {
+    List<NgToken> results = tokenize('<div @>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, ''), // Synthetic
+        new NgToken.openElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '@');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '<div >');
+  });
+
+  test('should resolve: unexpected char in elementDecorator', () {
+    List<NgToken> results = tokenize('<div .>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, ''), // Synthetic
+        new NgToken.openElementEnd(6),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '.');
+    expect(e.offset, 5);
+
+    expect(untokenize(results), '<div >');
+  });
+
   test('should resolve: unexpected quotedText in elementDecorator', () {
     List<NgToken> results = tokenize('<div "blah">');
     expect(
@@ -1582,6 +1732,609 @@ void elementDecorator() {
     expect(e.offset, 5);
 
     expect(untokenize(results), '<div ="blah">');
+  });
+}
+
+void elementDecoratorValue() {
+  test('should resolve: unexpected ! in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=!>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(11), // Synthetic
+          new NgToken.elementDecoratorValue(11, ''), // Synthetic
+          new NgToken.doubleQuote(11), // Synthetic
+        ),
+        new NgToken.openElementEnd(11),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '!');
+    expect(e1.offset, 10);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '>');
+    expect(e2.offset, 11);
+
+    expect(untokenize(results), '<div attr="">');
+  });
+
+  test('should resolve: unexpected - in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=->');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(11), // Synthetic
+          new NgToken.elementDecoratorValue(11, ''), // Synthetic
+          new NgToken.doubleQuote(11), // Synthetic
+        ),
+        new NgToken.openElementEnd(11),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '-');
+    expect(e1.offset, 10);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '>');
+    expect(e2.offset, 11);
+
+    expect(untokenize(results), '<div attr="">');
+  });
+
+  test('should resolve: unexpected char in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=@>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(11), // Synthetic
+          new NgToken.elementDecoratorValue(11, ''), // Synthetic
+          new NgToken.doubleQuote(11), // Synthetic
+        ),
+        new NgToken.openElementEnd(11),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '@');
+    expect(e1.offset, 10);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '>');
+    expect(e2.offset, 11);
+
+    expect(untokenize(results), '<div attr="">');
+  });
+
+  test('should resolve: unexpected . in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=.>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(11), // Synthetic
+          new NgToken.elementDecoratorValue(11, ''), // Synthetic
+          new NgToken.doubleQuote(11), // Synthetic
+        ),
+        new NgToken.openElementEnd(11),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '.');
+    expect(e1.offset, 10);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '>');
+    expect(e2.offset, 11);
+
+    expect(untokenize(results), '<div attr="">');
+  });
+
+  test('should resolve: unexpected / in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=/ >');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgToken.whitespace(11, ' '),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(12), // Synthetic
+          new NgToken.elementDecoratorValue(12, ''), // Synthetic
+          new NgToken.doubleQuote(12), // Synthetic
+        ),
+        new NgToken.openElementEnd(12),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 2);
+    FormatException e1 = exceptionHandler.exceptions[0];
+    expect(e1.source, '/');
+    expect(e1.offset, 10);
+    FormatException e2 = exceptionHandler.exceptions[1];
+    expect(e2.source, '>');
+    expect(e2.offset, 12);
+
+    expect(untokenize(results), '<div attr= "">');
+  });
+
+  test('should resolve: unexpected # in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=#someRef>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.beforeElementDecorator(10, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.referencePrefix(10),
+          new NgToken.elementDecorator(11, 'someRef'),
+        ),
+        new NgToken.openElementEnd(18),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '#');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="" #someRef>');
+  });
+
+  test('should resolve: unexpected * in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=*someTemp>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.beforeElementDecorator(10, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.templatePrefix(10),
+          new NgToken.elementDecorator(11, 'someTemp'),
+        ),
+        new NgToken.openElementEnd(19),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '*');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="" *someTemp>');
+  });
+
+  test('should resolve: unexpected identifier in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=blah>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.beforeElementDecorator(10, ' '), // Synthetic
+        new NgToken.elementDecorator(10, 'blah'),
+        new NgToken.openElementEnd(14),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, 'blah');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="" blah>');
+  });
+
+  test('should resolve: unexpected [ in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=[someProp]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.beforeElementDecorator(10, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.propertyPrefix(10),
+          new NgToken.elementDecorator(11, 'someProp'),
+          new NgToken.propertySuffix(19),
+        ),
+        new NgToken.openElementEnd(20),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '[');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="" [someProp]>');
+  });
+
+  test('should resolve: unexpected ] in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.beforeElementDecorator(10, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.propertyPrefix(10), // Synthetic
+          new NgToken.elementDecorator(10, ''), // Synthetic
+          new NgToken.propertySuffix(10),
+        ),
+        new NgToken.openElementEnd(11),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ']');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="" []>');
+  });
+
+  test('should resolve: unexpected ( in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=(someEvnt)>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.beforeElementDecorator(10, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.eventPrefix(10),
+          new NgToken.elementDecorator(11, 'someEvnt'),
+          new NgToken.eventSuffix(19),
+        ),
+        new NgToken.openElementEnd(20),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '(');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="" (someEvnt)>');
+  });
+
+  test('should resolve: unexpected ) in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=)>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.beforeElementDecorator(10, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.eventPrefix(10), // Synthetic
+          new NgToken.elementDecorator(10, ''), // Synthetic
+          new NgToken.eventSuffix(10),
+        ),
+        new NgToken.openElementEnd(11),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ')');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="" ()>');
+  });
+
+  test('should resolve: unexpected [( in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=[(someBnna)]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.beforeElementDecorator(10, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.bananaPrefix(10),
+          new NgToken.elementDecorator(12, 'someBnna'),
+          new NgToken.bananaSuffix(20),
+        ),
+        new NgToken.openElementEnd(22),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '[(');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="" [(someBnna)]>');
+  });
+
+  test('should resolve: unexpected )] in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=)]>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.beforeElementDecorator(10, ' '), // Synthetic
+        new NgSpecialAttributeToken.generate(
+          new NgToken.bananaPrefix(10), // Synthetic
+          new NgToken.elementDecorator(10, ''), // Synthetic
+          new NgToken.bananaSuffix(10),
+        ),
+        new NgToken.openElementEnd(12),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ')]');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="" [()]>');
+  });
+
+  test('should resolve: unexpected <!-- in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=<!-- comment -->');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.openElementEnd(10), // Synthetic
+        new NgToken.commentStart(10),
+        new NgToken.commentValue(14, ' comment '),
+        new NgToken.commentEnd(23)
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<!--');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr=""><!-- comment -->');
+  });
+
+  test('should resolve: unexpected < in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=<span>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.openElementEnd(10), // Synthetic
+        new NgToken.openElementStart(10),
+        new NgToken.elementIdentifier(11, 'span'),
+        new NgToken.openElementEnd(15),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '<');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr=""><span>');
+  });
+
+  test('should resolve: unexpected </ in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=</div>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.openElementEnd(10), // Synthetic
+        new NgToken.closeElementStart(10),
+        new NgToken.elementIdentifier(12, 'div'),
+        new NgToken.closeElementEnd(15),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '</');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr=""></div>');
+  });
+
+  test('should resolve: unexpected > in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.openElementEnd(10),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '>');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="">');
+  });
+
+  test('should resolve: unexpected /> in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=/>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.openElementEndVoid(10),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '/>');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr=""/>');
+  });
+
+  test('should resolve: unexpected = in elementDecoratorValue', () {
+    List<NgToken> results = tokenize('<div attr=="blah">');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'attr'),
+        new NgToken.beforeElementDecoratorValue(9),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(10), // Synthetic
+          new NgToken.elementDecoratorValue(10, ''), // Synthetic
+          new NgToken.doubleQuote(10), // Synthetic
+        ),
+        new NgToken.beforeElementDecorator(10, ' '), // Synthetic
+        new NgToken.elementDecorator(10, ''), // Synthetic
+        new NgToken.beforeElementDecoratorValue(10),
+        new NgAttributeValueToken.generate(
+          new NgToken.doubleQuote(11),
+          new NgToken.elementDecoratorValue(12, 'blah'),
+          new NgToken.doubleQuote(16),
+        ),
+        new NgToken.openElementEnd(17),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '=');
+    expect(e.offset, 10);
+
+    expect(untokenize(results), '<div attr="" ="blah">');
   });
 }
 
@@ -1980,6 +2733,43 @@ void elementIdentifierOpen() {
 
     expect(untokenize(results), '< ="blah">');
   });
+
+  test('should resolve: unexpected whitespace in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('< >');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.whitespace(1, ' '),
+        new NgToken.openElementEnd(2),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, ' ');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '< >');
+  });
+
+  test('should resolve: unexpected char in elementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<@>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, ''), // Synthetic
+        new NgToken.openElementEnd(2),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '@');
+    expect(e.offset, 1);
+
+    expect(untokenize(results), '<>');
+  });
 }
 
 void scanAfterElementIdentifierOpen() {
@@ -2341,5 +3131,23 @@ void scanAfterElementIdentifierOpen() {
     expect(e.offset, 4);
 
     expect(untokenize(results), '<div ="blah">');
+  });
+
+  test('should resolve: unexpected char in afterElementIdentifierOpen', () {
+    List<NgToken> results = tokenize('<div@>');
+    expect(
+      results,
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'div'),
+        new NgToken.openElementEnd(5),
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '@');
+    expect(e.offset, 4);
+
+    expect(untokenize(results), '<div>');
   });
 }
