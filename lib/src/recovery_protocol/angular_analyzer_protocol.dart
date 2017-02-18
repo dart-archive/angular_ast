@@ -189,6 +189,13 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
   @override
   RecoverySolution scanAfterInterpolation(
       NgSimpleToken current, NgTokenReversibleReader reader) {
+    if (current.type == NgSimpleTokenType.EOF) {
+      reader.putBack(current);
+      return new RecoverySolution(
+          NgScannerState.scanStart,
+          new NgToken.generateErrorSynthetic(
+              current.offset, NgTokenType.interpolationEnd));
+    }
     return new RecoverySolution.skip();
   }
 
@@ -213,6 +220,12 @@ class NgAnalyzerRecoveryProtocol implements RecoveryProtocol {
   @override
   RecoverySolution scanComment(
       NgSimpleToken current, NgTokenReversibleReader reader) {
+    if (current.type == NgSimpleTokenType.EOF) {
+      return new RecoverySolution(
+          NgScannerState.scanStart,
+          new NgToken.generateErrorSynthetic(
+              current.offset, NgTokenType.commentEnd));
+    }
     return new RecoverySolution.skip();
   }
 

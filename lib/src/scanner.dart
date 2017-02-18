@@ -164,7 +164,13 @@ class NgScanner {
     }
 
     // Identifier
-    _moveNextExpect(NgSimpleTokenType.identifier);
+    _moveNext();
+    if (_current.type != NgSimpleTokenType.identifier && _recoverErrors) {
+      int offset = _current.offset;
+      _reader.putBack(_current);
+      _current = new NgSimpleToken.generateErrorSynthetic(
+          offset, NgSimpleTokenType.identifier);
+    }
     if (_current.errorSynthetic) {
       identifier = new NgToken.generateErrorSynthetic(
           _current.offset, NgTokenType.elementDecorator);

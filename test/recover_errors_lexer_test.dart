@@ -20,6 +20,8 @@ void main() {
   afterComment();
   afterElementDecorator();
   afterElementDecoratorValue();
+  afterInterpolation();
+  comment();
   elementDecorator();
   elementDecoratorValue();
   elementIdentifierOpen();
@@ -31,6 +33,24 @@ void main() {
 
 void afterComment() {
   test('should resolve: unexpected EOF in afterComment', () {
+    List<NgToken> results = tokenize('<!-- some comment ');
+    expect(
+      results,
+      [
+        new NgToken.commentStart(0),
+        new NgToken.commentValue(4, ' some comment '),
+        new NgToken.commentEnd(18)
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '');
+    expect(e.offset, 18);
+  });
+}
+
+void comment() {
+  test('should resolve: unexpected EOF in scanComment', () {
     List<NgToken> results = tokenize('<!-- some comment ');
     expect(
       results,
@@ -4341,5 +4361,25 @@ void elementEndClose() {
     expect(e.offset, 6);
 
     expect(untokenize(results), '</div >');
+  });
+}
+
+void afterInterpolation() {
+  test('should resolve: unexpected EOF in elementEndClose', () {
+    List<NgToken> results = tokenize('{{1 + 2 + 3');
+    expect(
+      results,
+      [
+        new NgToken.interpolationStart(0),
+        new NgToken.interpolationValue(2, '1 + 2 + 3'),
+        new NgToken.interpolationEnd(11), // Synthetic
+      ],
+    );
+    expect(exceptionHandler.exceptions.length, 1);
+    FormatException e = exceptionHandler.exceptions[0];
+    expect(e.source, '');
+    expect(e.offset, 11);
+
+    expect(untokenize(results), '{{1 + 2 + 3}}');
   });
 }
