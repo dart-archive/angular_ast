@@ -34,7 +34,9 @@ abstract class PropertyAst implements TemplateAst {
   factory PropertyAst.parsed(
     SourceFile sourceFile,
     NgToken beginToken,
-    NgSpecialAttributeToken nameToken, [
+    NgToken prefixToken,
+    NgToken elementDecoratorToken,
+    NgToken suffixToken, [
     NgAttributeValueToken valueToken,
     NgToken equalSignToken,
   ]) = ParsedPropertyAst;
@@ -105,8 +107,10 @@ abstract class PropertyAst implements TemplateAst {
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedPropertyAst extends TemplateAst
     with PropertyAst, OffsetInfo, SpecialOffsetInfo {
-  /// [NgSpecialAttributeToken] that represents `[name.postfix.unit]`.
-  final NgSpecialAttributeToken nameToken;
+  /// Tokens representing `[property]` attribute.
+  final NgToken prefixToken;
+  final NgToken elementDecoratorToken;
+  final NgToken suffixToken;
 
   /// [NgAttributeValueToken] that represents `"value"`; may be `null` to
   /// have no value.
@@ -116,22 +120,29 @@ class ParsedPropertyAst extends TemplateAst
   /// value.
   final NgToken equalSignToken;
 
-  ParsedPropertyAst(SourceFile sourceFile, NgToken beginToken, this.nameToken,
-      [this.valueToken, this.equalSignToken])
+  ParsedPropertyAst(
+    SourceFile sourceFile,
+    NgToken beginToken,
+    this.prefixToken,
+    this.elementDecoratorToken,
+    this.suffixToken, [
+    this.valueToken,
+    this.equalSignToken,
+  ])
       : this.expression = valueToken != null
             ? new ExpressionAst.parse(valueToken.innerValue.lexeme,
                 sourceUrl: sourceFile.url.toString())
             : null,
         super.parsed(
             beginToken,
-            valueToken == null ? nameToken.suffixToken : valueToken.rightQuote,
+            valueToken == null ? suffixToken : valueToken.rightQuote,
             sourceFile);
 
   /// ExpressionAst of `"value"`; may be `null` to have no value.
   @override
   final ExpressionAst expression;
 
-  String get _nameWithoutBrackets => nameToken.identifierToken.lexeme;
+  String get _nameWithoutBrackets => elementDecoratorToken.lexeme;
 
   /// Name `name` of `[name.postfix.unit]`.
   @override
@@ -139,7 +150,7 @@ class ParsedPropertyAst extends TemplateAst
 
   /// Offset of name.
   @override
-  int get nameOffset => nameToken.identifierToken.offset;
+  int get nameOffset => elementDecoratorToken.offset;
 
   /// Offset of equal sign; may be `null` if no value.
   @override
@@ -158,11 +169,11 @@ class ParsedPropertyAst extends TemplateAst
 
   /// Offset of `[` prefix in `[name.postfix.unit]`.
   @override
-  int get specialPrefixOffset => nameToken.prefixToken.offset;
+  int get specialPrefixOffset => prefixToken.offset;
 
   /// Offset of `]` suffix in `[name.postfix.unit]`.
   @override
-  int get specialSuffixOffset => nameToken.suffixToken.offset;
+  int get specialSuffixOffset => suffixToken.offset;
 
   /// Name `postfix` in `[name.postfix.unit]`; may be `null` to have no value.
   @override

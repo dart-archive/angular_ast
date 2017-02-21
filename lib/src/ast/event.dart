@@ -32,7 +32,9 @@ abstract class EventAst implements TemplateAst {
   factory EventAst.parsed(
     SourceFile sourceFile,
     NgToken beginToken,
-    NgSpecialAttributeToken nameToken,
+    NgToken prefixToken,
+    NgToken elementDecoratorToken,
+    NgToken suffixToken,
     NgAttributeValueToken valueToken,
     NgToken equalSignToken,
   ) = ParsedEventAst;
@@ -78,8 +80,10 @@ abstract class EventAst implements TemplateAst {
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedEventAst extends TemplateAst
     with EventAst, OffsetInfo, SpecialOffsetInfo {
-  /// [NgSpecialAttributeToken] that represents `(eventName.postfix)`.
-  final NgSpecialAttributeToken nameToken;
+  /// Token representing the `(property)` element decorator.
+  final NgToken prefixToken;
+  final NgToken elementDecoratorToken;
+  final NgToken suffixToken;
 
   /// [NgAttributeValueToken] that represents `"expression"`; may be `null` to
   /// have no value.
@@ -92,7 +96,9 @@ class ParsedEventAst extends TemplateAst
   ParsedEventAst(
     SourceFile sourceFile,
     NgToken beginToken,
-    this.nameToken,
+    this.prefixToken,
+    this.elementDecoratorToken,
+    this.suffixToken,
     this.valueToken,
     this.equalSignToken,
   )
@@ -102,12 +108,12 @@ class ParsedEventAst extends TemplateAst
             : null,
         super.parsed(
           beginToken,
-          valueToken == null ? nameToken.suffixToken : valueToken.rightQuote,
+          valueToken == null ? suffixToken : valueToken.rightQuote,
           sourceFile,
         );
 
   String get _nameWithoutParentheses {
-    return nameToken.identifierToken.lexeme;
+    return elementDecoratorToken.lexeme;
   }
 
   /// ExpressionAst of `"expression"`; may be `null` to have no value.
@@ -120,7 +126,7 @@ class ParsedEventAst extends TemplateAst
 
   /// Offset of name.
   @override
-  int get nameOffset => nameToken.identifierToken.offset;
+  int get nameOffset => elementDecoratorToken.offset;
 
   /// Offset of equal sign; may be `null` if no value.
   @override
@@ -139,11 +145,11 @@ class ParsedEventAst extends TemplateAst
 
   /// Offset of `(` prefix in `(eventName.postfix)`.
   @override
-  int get specialPrefixOffset => nameToken.prefixToken.offset;
+  int get specialPrefixOffset => prefixToken.offset;
 
   /// Offset of `)` suffix in `(eventName.postfix)`.
   @override
-  int get specialSuffixOffset => nameToken.suffixToken.offset;
+  int get specialSuffixOffset => suffixToken.offset;
 
   /// Name `postfix` in `(eventName.postfix)`; may be `null` to have no value.
   @override

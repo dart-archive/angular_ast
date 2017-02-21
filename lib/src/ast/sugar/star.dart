@@ -32,7 +32,8 @@ abstract class StarAst implements TemplateAst {
   factory StarAst.parsed(
     SourceFile sourceFile,
     NgToken beginToken,
-    NgSpecialAttributeToken nameToken, [
+    NgToken prefixToken,
+    NgToken elementDecoratorToken, [
     NgAttributeValueToken valueToken,
     NgToken equalSignToken,
   ]) = ParsedStarAst;
@@ -79,8 +80,8 @@ abstract class StarAst implements TemplateAst {
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedStarAst extends TemplateAst
     with StarAst, OffsetInfo, SpecialOffsetInfo {
-  /// [NgSpecialAttributeToken] that represents `*directive`.
-  final NgSpecialAttributeToken nameToken;
+  final NgToken prefixToken;
+  final NgToken elementDecoratorToken;
 
   /// [NgAttributeValueToken] that represents `"value"`; may be `null` to have
   /// no value.
@@ -93,7 +94,8 @@ class ParsedStarAst extends TemplateAst
   ParsedStarAst(
     SourceFile sourceFile,
     NgToken beginToken,
-    this.nameToken, [
+    this.prefixToken,
+    this.elementDecoratorToken, [
     this.valueToken,
     this.equalSignToken,
   ])
@@ -103,9 +105,7 @@ class ParsedStarAst extends TemplateAst
             : null,
         super.parsed(
             beginToken,
-            valueToken != null
-                ? valueToken.rightQuote
-                : nameToken.identifierToken,
+            valueToken != null ? valueToken.rightQuote : elementDecoratorToken,
             sourceFile);
 
   /// ExpressionAst of `"value"`; may be null to have no value.
@@ -114,11 +114,11 @@ class ParsedStarAst extends TemplateAst
 
   /// Name `directive` in `*directive`.
   @override
-  String get name => nameToken.identifierToken.lexeme;
+  String get name => elementDecoratorToken.lexeme;
 
   /// Offset of `directive` in `*directive`.
   @override
-  int get nameOffset => nameToken.identifierToken.offset;
+  int get nameOffset => elementDecoratorToken.offset;
 
   /// Offset of equal sign; may be `null` to have no value.
   @override
@@ -138,7 +138,7 @@ class ParsedStarAst extends TemplateAst
 
   /// Offset of template prefix `*`.
   @override
-  int get specialPrefixOffset => nameToken.prefixToken.offset;
+  int get specialPrefixOffset => prefixToken.offset;
 
   /// Always returns `null` since `*directive` has no suffix.
   @override

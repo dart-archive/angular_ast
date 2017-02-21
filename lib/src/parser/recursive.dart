@@ -57,7 +57,24 @@ class RecursiveAstParser {
   /// No desugaring of any kind occurs here.
   TemplateAst parseDecorator(NgToken beginToken) {
     // The first token is the decorator/name.
-    final nameToken = _reader.expect(NgTokenType.elementDecorator);
+    NgToken prefixToken;
+    NgToken decoratorToken;
+    NgToken suffixToken;
+
+    NgTokenType peekType = _reader.peekType();
+    if (peekType == NgTokenType.bananaPrefix ||
+        peekType == NgTokenType.eventPrefix ||
+        peekType == NgTokenType.propertyPrefix) {
+      prefixToken = _reader.next();
+      decoratorToken = _reader.next();
+      suffixToken = _reader.next();
+    } else if (peekType == NgTokenType.referencePrefix ||
+        peekType == NgTokenType.templatePrefix) {
+      prefixToken = _reader.next();
+      decoratorToken = _reader.next();
+    } else {
+      decoratorToken = _reader.next();
+    }
 
     NgAttributeValueToken valueToken;
     NgToken equalSignToken;
@@ -73,28 +90,66 @@ class RecursiveAstParser {
           as NgAttributeValueToken;
     }
 
-    if (nameToken is NgSpecialAttributeToken) {
-      NgTokenType prefixType = nameToken.prefixToken.type;
+    if (prefixToken != null) {
+      NgTokenType prefixType = prefixToken.type;
 
       if (prefixType == NgTokenType.bananaPrefix) {
         return new BananaAst.parsed(
-            _source, beginToken, nameToken, valueToken, equalSignToken);
+          _source,
+          beginToken,
+          prefixToken,
+          decoratorToken,
+          suffixToken,
+          valueToken,
+          equalSignToken,
+        );
       } else if (prefixType == NgTokenType.eventPrefix) {
         return new EventAst.parsed(
-            _source, beginToken, nameToken, valueToken, equalSignToken);
+          _source,
+          beginToken,
+          prefixToken,
+          decoratorToken,
+          suffixToken,
+          valueToken,
+          equalSignToken,
+        );
       } else if (prefixType == NgTokenType.propertyPrefix) {
         return new PropertyAst.parsed(
-            _source, beginToken, nameToken, valueToken, equalSignToken);
+          _source,
+          beginToken,
+          prefixToken,
+          decoratorToken,
+          suffixToken,
+          valueToken,
+          equalSignToken,
+        );
       } else if (prefixType == NgTokenType.referencePrefix) {
         return new ReferenceAst.parsed(
-            _source, beginToken, nameToken, valueToken, equalSignToken);
+          _source,
+          beginToken,
+          prefixToken,
+          decoratorToken,
+          valueToken,
+          equalSignToken,
+        );
       } else if (prefixType == NgTokenType.templatePrefix) {
         return new StarAst.parsed(
-            _source, beginToken, nameToken, valueToken, equalSignToken);
+          _source,
+          beginToken,
+          prefixToken,
+          decoratorToken,
+          valueToken,
+          equalSignToken,
+        );
       }
     }
     return new AttributeAst.parsed(
-        _source, beginToken, nameToken, valueToken, equalSignToken);
+      _source,
+      beginToken,
+      decoratorToken,
+      valueToken,
+      equalSignToken,
+    );
   }
 
   /// Returns a DOM element AST starting at the provided token.

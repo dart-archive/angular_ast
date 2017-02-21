@@ -70,7 +70,28 @@ abstract class RecoveryProtocol {
   RecoverySolution scanElementStart(
       NgSimpleToken current, NgTokenReversibleReader reader);
 
+  RecoverySolution scanSimpleElementDecorator(
+      NgSimpleToken current, NgTokenReversibleReader reader);
+
+  RecoverySolution scanSpecialBananaDecorator(
+      NgSimpleToken current, NgTokenReversibleReader reader);
+
+  RecoverySolution scanSpecialEventDecorator(
+      NgSimpleToken current, NgTokenReversibleReader reader);
+
+  RecoverySolution scanSpecialPropertyDecorator(
+      NgSimpleToken current, NgTokenReversibleReader reader);
+
   RecoverySolution scanStart(
+      NgSimpleToken current, NgTokenReversibleReader reader);
+
+  RecoverySolution scanSuffixBanana(
+      NgSimpleToken current, NgTokenReversibleReader reader);
+
+  RecoverySolution scanSuffixEvent(
+      NgSimpleToken current, NgTokenReversibleReader reader);
+
+  RecoverySolution scanSuffixProperty(
       NgSimpleToken current, NgTokenReversibleReader reader);
 
   RecoverySolution scanText(

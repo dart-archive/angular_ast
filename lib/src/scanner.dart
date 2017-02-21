@@ -34,12 +34,6 @@ class NgScanner {
     return _current;
   }
 
-  NgSimpleToken _moveNextExpect(NgBaseTokenType type) {
-    _lastToken = _current;
-    _current = _reader.expect(type);
-    return _current;
-  }
-
   factory NgScanner(String html, ExceptionHandler exceptionHandler,
       {sourceUrl}) {
     NgTokenReader reader = new NgTokenReversibleReader(
@@ -114,6 +108,27 @@ class NgScanner {
         case NgScannerState.scanInterpolation:
           returnToken = scanInterpolation();
           break;
+        case NgScannerState.scanSimpleElementDecorator:
+          returnToken = scanSimpleElementDecorator();
+          break;
+        case NgScannerState.scanSpecialBananaDecorator:
+          returnToken = scanSpecialBananaDecorator();
+          break;
+        case NgScannerState.scanSpecialEventDecorator:
+          returnToken = scanSpecialEventDecorator();
+          break;
+        case NgScannerState.scanSpecialPropertyDecorator:
+          returnToken = scanSpecialPropertyDecorator();
+          break;
+        case NgScannerState.scanSuffixBanana:
+          returnToken = scanSuffixBanana();
+          break;
+        case NgScannerState.scanSuffixEvent:
+          returnToken = scanSuffixEvent();
+          break;
+        case NgScannerState.scanSuffixProperty:
+          returnToken = scanSuffixProperty();
+          break;
         case NgScannerState.scanStart:
           if (_current.type == NgSimpleTokenType.EOF && _reader.isDone) {
             _state = NgScannerState.isEndOfFile;
@@ -134,96 +149,6 @@ class NgScanner {
       }
     }
     return returnToken;
-  }
-
-  @protected
-  NgToken evaluateSpecialElementDecorator() {
-    //TODO: Potentially make .identifier limit count unlimited?
-    NgToken prefix;
-    NgToken identifier;
-    NgToken suffix;
-    int identifierPartsLimit = 1; // Number of identifiers split by '.'
-
-    // Prefix
-    if (_current.type == NgSimpleTokenType.openParen) {
-      // Event
-      identifierPartsLimit = 1;
-      prefix = new NgToken.eventPrefix(_current.offset);
-    } else if (_current.type == NgSimpleTokenType.openBracket) {
-      identifierPartsLimit = 2;
-      prefix = new NgToken.propertyPrefix(_current.offset);
-    } else if (_current.type == NgSimpleTokenType.openBanana) {
-      identifierPartsLimit = 2;
-      prefix = new NgToken.bananaPrefix(_current.offset);
-    } else if (_current.type == NgSimpleTokenType.hash) {
-      // Reference
-      prefix = new NgToken.referencePrefix(_current.offset);
-    } else if (_current.type == NgSimpleTokenType.star) {
-      // Template
-      prefix = new NgToken.templatePrefix(_current.offset);
-    }
-
-    // Identifier
-    _moveNext();
-    if (_current.type != NgSimpleTokenType.identifier && _recoverErrors) {
-      int offset = _current.offset;
-      _reader.putBack(_current);
-      _current = new NgSimpleToken.generateErrorSynthetic(
-          offset, NgSimpleTokenType.identifier);
-    }
-    if (_current.errorSynthetic) {
-      identifier = new NgToken.generateErrorSynthetic(
-          _current.offset, NgTokenType.elementDecorator);
-    } else if ((prefix.type == NgTokenType.propertyPrefix ||
-            prefix.type == NgTokenType.eventPrefix) &&
-        _reader.peekType() == NgSimpleTokenType.period) {
-      int propertyBeginOffset = _current.offset;
-      StringBuffer mergedLexeme = new StringBuffer();
-      mergedLexeme.write(_current.lexeme);
-
-      while (_reader.peekType() == NgSimpleTokenType.period &&
-          identifierPartsLimit > 0) {
-        _moveNext();
-        _moveNextExpect(NgSimpleTokenType.identifier);
-        mergedLexeme.write('.');
-        mergedLexeme.write(_current.lexeme);
-        identifierPartsLimit--;
-      }
-      identifier = new NgToken.elementDecorator(
-          propertyBeginOffset, mergedLexeme.toString());
-    } else {
-      identifier =
-          new NgToken.elementDecorator(_current.offset, _current.lexeme);
-    }
-
-    // Suffix
-    if (prefix.type == NgTokenType.eventPrefix) {
-      _moveNextExpect(NgSimpleTokenType.closeParen);
-      if (_current.errorSynthetic) {
-        suffix = new NgToken.generateErrorSynthetic(
-            _current.offset, NgTokenType.eventSuffix);
-      } else {
-        suffix = new NgToken.eventSuffix(_current.offset);
-      }
-    } else if (prefix.type == NgTokenType.bananaPrefix) {
-      _moveNextExpect(NgSimpleTokenType.closeBanana);
-      if (_current.errorSynthetic) {
-        suffix = new NgToken.generateErrorSynthetic(
-            _current.offset, NgTokenType.bananaSuffix);
-      } else {
-        suffix = new NgToken.bananaSuffix(_current.offset);
-      }
-    } else if (prefix.type == NgTokenType.propertyPrefix) {
-      _moveNextExpect(NgSimpleTokenType.closeBracket);
-      if (_current.errorSynthetic) {
-        suffix = new NgToken.generateErrorSynthetic(
-            _current.offset, NgTokenType.propertySuffix);
-      } else {
-        suffix = new NgToken.propertySuffix(_current.offset);
-      }
-    }
-
-    return new NgSpecialAttributeToken.generate(prefix, identifier, suffix);
   }
 
   @protected
@@ -354,28 +279,47 @@ class NgScanner {
     return handleError();
   }
 
+  // Doesn't switch states or check validity of current token.
+  NgToken _scanCompoundDecorator() {
+    int offset = _current.offset;
+    StringBuffer sb = new StringBuffer();
+    sb.write(_current.lexeme);
+    while (_reader.peekType() == NgSimpleTokenType.period ||
+        _reader.peekType() == NgSimpleTokenType.identifier) {
+      _moveNext();
+      sb.write(_current.lexeme);
+    }
+    return new NgToken.elementDecorator(offset, sb.toString());
+  }
+
   @protected
   NgToken scanElementDecorator() {
     NgSimpleTokenType type = _current.type;
-    if (type == NgSimpleTokenType.identifier) {
-      int offset = _current.offset;
-      StringBuffer sb = new StringBuffer();
-      sb.write(_current.lexeme);
-      while (_reader.peekType() == NgSimpleTokenType.period ||
-          _reader.peekType() == NgSimpleTokenType.identifier) {
-        _moveNext();
-        sb.write(_current.lexeme);
-      }
+    int offset = _current.offset;
+    if (type == NgSimpleTokenType.identifier ||
+        type == NgSimpleTokenType.period) {
       _state = NgScannerState.scanAfterElementDecorator;
-      return new NgToken.elementDecorator(offset, sb.toString());
+      return _scanCompoundDecorator();
     }
-    if (type == NgSimpleTokenType.openParen ||
-        type == NgSimpleTokenType.openBracket ||
-        type == NgSimpleTokenType.openBanana ||
-        type == NgSimpleTokenType.hash ||
-        type == NgSimpleTokenType.star) {
-      _state = NgScannerState.scanAfterElementDecorator;
-      return evaluateSpecialElementDecorator();
+    if (type == NgSimpleTokenType.openParen) {
+      _state = NgScannerState.scanSpecialEventDecorator;
+      return new NgToken.eventPrefix(offset);
+    }
+    if (type == NgSimpleTokenType.openBracket) {
+      _state = NgScannerState.scanSpecialPropertyDecorator;
+      return new NgToken.propertyPrefix(offset);
+    }
+    if (type == NgSimpleTokenType.openBanana) {
+      _state = NgScannerState.scanSpecialBananaDecorator;
+      return new NgToken.bananaPrefix(offset);
+    }
+    if (type == NgSimpleTokenType.hash) {
+      _state = NgScannerState.scanSimpleElementDecorator;
+      return new NgToken.referencePrefix(offset);
+    }
+    if (type == NgSimpleTokenType.star) {
+      _state = NgScannerState.scanSimpleElementDecorator;
+      return new NgToken.templatePrefix(offset);
     }
     return handleError();
   }
@@ -500,6 +444,72 @@ class NgScanner {
   }
 
   @protected
+  NgToken scanSimpleElementDecorator() {
+    if (_current.type == NgSimpleTokenType.identifier) {
+      _state = NgScannerState.scanAfterElementDecorator;
+      return new NgToken.elementDecorator(_current.offset, _current.lexeme);
+    }
+    return handleError();
+  }
+
+  @protected
+  NgToken scanSpecialBananaDecorator() {
+    if (_current.type == NgSimpleTokenType.period ||
+        _current.type == NgSimpleTokenType.identifier) {
+      _state = NgScannerState.scanSuffixBanana;
+      return _scanCompoundDecorator();
+    }
+    return handleError();
+  }
+
+  @protected
+  NgToken scanSpecialEventDecorator() {
+    if (_current.type == NgSimpleTokenType.period ||
+        _current.type == NgSimpleTokenType.identifier) {
+      _state = NgScannerState.scanSuffixEvent;
+      return _scanCompoundDecorator();
+    }
+    return handleError();
+  }
+
+  @protected
+  NgToken scanSpecialPropertyDecorator() {
+    if (_current.type == NgSimpleTokenType.period ||
+        _current.type == NgSimpleTokenType.identifier) {
+      _state = NgScannerState.scanSuffixProperty;
+      return _scanCompoundDecorator();
+    }
+    return handleError();
+  }
+
+  @protected
+  NgToken scanSuffixBanana() {
+    if (_current.type == NgSimpleTokenType.closeBanana) {
+      _state = NgScannerState.scanAfterElementDecorator;
+      return new NgToken.bananaSuffix(_current.offset);
+    }
+    return handleError();
+  }
+
+  @protected
+  NgToken scanSuffixEvent() {
+    if (_current.type == NgSimpleTokenType.closeParen) {
+      _state = NgScannerState.scanAfterElementDecorator;
+      return new NgToken.eventSuffix(_current.offset);
+    }
+    return handleError();
+  }
+
+  @protected
+  NgToken scanSuffixProperty() {
+    if (_current.type == NgSimpleTokenType.closeBracket) {
+      _state = NgScannerState.scanAfterElementDecorator;
+      return new NgToken.propertySuffix(_current.offset);
+    }
+    return handleError();
+  }
+
+  @protected
   NgToken scanText() {
     // TODO: move interpolation token finding logic elsewhere(?)
     // TODO: be able to pinpoint incorrectly overlapping mustaches too.
@@ -598,8 +608,29 @@ class NgScanner {
         case NgScannerState.scanElementStart:
           solution = _rp.scanElementStart(_current, _reader);
           break;
+        case NgScannerState.scanSimpleElementDecorator:
+          solution = _rp.scanSimpleElementDecorator(_current, _reader);
+          break;
+        case NgScannerState.scanSpecialBananaDecorator:
+          solution = _rp.scanSpecialBananaDecorator(_current, _reader);
+          break;
+        case NgScannerState.scanSpecialEventDecorator:
+          solution = _rp.scanSpecialEventDecorator(_current, _reader);
+          break;
+        case NgScannerState.scanSpecialPropertyDecorator:
+          solution = _rp.scanSpecialPropertyDecorator(_current, _reader);
+          break;
         case NgScannerState.scanStart:
           solution = _rp.scanStart(_current, _reader);
+          break;
+        case NgScannerState.scanSuffixBanana:
+          solution = _rp.scanSuffixBanana(_current, _reader);
+          break;
+        case NgScannerState.scanSuffixEvent:
+          solution = _rp.scanSuffixEvent(_current, _reader);
+          break;
+        case NgScannerState.scanSuffixProperty:
+          solution = _rp.scanSuffixProperty(_current, _reader);
           break;
         case NgScannerState.scanText:
           solution = _rp.scanText(_current, _reader);
@@ -665,6 +696,13 @@ enum NgScannerState {
   scanElementIdentifierOpen,
   scanElementStart,
   scanInterpolation,
+  scanSimpleElementDecorator,
+  scanSpecialBananaDecorator,
+  scanSpecialEventDecorator,
+  scanSpecialPropertyDecorator,
   scanStart,
+  scanSuffixBanana,
+  scanSuffixEvent,
+  scanSuffixProperty,
   scanText,
 }
