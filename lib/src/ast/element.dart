@@ -187,7 +187,7 @@ class ParsedElementAst extends TemplateAst with ElementAst {
   /// Offset of `>` in `<tag ...>` or of `/` in `<voidtag ... />`.
   final int openTagEndOffset;
 
-  /// Offset of `<` in `</tag>`.
+  /// Offset of `</` in `</tag>`.
   /// May be null if a void <tag /> element (no closing tag).
   final int closeTagStartOffset;
 

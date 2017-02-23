@@ -147,7 +147,6 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
     NgScannerState returnState;
     NgToken returnToken;
     NgSimpleTokenType type = current.type;
-    int offset = current.offset;
 
     if (type == NgSimpleTokenType.openBracket ||
         type == NgSimpleTokenType.openParen ||

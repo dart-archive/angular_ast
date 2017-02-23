@@ -16,9 +16,8 @@ class RecursiveAstParser {
   RecursiveAstParser(
     SourceFile sourceFile,
     Iterable<NgToken> tokens,
-    this._voidElements, {
-    bool toolFriendlyAstOrigin: false,
-  })
+    this._voidElements,
+  )
       : _reader = new NgTokenReversibleReader(sourceFile, tokens),
         _source = sourceFile;
 

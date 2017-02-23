@@ -94,9 +94,10 @@ class ParsedAttributeAst extends TemplateAst with AttributeAst, OffsetInfo {
     this.equalSignToken,
   ])
       : super.parsed(
-            beginToken,
-            (valueToken == null ? nameToken : valueToken.rightQuote),
-            sourceFile);
+          beginToken,
+          (valueToken == null ? nameToken : valueToken.rightQuote),
+          sourceFile,
+        );
 
   /// Static attribute name.
   @override

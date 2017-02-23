@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/parser.dart';
 import 'package:meta/meta.dart';
 export 'package:angular_ast/src/ast.dart'
@@ -51,14 +52,29 @@ export 'package:angular_ast/src/recovery_protocol/recovery_protocol.dart';
 /// notations and banana syntax used in two-way binding.
 /// Optional bool flag [toolFriendlyAst] provides a reference to the original
 /// non-desugared nodes after desugaring occurs.
-List<TemplateAst> parse(String template,
-    {@required String sourceUrl,
-    bool toolFriendlyAst: false,
-    bool desugar: true}) {
+/// Optional exceptionHandler. Pass in either [RecoveringExceptionHandler] or
+/// [ThrowingExceptionHandler] (default).
+List<TemplateAst> parse(
+  String template, {
+  @required String sourceUrl,
+  bool toolFriendlyAst: false, // Only needed if desugar = true
+  bool desugar: true,
+  ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
+}) {
   final parser = toolFriendlyAst
       ? const NgParser(toolFriendlyAstOrigin: true)
       : const NgParser();
-  return desugar
-      ? parser.parse(template, sourceUrl: sourceUrl)
-      : parser.parsePreserve(template, sourceUrl: sourceUrl);
+  if (desugar) {
+    return parser.parse(
+      template,
+      sourceUrl: sourceUrl,
+      exceptionHandler: exceptionHandler,
+    );
+  } else {
+    return parser.parsePreserve(
+      template,
+      sourceUrl: sourceUrl,
+      exceptionHandler: exceptionHandler,
+    );
+  }
 }

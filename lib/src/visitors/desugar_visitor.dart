@@ -10,7 +10,7 @@ import 'package:angular_ast/src/expression/micro.dart';
 /// within a given AST. Ignores non-desugarable nodes.
 /// This modifies the structure, and the original version of
 /// each desugared node can be accessed by 'origin'.
-class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
+class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
   final bool _toolFriendlyAstOrigin;
 
   DesugarVisitor({bool toolFriendlyAstOrigin: false})
@@ -20,16 +20,16 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
   TemplateAst visitAttribute(AttributeAst astNode, [_]) => astNode;
 
   @override
-  TemplateAst visitBanana(BananaAst astNode, [DesugarFlag flag]) {
+  TemplateAst visitBanana(BananaAst astNode, [String flag]) {
     TemplateAst origin = _toolFriendlyAstOrigin ? astNode : null;
-    if (flag == DesugarFlag.event) {
+    if (flag == "event") {
       return new EventAst.from(
           origin,
           astNode.name + 'Changed',
           new ExpressionAst.parse('${astNode.value} = \$event',
               sourceUrl: astNode.sourceUrl));
     }
-    if (flag == DesugarFlag.property) {
+    if (flag == "property") {
       return new PropertyAst.from(origin, astNode.name,
           new ExpressionAst.parse(astNode.value, sourceUrl: astNode.sourceUrl));
     }
@@ -43,9 +43,8 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
   TemplateAst visitElement(ElementAst astNode, [_]) {
     if (astNode.bananas.isNotEmpty) {
       for (BananaAst bananaAst in astNode.bananas) {
-        TemplateAst toAddProperty =
-            bananaAst.accept(this, DesugarFlag.property);
-        TemplateAst toAddEvent = bananaAst.accept(this, DesugarFlag.event);
+        TemplateAst toAddProperty = bananaAst.accept(this, "property");
+        TemplateAst toAddEvent = bananaAst.accept(this, "event");
         astNode.properties.add(toAddProperty);
         astNode.events.add(toAddEvent);
       }
@@ -132,9 +131,4 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, DesugarFlag> {
 
   @override
   TemplateAst visitWhitespace(WhitespaceAst astNode, [_]) => astNode;
-}
-
-enum DesugarFlag {
-  event,
-  property,
 }

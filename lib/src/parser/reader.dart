@@ -6,15 +6,12 @@ import 'dart:collection';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:source_span/source_span.dart';
 
-// TODO: Merge the two into the reversible only. The regular is not used.
-
 /// A narrow interface for reading tokens from a series of tokens.
 /// Can only move forward within token iterable.
 ///
 /// Not compatible with error recovery.
 class NgTokenReader {
   final Iterator<NgBaseToken> _iterator;
-  final SourceFile _source;
   final String _sourceString;
 
   NgBaseToken _peek;
@@ -23,8 +20,8 @@ class NgTokenReader {
     return new NgTokenReader._(source, tokens.iterator);
   }
 
-  NgTokenReader._(this._source, this._iterator)
-      : _sourceString = _source != null ? _source.getText(0) : "";
+  NgTokenReader._(SourceFile source, this._iterator)
+      : _sourceString = source != null ? source.getText(0) : "";
 
   /// Throws a [FormatException] at the current token.
   void error(String message) {
@@ -49,6 +46,8 @@ class NgTokenReader {
 
   /// Returns the next token if it is the expect type. If it is the ignore type,
   /// it continuously scans until expect type is found or neither is found (error)
+  ///
+  /// Not compatible with errorRecovery.
   NgBaseToken expectTypeIgnoringType(
     NgBaseTokenType expect,
     NgBaseTokenType ignore,
@@ -126,9 +125,9 @@ class NgTokenReversibleReader extends NgTokenReader {
 
   /// Returns the next token if it is of [type].
   /// Otherwise throws a [FormatException].
+  /// Do not use where errorRecovery is potentially enabled.
   @override
   NgBaseToken expect(NgBaseTokenType type) {
-    // TODO: Figure out when to dump a token; if type is an openstate start?
     final next = this.next();
     String message = 'Expected a token of $type but got ${next.type}';
     if (next.type == type) {
