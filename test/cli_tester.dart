@@ -9,7 +9,7 @@ import 'package:angular_ast/angular_ast.dart';
 RecoveringExceptionHandler exceptionHandler = new RecoveringExceptionHandler();
 Iterable<NgToken> tokenize(String html) {
   exceptionHandler.exceptions.clear();
-  return const NgLexer().tokenize(html, exceptionHandler, recoverError: true);
+  return const NgLexer().tokenize(html, exceptionHandler);
 }
 
 String untokenize(Iterable<NgToken> tokens) => tokens
@@ -31,6 +31,7 @@ void main() {
       } else {
         print("ORGNL: $input");
         print("FIXED: $fixed");
+        print("ERRORS:" + exceptionHandler.exceptions.toString());
       }
     } catch (e) {
       print(e);

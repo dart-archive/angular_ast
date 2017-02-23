@@ -24,7 +24,7 @@ class NgTokenReader {
   }
 
   NgTokenReader._(this._source, this._iterator)
-      : _sourceString = _source.getText(0);
+      : _sourceString = _source != null ? _source.getText(0) : "";
 
   /// Throws a [FormatException] at the current token.
   void error(String message) {
@@ -109,32 +109,22 @@ class NgTokenReader {
 ///
 /// Compatible with Error Recovery.
 class NgTokenReversibleReader extends NgTokenReader {
-  static const List<FormatException> _empty_error_list =
-      const <FormatException>[];
-
   final Queue<NgBaseToken> _seen = new Queue<NgBaseToken>();
-  final bool _errorRecovery;
-  final List<FormatException> errors;
 
   factory NgTokenReversibleReader(
-      SourceFile source, Iterable<NgBaseToken> tokens,
-      {bool errorRecovery: false}) {
-    return new NgTokenReversibleReader._(
-        source, tokens.iterator, errorRecovery);
+    SourceFile source,
+    Iterable<NgBaseToken> tokens,
+  ) {
+    return new NgTokenReversibleReader._(source, tokens.iterator);
   }
 
   NgTokenReversibleReader._(
     SourceFile source,
     Iterator<NgBaseToken> iterator,
-    this._errorRecovery,
   )
-      : errors =
-            _errorRecovery ? new List<FormatException>() : _empty_error_list,
-        super._(source, iterator);
+      : super._(source, iterator);
 
-  /// Returns the next token if it is of [type]. If [_errorRecovery] is true,
-  /// then accumulates errors into [errors] list and returns a synthetic.
-  ///
+  /// Returns the next token if it is of [type].
   /// Otherwise throws a [FormatException].
   @override
   NgBaseToken expect(NgBaseTokenType type) {

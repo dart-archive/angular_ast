@@ -5,7 +5,6 @@
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/simple_tokenizer.dart';
 import 'package:angular_ast/src/parser/reader.dart';
-import 'package:angular_ast/src/recovery_protocol/angular_analyzer_protocol.dart';
 import 'package:angular_ast/src/recovery_protocol/recovery_protocol.dart';
 import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:meta/meta.dart';
@@ -551,91 +550,7 @@ class NgScanner {
     }
 
     if (_recoverErrors) {
-      RecoverySolution solution;
-      switch (currentState) {
-        case NgScannerState.hasError:
-          return null;
-        case NgScannerState.isEndOfFile:
-          return null;
-        case NgScannerState.scanAfterComment:
-          solution = _rp.scanAfterComment(_current, _reader);
-          break;
-        case NgScannerState.scanAfterElementDecorator:
-          solution = _rp.scanAfterElementDecorator(_current, _reader);
-          break;
-        case NgScannerState.scanAfterElementDecoratorValue:
-          solution = _rp.scanAfterElementDecoratorValue(_current, _reader);
-          break;
-        case NgScannerState.scanAfterElementIdentifierClose:
-          solution = _rp.scanAfterElementIdentifierClose(_current, _reader);
-          break;
-        case NgScannerState.scanAfterElementIdentifierOpen:
-          solution = _rp.scanAfterElementIdentifierOpen(_current, _reader);
-          break;
-        case NgScannerState.scanAfterInterpolation:
-          solution = _rp.scanAfterInterpolation(_current, _reader);
-          break;
-        case NgScannerState.scanBeforeElementDecorator:
-          solution = _rp.scanBeforeElementDecorator(_current, _reader);
-          break;
-        case NgScannerState.scanBeforeInterpolation:
-          solution = _rp.scanBeforeInterpolation(_current, _reader);
-          break;
-        case NgScannerState.scanComment:
-          solution = _rp.scanComment(_current, _reader);
-          break;
-        case NgScannerState.scanInterpolation:
-          solution = _rp.scanInterpolation(_current, _reader);
-          break;
-        case NgScannerState.scanElementDecorator:
-          solution = _rp.scanElementDecorator(_current, _reader);
-          break;
-        case NgScannerState.scanElementDecoratorValue:
-          solution = _rp.scanElementDecoratorValue(_current, _reader);
-          break;
-        case NgScannerState.scanElementEndClose:
-          solution = _rp.scanElementEndClose(_current, _reader);
-          break;
-        case NgScannerState.scanElementEndOpen:
-          solution = _rp.scanElementEndOpen(_current, _reader);
-          break;
-        case NgScannerState.scanElementIdentifierClose:
-          solution = _rp.scanElementIdentifierClose(_current, _reader);
-          break;
-        case NgScannerState.scanElementIdentifierOpen:
-          solution = _rp.scanElementIdentifierOpen(_current, _reader);
-          break;
-        case NgScannerState.scanElementStart:
-          solution = _rp.scanElementStart(_current, _reader);
-          break;
-        case NgScannerState.scanSimpleElementDecorator:
-          solution = _rp.scanSimpleElementDecorator(_current, _reader);
-          break;
-        case NgScannerState.scanSpecialBananaDecorator:
-          solution = _rp.scanSpecialBananaDecorator(_current, _reader);
-          break;
-        case NgScannerState.scanSpecialEventDecorator:
-          solution = _rp.scanSpecialEventDecorator(_current, _reader);
-          break;
-        case NgScannerState.scanSpecialPropertyDecorator:
-          solution = _rp.scanSpecialPropertyDecorator(_current, _reader);
-          break;
-        case NgScannerState.scanStart:
-          solution = _rp.scanStart(_current, _reader);
-          break;
-        case NgScannerState.scanSuffixBanana:
-          solution = _rp.scanSuffixBanana(_current, _reader);
-          break;
-        case NgScannerState.scanSuffixEvent:
-          solution = _rp.scanSuffixEvent(_current, _reader);
-          break;
-        case NgScannerState.scanSuffixProperty:
-          solution = _rp.scanSuffixProperty(_current, _reader);
-          break;
-        case NgScannerState.scanText:
-          solution = _rp.scanText(_current, _reader);
-          break;
-      }
+      RecoverySolution solution = _rp.recover(currentState, _current, _reader);
       _state = solution.nextState ?? currentState;
       if (solution.tokenToReturn == null) {
         _moveNext();

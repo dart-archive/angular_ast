@@ -22,7 +22,7 @@ abstract class NgBaseToken {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class NgSimpleToken implements NgBaseToken {
-  static final Map<NgSimpleTokenType, String> _syntheticLexemeMap = {
+  static final Map<NgSimpleTokenType, String> lexemeMap = {
     NgSimpleTokenType.bang: "!",
     NgSimpleTokenType.closeBanana: ")]",
     NgSimpleTokenType.closeBracket: "]",
@@ -46,14 +46,14 @@ class NgSimpleToken implements NgBaseToken {
     NgSimpleTokenType.period: ".",
     NgSimpleTokenType.star: "*",
     NgSimpleTokenType.text: "",
-    NgSimpleTokenType.unexpectedChar: "",
+    NgSimpleTokenType.unexpectedChar: "@",
     NgSimpleTokenType.voidCloseTag: "/>",
-    NgSimpleTokenType.whitespace: ""
+    NgSimpleTokenType.whitespace: " ",
   };
 
   factory NgSimpleToken.generateErrorSynthetic(
       int offset, NgSimpleTokenType type) {
-    return new NgSimpleToken._(type, offset, _syntheticLexemeMap[type] ?? "",
+    return new NgSimpleToken._(type, offset, lexemeMap[type] ?? "",
         errorSynthetic: true);
   }
 

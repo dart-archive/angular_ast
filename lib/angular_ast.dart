@@ -43,6 +43,7 @@ export 'package:angular_ast/src/visitor.dart'
         DesugarVisitor;
 export 'package:angular_ast/src/exception_handler/exception_handler.dart'
     show RecoveringExceptionHandler, ExceptionHandler, ThrowingExceptionHandler;
+export 'package:angular_ast/src/recovery_protocol/recovery_protocol.dart';
 
 /// Returns [template] parsed as an abstract syntax tree.
 ///
