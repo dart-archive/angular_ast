@@ -112,7 +112,7 @@ void main() {
 
 void afterComment() {
   test('should resolve: unexpected EOF in afterComment', () {
-    List<NgToken> results = tokenize('<!-- some comment ');
+    Iterable<NgToken> results = tokenize('<!-- some comment ');
     expect(
       results,
       [
