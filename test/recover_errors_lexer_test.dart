@@ -130,7 +130,7 @@ void afterComment() {
 
 void afterInterpolation() {
   test('should resolve: unexpected EOF in elementEndClose', () {
-    List<NgToken> results = tokenize('{{1 + 2 + 3');
+    Iterable<NgToken> results = tokenize('{{1 + 2 + 3');
     expect(
       results,
       [
@@ -150,7 +150,7 @@ void afterInterpolation() {
 
 void comment() {
   test('should resolve: unexpected EOF in scanComment', () {
-    List<NgToken> results = tokenize('<!-- some comment ');
+    Iterable<NgToken> results = tokenize('<!-- some comment ');
     expect(
       results,
       [
