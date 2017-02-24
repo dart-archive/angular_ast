@@ -48,7 +48,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.star ||
         type == NgSimpleTokenType.closeBracket ||
         type == NgSimpleTokenType.closeParen ||
-        type == NgSimpleTokenType.closeBanana) {
+        type == NgSimpleTokenType.closeBanana ||
+        type == NgSimpleTokenType.identifier) {
       reader.putBack(current);
       returnState = NgScannerState.scanElementDecorator;
       returnToken = new NgToken.generateErrorSynthetic(
