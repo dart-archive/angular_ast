@@ -24,6 +24,17 @@ class HumanizingTemplateAstVisitor
   }
 
   @override
+  String visitCloseElement(CloseElementAst astNode, [StringBuffer context]) {
+    context ??= new StringBuffer();
+    context..write('</')..write(astNode.name);
+    if (astNode.whitespaces.isNotEmpty) {
+      context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
+    }
+    context.write('>');
+    return context.toString();
+  }
+
+  @override
   String visitComment(CommentAst astNode, [_]) {
     return '<!--${astNode.value}-->';
   }
@@ -65,11 +76,19 @@ class HumanizingTemplateAstVisitor
     if (astNode.whitespaces.isNotEmpty) {
       context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
     }
-    context.write('>');
+    if (astNode.isVoidTag) {
+      if (astNode.isSynthetic) {
+        context.write('/>');
+      } else {
+        context.write(astNode.endToken.lexeme);
+      }
+    }
     if (astNode.childNodes.isNotEmpty) {
       context.writeAll(astNode.childNodes.map((c) => c.accept(this)));
     }
-    context..write('</')..write(astNode.name)..write('>');
+    if (astNode.closeComplement != null) {
+      context.write(visitCloseElement(astNode.closeComplement));
+    }
     return context.toString();
   }
 

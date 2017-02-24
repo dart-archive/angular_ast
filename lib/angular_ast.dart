@@ -10,6 +10,7 @@ export 'package:angular_ast/src/ast.dart'
     show
         AttributeAst,
         BananaAst,
+        CloseElementAst,
         CommentAst,
         ElementAst,
         EmbeddedContentAst,
@@ -19,6 +20,7 @@ export 'package:angular_ast/src/ast.dart'
         InterpolationAst,
         ParsedAttributeAst,
         ParsedBananaAst,
+        ParsedCloseElementAst,
         ParsedEventAst,
         ParsedElementAst,
         ParsedPropertyAst,

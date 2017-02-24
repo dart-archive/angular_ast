@@ -37,6 +37,9 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
   }
 
   @override
+  TemplateAst visitCloseElement(CloseElementAst astNode, [_]) => astNode;
+
+  @override
   TemplateAst visitComment(CommentAst astNode, [_]) => astNode;
 
   @override

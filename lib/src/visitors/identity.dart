@@ -19,6 +19,9 @@ class IdentityTemplateAstVisitor<C>
   TemplateAst visitBanana(BananaAst astNode, [_]) => astNode;
 
   @override
+  TemplateAst visitCloseElement(CloseElementAst astNode, [_]) => astNode;
+
+  @override
   TemplateAst visitComment(CommentAst astNode, [_]) => astNode;
 
   @override

@@ -40,6 +40,22 @@ class RecursiveAstParser {
     return nodes;
   }
 
+  CloseElementAst parseCloseElement(NgToken beginToken) {
+    final nameToken = _reader.expect(NgTokenType.elementIdentifier);
+    List<WhitespaceAst> whitespaces = <WhitespaceAst>[];
+    while (_reader.peekType() == NgTokenType.whitespace) {
+      whitespaces.add(new WhitespaceAst(_source, _reader.next()));
+    }
+    final closeElementEnd = _reader.expect(NgTokenType.closeElementEnd);
+    return new CloseElementAst.parsed(
+      _source,
+      beginToken,
+      nameToken,
+      closeElementEnd,
+      whitespaces: whitespaces,
+    );
+  }
+
   /// Parses and returns a comment beginning at the token provided.
   CommentAst parseComment(NgToken beginToken) {
     final valueToken = _reader.expect(NgTokenType.commentValue);
@@ -174,8 +190,6 @@ class RecursiveAstParser {
     final bananas = <BananaAst>[];
     final stars = <StarAst>[];
     final whitespaces = <WhitespaceAst>[];
-    int openTagEnd;
-    int closeTagStart;
     NgToken nextToken;
 
     // Start looping and get all of the decorators within the element.
@@ -211,9 +225,14 @@ class RecursiveAstParser {
     } while (nextToken.type != NgTokenType.openElementEnd &&
         nextToken.type != NgTokenType.openElementEndVoid);
 
-    // If this is a void element, skip this part
+    NgToken openElementEnd = nextToken;
+    if (!isVoidElement &&
+        openElementEnd.type == NgTokenType.openElementEndVoid) {
+      // TODO: error recovery here
+      throw new StateError(
+          "Void element close '/>' cannot be used with non-void elements");
+    }
     var endToken = nextToken;
-    openTagEnd = endToken.offset;
     //Look for closing tag
     if (!isVoidElement && nextToken.type != NgTokenType.openElementEndVoid) {
       // Collect child nodes.
@@ -222,7 +241,6 @@ class RecursiveAstParser {
         childNodes.add(parseStandalone(nextToken));
         nextToken = _reader.next();
       }
-      closeTagStart = nextToken.offset;
       // Finally return the element.
       final closeName = _reader.expect(NgTokenType.elementIdentifier);
       if (closeName.lexeme != nameToken.lexeme) {
@@ -238,9 +256,8 @@ class RecursiveAstParser {
       _source,
       beginToken,
       nameToken,
-      openTagEnd,
-      closeTagStart,
-      endToken,
+      openElementEnd,
+      isVoidTag: isVoidElement,
       attributes: attributes,
       childNodes: childNodes,
       events: events,
@@ -347,6 +364,9 @@ class RecursiveAstParser {
   }
 
   /// Returns and parses a top-level AST structure.
+  ///
+  /// [CloseElementAst] is returned if and only if it cannot be
+  /// matched to an [ElementAst] and only if errorRecovery is enabled.
   StandaloneTemplateAst parseStandalone(NgToken token) {
     switch (token.type) {
       case NgTokenType.commentStart:
