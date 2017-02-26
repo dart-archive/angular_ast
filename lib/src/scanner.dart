@@ -340,7 +340,6 @@ class NgScanner {
 
       if (current.quoteEndOffset == null) {
         if (_recoverErrors) {
-          // TODO: Synthetic?
           rightQuoteOffset = current.end;
         } else {
           return handleError(current);
@@ -415,7 +414,6 @@ class NgScanner {
     return handleError();
   }
 
-  //TODO: Check for errorcase: another interpolation within interpolation
   @protected
   NgToken scanInterpolation() {
     if (_current.type == NgSimpleTokenType.text) {

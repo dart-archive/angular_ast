@@ -52,7 +52,6 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
     }
 
     if (astNode.stars.isNotEmpty) {
-      // TODO: Look into better structure for better AST visitor pattern
       StarAst starAst = astNode.stars[0];
       TemplateAst origin = _toolFriendlyAstOrigin ? starAst : null;
       final starExpression = starAst.value;
