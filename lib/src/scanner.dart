@@ -335,8 +335,8 @@ class NgScanner {
       int leftQuoteOffset;
       int rightQuoteOffset;
 
-      String innerValue = current.lexeme;
-      leftQuoteOffset = current.quoteOffset;
+      String innerValue = current.contentLexeme;
+      leftQuoteOffset = current.offset;
 
       if (current.quoteEndOffset == null) {
         if (_recoverErrors) {
@@ -346,7 +346,7 @@ class NgScanner {
           return handleError(current);
         }
       } else {
-        rightQuoteOffset = current.quoteEndOffset - 1;
+        rightQuoteOffset = current.quoteEndOffset;
       }
 
       if (isDouble) {
@@ -357,7 +357,7 @@ class NgScanner {
         rightQuoteToken = new NgToken.singleQuote(rightQuoteOffset);
       }
       innerValueToken =
-          new NgToken.elementDecoratorValue(current.offset, innerValue);
+          new NgToken.elementDecoratorValue(current.contentOffset, innerValue);
 
       _state = NgScannerState.scanAfterElementDecoratorValue;
       return new NgAttributeValueToken.generate(
@@ -572,10 +572,8 @@ class NgScanner {
       return null;
     }
     _lastErrorToken = token;
-    String lexeme =
-        (token is NgSimpleQuoteToken) ? token.quotedLexeme : token.lexeme;
-    int offset =
-        (token is NgSimpleQuoteToken) ? token.quoteOffset : token.offset;
+    String lexeme = token.lexeme;
+    int offset = token.offset;
 
     return new FormatException(
       'Unexpected character: $token',

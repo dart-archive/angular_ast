@@ -233,51 +233,54 @@ class NgSimpleQuoteToken extends NgSimpleToken {
         NgSimpleTokenType.singleQuote, offset, lexeme, isClosed);
   }
 
-  /// Offset of left quote.
-  final int quoteOffset;
+  /// Offset of quote contents.
+  final int contentOffset;
+
+  /// String of just the contents
+  final String contentLexeme;
+
+  /// End of content
+  int get contentEnd => contentOffset + contentLength;
 
   /// Offset of right quote; may be `null` to indicate unclosed.
   final int quoteEndOffset;
-  String _quotedLexeme;
 
   NgSimpleQuoteToken(
-      NgSimpleTokenType type, this.quoteOffset, String lexeme, bool isClosed,
+      NgSimpleTokenType type, int offset, String lexeme, bool isClosed,
       {bool isErrorSynthetic: false})
-      : quoteEndOffset = (isClosed ? quoteOffset + lexeme.length : null),
+      : contentOffset = offset + 1,
+        contentLexeme = lexeme.isEmpty
+            ? lexeme
+            : lexeme.substring(
+                1, (isClosed ? lexeme.length - 1 : lexeme.length)),
+        quoteEndOffset = isClosed ? offset + lexeme.length - 1 : null,
         super(
           type,
-          isErrorSynthetic ? quoteOffset : quoteOffset + 1,
-          lexeme.isEmpty
-              ? lexeme
-              : lexeme.substring(
-                  1, (isClosed ? lexeme.length - 1 : lexeme.length)),
+          offset,
+          lexeme,
           errorSynthetic: isErrorSynthetic,
-        ) {
-    _quotedLexeme = lexeme;
-  }
+        );
 
   @override
   bool operator ==(Object o) {
     if (o is NgSimpleQuoteToken) {
       return o.offset == offset &&
           o.type == type &&
-          o.quoteOffset == quoteOffset &&
+          o.contentOffset == contentOffset &&
           o.quoteEndOffset == quoteEndOffset;
     }
     return false;
   }
 
   /// Lexeme including quotes.
-  String get quotedLexeme => _quotedLexeme;
   bool get isClosed => quoteEndOffset != null;
-  int get quotedLength => errorSynthetic ? 0 : _quotedLexeme.length;
+  int get contentLength => errorSynthetic ? 0 : contentLexeme.length;
 
   @override
-  int get hashCode => hash4(super.hashCode, lexeme, quoteOffset, end);
+  int get hashCode => hash4(super.hashCode, lexeme, contentOffset, end);
 
   @override
-  String toString() =>
-      '#$NgSimpleQuoteToken(${type.name}) {$quoteOffset:$quotedLexeme}';
+  String toString() => '#$NgSimpleQuoteToken(${type.name}) {$offset:$lexeme}';
 }
 
 /// Represents a Angular text/token entities.
