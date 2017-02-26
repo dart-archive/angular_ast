@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 
@@ -34,6 +34,10 @@ abstract class TemplateAst {
   /// delimiters.
   SourceSpan get sourceSpan {
     return _sourceFile.span(beginToken.offset, endToken.end);
+  }
+
+  String get sourceUrl {
+    return _sourceFile.url.toString();
   }
 
   /// Have the [visitor] start visiting this node.
@@ -77,6 +81,7 @@ abstract class SyntheticTemplateAst implements TemplateAst {
   }
 
   /// What AST node this node originated from (before transformation); optional.
+  /// Requires `toolFriendlyAstOrigin` flag to be turned on.
   final TemplateAst origin;
 
   /// Create a synthetic AST that has no origin from parsed source.
@@ -120,6 +125,14 @@ abstract class SyntheticTemplateAst implements TemplateAst {
   SourceSpan get sourceSpan {
     if (origin != null) {
       return origin.sourceSpan;
+    }
+    throw _unsupported();
+  }
+
+  @override
+  String get sourceUrl {
+    if (origin != null) {
+      return origin.sourceUrl;
     }
     throw _unsupported();
   }

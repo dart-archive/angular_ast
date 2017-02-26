@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
-import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
+
+// TODO: Interpolation within the value
 
 /// Represents a static attribute assignment (i.e. not bound to an expression).
 ///
@@ -28,10 +30,11 @@ abstract class AttributeAst implements TemplateAst {
   /// Create a new [AttributeAst] parsed from tokens from [sourceFile].
   factory AttributeAst.parsed(
     SourceFile sourceFile,
+    NgToken beginToken,
     NgToken nameToken, [
-    NgToken valueToken,
-    NgToken endValueToken,
-  ]) = _ParsedAttributeAst;
+    NgAttributeValueToken valueToken,
+    NgToken equalSignToken,
+  ]) = ParsedAttributeAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -55,33 +58,75 @@ abstract class AttributeAst implements TemplateAst {
   /// Static attribute value; may be `null` to have no value.
   String get value;
 
+  /// Static attribute value with quotes attached;
+  /// may be `null` to have no value.
+  String get quotedValue;
+
   @override
   String toString() {
-    if (value != null) {
-      return '$AttributeAst {$name="$value"}';
+    if (quotedValue != null) {
+      return '$AttributeAst {$name=$quotedValue}';
     }
     return '$AttributeAst {$name}';
   }
 }
 
-class _ParsedAttributeAst extends TemplateAst with AttributeAst {
-  final NgToken _nameToken;
-  final NgToken _valueToken;
+/// Represents a real(non-synthetic) parsed AttributeAst. Preserves offsets.
+///
+/// Clients should not extend, implement, or mix-in this class.
+class ParsedAttributeAst extends TemplateAst with AttributeAst, TagOffsetInfo {
+  /// [NgToken] that represents the attribute name.
+  final NgToken nameToken;
 
-  _ParsedAttributeAst(
+  /// [NgAttributeValueToken] that represents the attribute value. May be `null`
+  /// to have no value.
+  final NgAttributeValueToken valueToken;
+
+  /// [NgToken] that represents the equal sign token. May be `null` to have no
+  /// value.
+  final NgToken equalSignToken;
+
+  ParsedAttributeAst(
     SourceFile sourceFile,
-    NgToken nameToken, [
-    this._valueToken,
-    NgToken endValueToken,
+    NgToken beginToken,
+    this.nameToken, [
+    this.valueToken,
+    this.equalSignToken,
   ])
-      : _nameToken = nameToken,
-        super.parsed(nameToken, endValueToken ?? nameToken, sourceFile);
+      : super.parsed(
+          beginToken,
+          (valueToken == null ? nameToken : valueToken.rightQuote),
+          sourceFile,
+        );
 
+  /// Static attribute name.
   @override
-  String get name => _nameToken.lexeme;
+  String get name => nameToken.lexeme;
 
+  /// Static attribute name offset.
   @override
-  String get value => _valueToken?.lexeme;
+  int get nameOffset => nameToken.offset;
+
+  /// Static offset of equal sign; may be `null` to have no value.
+  @override
+  int get equalSignOffset => equalSignToken?.offset;
+
+  /// Static attribute value; may be `null` to have no value.
+  @override
+  String get value => valueToken?.innerValue?.lexeme;
+
+  /// Static attribute value including quotes; may be `null` to have no value.
+  @override
+  String get quotedValue => valueToken?.lexeme;
+
+  /// Static attribute value offset; may be `null` to have no value.
+  @override
+  int get valueOffset => valueToken?.innerValue?.offset;
+
+  /// Static attribute value including quotes offset; may be `null` to have no
+  /// value.
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
 }
 
 class _SyntheticAttributeAst extends SyntheticTemplateAst with AttributeAst {
@@ -90,6 +135,9 @@ class _SyntheticAttributeAst extends SyntheticTemplateAst with AttributeAst {
 
   @override
   final String value;
+
+  @override
+  String get quotedValue => value == null ? null : '"$value"';
 
   _SyntheticAttributeAst(this.name, [this.value]);
 

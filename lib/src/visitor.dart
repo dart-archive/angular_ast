@@ -5,6 +5,7 @@
 import 'package:angular_ast/src/ast.dart';
 export 'package:angular_ast/src/visitors/humanizing.dart';
 export 'package:angular_ast/src/visitors/identity.dart';
+export 'package:angular_ast/src/visitors/desugar_visitor.dart';
 
 /// A visitor for [TemplateAst] trees that may process each node.
 ///
@@ -69,4 +70,7 @@ abstract class TemplateAstVisitor<R, C> {
 
   /// Visits all text ASTs.
   R visitText(TextAst astNode, [C context]);
+
+  /// Visits all whitespace ASTs.
+  R visitWhitespace(WhitespaceAst astNode, [C context]);
 }

@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
-import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
-/// Represents the `[(property)]="field"` syntax.
+/// Represents the `[(property)]="value"` syntax.
 ///
 /// This AST may only exist in the parses that do not de-sugar directives (i.e.
 /// useful for tooling, but not useful for compilers).
@@ -31,10 +31,13 @@ abstract class BananaAst implements TemplateAst {
   /// Create a new [BananaAst] parsed from tokens from [sourceFile].
   factory BananaAst.parsed(
     SourceFile sourceFile,
-    NgToken nameToken,
-    NgToken fieldToken,
-    NgToken endFieldToken,
-  ) = _ParsedBananaAst;
+    NgToken beginToken,
+    NgToken prefixToken,
+    NgToken elementDecoratorToken,
+    NgToken suffixToken,
+    NgAttributeValueToken valueToken,
+    NgToken equalSignToken,
+  ) = ParsedBananaAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -44,45 +47,92 @@ abstract class BananaAst implements TemplateAst {
   @override
   bool operator ==(Object o) {
     if (o is BananaAst) {
-      return name == o.name && field == o.field;
+      return name == o.name && value == o.value;
     }
     return false;
   }
 
   @override
-  int get hashCode => hash2(name, field);
+  int get hashCode => hash2(name, value);
 
   /// Name of the property.
   String get name;
 
-  /// Field bound to.
-  String get field;
+  /// Value bound to.
+  String get value;
 
   @override
   String toString() {
-    return '$BananaAst {$name="$field"}';
+    return '$BananaAst {$name="$value"}';
   }
 }
 
-class _ParsedBananaAst extends TemplateAst with BananaAst {
-  final NgToken _nameToken;
-  final NgToken _fieldToken;
+/// Represents a real, non-synthetic `[(property)]="value"` syntax.
+///
+/// This AST may only exist in the parses that do not de-sugar directives (i.e.
+/// useful for tooling, but not useful for compilers). Preserves offsets.
+///
+/// Clients should not extend, implement, or mix-in this class.
+class ParsedBananaAst extends TemplateAst
+    with BananaAst, TagOffsetInfo, SpecialOffsetInfo {
+  /// Components of element decorator representing [(banana)].
+  final NgToken prefixToken;
+  final NgToken nameToken;
+  final NgToken suffixToken;
 
-  _ParsedBananaAst(
+  /// [NgAttributeValueToken] that represents `"value"`; may be `null` to have
+  /// no value.
+  final NgAttributeValueToken valueToken;
+
+  /// [NgToken] that represents the equal sign token; may be `null` to have
+  /// no value.
+  final NgToken equalSignToken;
+
+  ParsedBananaAst(
     SourceFile sourceFile,
-    NgToken nameToken,
-    this._fieldToken,
-    NgToken endValueToken,
+    NgToken beginToken,
+    this.prefixToken,
+    this.nameToken,
+    this.suffixToken,
+    this.valueToken,
+    this.equalSignToken,
   )
-      : _nameToken = nameToken,
-        super.parsed(nameToken, endValueToken, sourceFile);
+      : super.parsed(
+            beginToken,
+            (valueToken == null ? valueToken.rightQuote : suffixToken),
+            sourceFile);
 
+  /// Inner name `property` in `[(property)]`.
   @override
-  String get name =>
-      _nameToken.lexeme.substring(1, _nameToken.lexeme.length - 1);
+  String get name => nameToken.lexeme;
 
+  /// Offset of `property` in `[(property)]`.
   @override
-  String get field => _fieldToken.lexeme;
+  int get nameOffset => nameToken.offset;
+
+  /// Offset of equal sign; may be `null` to have no value.
+  @override
+  int get equalSignOffset => equalSignToken?.offset;
+
+  /// Value bound to banana property; may be `null` to have no value.
+  @override
+  String get value => valueToken?.innerValue?.lexeme;
+
+  /// Offset of value; may be `null` to have no value.
+  @override
+  int get valueOffset => valueToken?.innerValue?.offset;
+
+  /// Offset of value starting at left quote; may be `null` to have no value.
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
+
+  /// Offset of banana prefix `[(`.
+  @override
+  int get prefixOffset => prefixToken.offset;
+
+  /// Offset of banana suffix `)]`.
+  @override
+  int get suffixOffset => suffixToken.offset;
 }
 
 class _SyntheticBananaAst extends SyntheticTemplateAst with BananaAst {
@@ -90,14 +140,14 @@ class _SyntheticBananaAst extends SyntheticTemplateAst with BananaAst {
   final String name;
 
   @override
-  final String field;
+  final String value;
 
-  _SyntheticBananaAst(this.name, [this.field]);
+  _SyntheticBananaAst(this.name, [this.value]);
 
   _SyntheticBananaAst.from(
     TemplateAst origin,
     this.name, [
-    this.field,
+    this.value,
   ])
       : super.from(origin);
 }

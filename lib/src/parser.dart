@@ -5,8 +5,10 @@
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/lexer.dart';
 import 'package:angular_ast/src/parser/recursive.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
+import 'package:angular_ast/src/visitor.dart';
 
 class NgParser {
   // Elements that explicitly don't have a closing tag.
@@ -45,11 +47,32 @@ class NgParser {
       : _toolFriendlyAstOrigin = toolFriendlyAstOrigin;
 
   /// Return a series of tokens by incrementally scanning [template].
+  ///
+  /// Automatically desugars.
   List<StandaloneTemplateAst> parse(
     String template, {
     @required String sourceUrl,
+    ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
   }) {
-    final tokens = const NgLexer().tokenize(template);
+    final asts = parsePreserve(
+      template,
+      sourceUrl: sourceUrl,
+      exceptionHandler: exceptionHandler,
+    );
+    DesugarVisitor visitor =
+        new DesugarVisitor(toolFriendlyAstOrigin: _toolFriendlyAstOrigin);
+    return asts.map((t) => t.accept(visitor)).toList();
+  }
+
+  /// Return a series of tokens by incrementally scanning [template].
+  ///
+  /// Does not automatically desugar.
+  List<StandaloneTemplateAst> parsePreserve(
+    String template, {
+    @required String sourceUrl,
+    ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
+  }) {
+    final tokens = const NgLexer().tokenize(template, exceptionHandler);
     final parser = new RecursiveAstParser(
       new SourceFile(
         template,
@@ -57,7 +80,6 @@ class NgParser {
       ),
       tokens,
       _voidElements,
-      toolFriendlyAstOrigin: _toolFriendlyAstOrigin,
     );
     return parser.parse();
   }

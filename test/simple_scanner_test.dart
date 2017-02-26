@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/simple_tokenizer.dart';
-import 'package:angular_ast/src/simple_token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -20,7 +20,7 @@ void main() {
   });
 
   test('text node: should tokenize elementStart tag', () {
-    expect(tokenize("<div></div>"), new NgSimpleToken.tagStart(0));
+    expect(tokenize("<div></div>"), new NgSimpleToken.openTagStart(0));
   });
 
   test('text node: should tokenize EOF', () {
@@ -53,8 +53,8 @@ void main() {
     expect(tokenizeTag("> some text </div>"), new NgSimpleToken.tagEnd(0));
   });
 
-  test('element: should tokenize forwardSlash', () {
-    expect(tokenizeTag("/><div></div>"), new NgSimpleToken.forwardSlash(0));
+  test('element: should tokenize voidCloseTag', () {
+    expect(tokenizeTag("/><div></div>"), new NgSimpleToken.voidCloseTag(0));
   });
 
   test('element: should tokenize openBracket', () {
@@ -73,7 +73,7 @@ void main() {
 
   test('element: should tokenize identifier', () {
     expect(tokenizeTag("my-element_tag [a]='y'>"),
-        new NgSimpleToken.dashedIdentifier(0, "my-element_tag"));
+        new NgSimpleToken.identifier(0, "my-element_tag"));
   });
 
   test('element: should tokenize single letter text', () {
@@ -105,7 +105,7 @@ void main() {
   });
 
   test('element: should tokenize elementStart tag', () {
-    expect(tokenizeTag("<div></div>"), new NgSimpleToken.tagStart(0));
+    expect(tokenizeTag("<div></div>"), new NgSimpleToken.openTagStart(0));
   });
 
   test('element: should tokenize equalSign', () {

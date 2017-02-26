@@ -20,7 +20,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitBanana(BananaAst astNode, [_]) {
-    return '[(${astNode.name})]="${astNode.field}"';
+    return '[(${astNode.name})]="${astNode.value}"';
   }
 
   @override
@@ -51,6 +51,19 @@ class HumanizingTemplateAstVisitor
       context
         ..write(' ')
         ..writeAll(astNode.references.map(visitReference), ' ');
+    }
+    if (astNode.bananas.isNotEmpty) {
+      context
+        ..write(' ')
+        ..writeAll(astNode.bananas.map(visitBanana), ' ');
+    }
+    if (astNode.stars.isNotEmpty) {
+      context
+        ..write(' ')
+        ..writeAll(astNode.stars.map(visitStar), ' ');
+    }
+    if (astNode.whitespaces.isNotEmpty) {
+      context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
     }
     context.write('>');
     if (astNode.childNodes.isNotEmpty) {
@@ -149,4 +162,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitText(TextAst astNode, [_]) => astNode.value;
+
+  @override
+  String visitWhitespace(WhitespaceAst astNode, [_]) => astNode.value;
 }

@@ -3,109 +3,106 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/simple_tokenizer.dart';
-import 'package:angular_ast/src/simple_token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:test/test.dart';
 
 void main() {
   Iterable<NgSimpleToken> tokenize(String html) =>
       new NgSimpleTokenizer().tokenize(html);
   String untokenize(Iterable<NgSimpleToken> tokens) => tokens
-      .fold(
-          new StringBuffer(),
-          (buffer, token) => buffer
-            ..write((token is NgSimpleQuoteToken)
-                ? token.quotedLexeme
-                : token.lexeme))
+      .fold(new StringBuffer(), (buffer, token) => buffer..write(token.lexeme))
       .toString();
 
   test('should tokenize plain text', () {
     expect(tokenize('Hello World'), [
       new NgSimpleToken.text(0, 'Hello World'),
+      new NgSimpleToken.EOF(11),
     ]);
   });
 
   test('should tokenize multiline text', () {
-    expect(
-        tokenize('Hello\nWorld'), [new NgSimpleToken.text(0, 'Hello\nWorld')]);
+    expect(tokenize('Hello\nWorld'), [
+      new NgSimpleToken.text(0, 'Hello\nWorld'),
+      new NgSimpleToken.EOF(11),
+    ]);
   });
 
   test('should tokenize an HTML element', () {
     expect(tokenize('''<div></div>'''), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, 'div'),
       new NgSimpleToken.tagEnd(4),
-      new NgSimpleToken.tagStart(5),
-      new NgSimpleToken.forwardSlash(6),
+      new NgSimpleToken.closeTagStart(5),
       new NgSimpleToken.identifier(7, 'div'),
-      new NgSimpleToken.tagEnd(10)
+      new NgSimpleToken.tagEnd(10),
+      new NgSimpleToken.EOF(11),
     ]);
   });
 
   test('should tokenize an HTML element with dash', () {
     expect(tokenize('''<my-tag></my-tag>'''), [
-      new NgSimpleToken.tagStart(0),
-      new NgSimpleToken.dashedIdentifier(1, 'my-tag'),
+      new NgSimpleToken.openTagStart(0),
+      new NgSimpleToken.identifier(1, 'my-tag'),
       new NgSimpleToken.tagEnd(7),
-      new NgSimpleToken.tagStart(8),
-      new NgSimpleToken.forwardSlash(9),
-      new NgSimpleToken.dashedIdentifier(10, 'my-tag'),
-      new NgSimpleToken.tagEnd(16)
+      new NgSimpleToken.closeTagStart(8),
+      new NgSimpleToken.identifier(10, 'my-tag'),
+      new NgSimpleToken.tagEnd(16),
+      new NgSimpleToken.EOF(17),
     ]);
   });
 
   test('should tokenize an HTML element with local variable', () {
     expect(tokenize('''<div #myDiv></div>'''), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, 'div'),
       new NgSimpleToken.whitespace(4, ' '),
       new NgSimpleToken.hash(5),
       new NgSimpleToken.identifier(6, 'myDiv'),
       new NgSimpleToken.tagEnd(11),
-      new NgSimpleToken.tagStart(12),
-      new NgSimpleToken.forwardSlash(13),
+      new NgSimpleToken.closeTagStart(12),
       new NgSimpleToken.identifier(14, 'div'),
-      new NgSimpleToken.tagEnd(17)
+      new NgSimpleToken.tagEnd(17),
+      new NgSimpleToken.EOF(18),
     ]);
   });
 
   test('should tokenize an HTML element with void', () {
     expect(tokenize('<hr/>'), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, "hr"),
-      new NgSimpleToken.forwardSlash(3),
-      new NgSimpleToken.tagEnd(4)
+      new NgSimpleToken.voidCloseTag(3),
+      new NgSimpleToken.EOF(5),
     ]);
   });
 
   test('should tokenize nested HTML elements', () {
     expect(tokenize('<div><span></span></div>'), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, 'div'),
       new NgSimpleToken.tagEnd(4),
-      new NgSimpleToken.tagStart(5),
+      new NgSimpleToken.openTagStart(5),
       new NgSimpleToken.identifier(6, 'span'),
       new NgSimpleToken.tagEnd(10),
-      new NgSimpleToken.tagStart(11),
-      new NgSimpleToken.forwardSlash(12),
+      new NgSimpleToken.closeTagStart(11),
       new NgSimpleToken.identifier(13, 'span'),
       new NgSimpleToken.tagEnd(17),
-      new NgSimpleToken.tagStart(18),
-      new NgSimpleToken.forwardSlash(19),
+      new NgSimpleToken.closeTagStart(18),
       new NgSimpleToken.identifier(20, 'div'),
-      new NgSimpleToken.tagEnd(23)
+      new NgSimpleToken.tagEnd(23),
+      new NgSimpleToken.EOF(24),
     ]);
   });
 
   test('should tokenize HTML elements mixed with plain text', () {
     expect(tokenize('<div>Hello this is text</div>'), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, 'div'),
       new NgSimpleToken.tagEnd(4),
       new NgSimpleToken.text(5, 'Hello this is text'),
-      new NgSimpleToken.tagStart(23),
-      new NgSimpleToken.forwardSlash(24),
+      new NgSimpleToken.closeTagStart(23),
       new NgSimpleToken.identifier(25, 'div'),
-      new NgSimpleToken.tagEnd(28)
+      new NgSimpleToken.tagEnd(28),
+      new NgSimpleToken.EOF(29),
     ]);
   });
 
@@ -127,7 +124,7 @@ void main() {
 
   test('should tokenize an element with a decorator with a value', () {
     expect(tokenize(r'<button title="Submit \"quoted text\""></button>'), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, 'button'),
       new NgSimpleToken.whitespace(7, ' '),
       new NgSimpleToken.identifier(8, 'title'),
@@ -135,18 +132,18 @@ void main() {
       new NgSimpleQuoteToken.doubleQuotedText(
           14, '"Submit \"quoted text\""', true),
       new NgSimpleToken.tagEnd(38),
-      new NgSimpleToken.tagStart(39),
-      new NgSimpleToken.forwardSlash(40),
+      new NgSimpleToken.closeTagStart(39),
       new NgSimpleToken.identifier(41, 'button'),
-      new NgSimpleToken.tagEnd(47)
+      new NgSimpleToken.tagEnd(47),
+      new NgSimpleToken.EOF(48),
     ]);
   });
 
   test('should tokenize an HTML element with bracket and period in decorator',
       () {
     expect(tokenize('''<my-tag [attr.x]="y"></my-tag>'''), [
-      new NgSimpleToken.tagStart(0),
-      new NgSimpleToken.dashedIdentifier(1, 'my-tag'),
+      new NgSimpleToken.openTagStart(0),
+      new NgSimpleToken.identifier(1, 'my-tag'),
       new NgSimpleToken.whitespace(7, ' '),
       new NgSimpleToken.openBracket(8),
       new NgSimpleToken.identifier(9, 'attr'),
@@ -156,10 +153,23 @@ void main() {
       new NgSimpleToken.equalSign(16),
       new NgSimpleQuoteToken.doubleQuotedText(17, '"y"', true),
       new NgSimpleToken.tagEnd(20),
-      new NgSimpleToken.tagStart(21),
-      new NgSimpleToken.forwardSlash(22),
-      new NgSimpleToken.dashedIdentifier(23, 'my-tag'),
-      new NgSimpleToken.tagEnd(29)
+      new NgSimpleToken.closeTagStart(21),
+      new NgSimpleToken.identifier(23, 'my-tag'),
+      new NgSimpleToken.tagEnd(29),
+      new NgSimpleToken.EOF(30),
+    ]);
+  });
+
+  test('should tokenize an HTML element with banana open and close', () {
+    expect(tokenize('''<my-tag [(banana)]>'''), [
+      new NgSimpleToken.openTagStart(0),
+      new NgSimpleToken.identifier(1, 'my-tag'),
+      new NgSimpleToken.whitespace(7, ' '),
+      new NgSimpleToken.openBanana(8),
+      new NgSimpleToken.identifier(10, 'banana'),
+      new NgSimpleToken.closeBanana(16),
+      new NgSimpleToken.tagEnd(18),
+      new NgSimpleToken.EOF(19),
     ]);
   });
 
@@ -188,7 +198,8 @@ void main() {
     expect(tokenize('<!--Hello World-->'), [
       new NgSimpleToken.commentBegin(0),
       new NgSimpleToken.text(4, 'Hello World'),
-      new NgSimpleToken.commentEnd(15)
+      new NgSimpleToken.commentEnd(15),
+      new NgSimpleToken.EOF(18),
     ]);
   });
 
@@ -205,13 +216,14 @@ void main() {
           '\n  Copyright (c) 2016, the Dart project authors.\n',
         ),
         new NgSimpleToken.commentEnd(53),
+        new NgSimpleToken.EOF(56),
       ],
     );
   });
 
   test('should tokenize asterisks', () {
     expect(tokenize('<span *ngIf="some bool"></span>'), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, "span"),
       new NgSimpleToken.whitespace(5, ' '),
       new NgSimpleToken.star(6),
@@ -219,10 +231,10 @@ void main() {
       new NgSimpleToken.equalSign(11),
       new NgSimpleQuoteToken.doubleQuotedText(12, '"some bool"', true),
       new NgSimpleToken.tagEnd(23),
-      new NgSimpleToken.tagStart(24),
-      new NgSimpleToken.forwardSlash(25),
+      new NgSimpleToken.closeTagStart(24),
       new NgSimpleToken.identifier(26, 'span'),
-      new NgSimpleToken.tagEnd(30)
+      new NgSimpleToken.tagEnd(30),
+      new NgSimpleToken.EOF(31),
     ]);
   });
 
@@ -239,14 +251,16 @@ void main() {
             4,
             '\n  Copyright (c) 2016, the Dart project authors.\n',
           ),
+          new NgSimpleToken.EOF(53),
         ]);
   });
 
   test('should tokenize unclosed element tag hitting EOF', () {
     expect(tokenize('<div '), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, 'div'),
-      new NgSimpleToken.whitespace(4, ' ')
+      new NgSimpleToken.whitespace(4, ' '),
+      new NgSimpleToken.EOF(5),
     ]);
   });
 
@@ -258,22 +272,22 @@ void main() {
             '<span'
             '</div>'),
         [
-          new NgSimpleToken.tagStart(0),
+          new NgSimpleToken.openTagStart(0),
           new NgSimpleToken.identifier(1, 'div'),
           new NgSimpleToken.tagEnd(4),
           new NgSimpleToken.text(5, ' some text stuff here '),
-          new NgSimpleToken.tagStart(27),
+          new NgSimpleToken.openTagStart(27),
           new NgSimpleToken.identifier(28, 'span'),
-          new NgSimpleToken.tagStart(32),
-          new NgSimpleToken.forwardSlash(33),
+          new NgSimpleToken.closeTagStart(32),
           new NgSimpleToken.identifier(34, 'div'),
-          new NgSimpleToken.tagEnd(37)
+          new NgSimpleToken.tagEnd(37),
+          new NgSimpleToken.EOF(38),
         ]);
   });
 
   test('should tokenize dangling double quote', () {
     expect(tokenize('''<div [someInput]=" (someEvent)='do something'>'''), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, 'div'),
       new NgSimpleToken.whitespace(4, ' '),
       new NgSimpleToken.openBracket(5),
@@ -282,12 +296,13 @@ void main() {
       new NgSimpleToken.equalSign(16),
       new NgSimpleQuoteToken.doubleQuotedText(
           17, '" (someEvent)=\'do something\'>', false),
+      new NgSimpleToken.EOF(46),
     ]);
   });
 
   test('should tokenize dangling single quote', () {
     expect(tokenize('''<div [someInput]=' (someEvent)="do something">'''), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, 'div'),
       new NgSimpleToken.whitespace(4, ' '),
       new NgSimpleToken.openBracket(5),
@@ -296,27 +311,30 @@ void main() {
       new NgSimpleToken.equalSign(16),
       new NgSimpleQuoteToken.singleQuotedText(
           17, "' (someEvent)=\"do something\">", false),
+      new NgSimpleToken.EOF(46),
     ]);
   });
 
   test('should tokenize unclosed attr hitting EOF', () {
     expect(tokenize('<div someAttr '), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, 'div'),
       new NgSimpleToken.whitespace(4, ' '),
       new NgSimpleToken.identifier(5, 'someAttr'),
       new NgSimpleToken.whitespace(13, ' '),
+      new NgSimpleToken.EOF(14),
     ]);
   });
 
   test('should tokenize unclosed attr value hitting EOF', () {
     expect(tokenize('<div someAttr ='), [
-      new NgSimpleToken.tagStart(0),
+      new NgSimpleToken.openTagStart(0),
       new NgSimpleToken.identifier(1, 'div'),
       new NgSimpleToken.whitespace(4, ' '),
       new NgSimpleToken.identifier(5, 'someAttr'),
       new NgSimpleToken.whitespace(13, ' '),
       new NgSimpleToken.equalSign(14),
+      new NgSimpleToken.EOF(15),
     ]);
   });
 }

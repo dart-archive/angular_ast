@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:angular_ast/src/simple_token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:meta/meta.dart';
@@ -20,6 +20,7 @@ class NgSimpleTokenizer {
       yield token;
       token = scanner.scan();
     }
+    yield token; // Explicitly yield the EOF token.
   }
 }
 
@@ -117,6 +118,10 @@ class NgSimpleScanner {
         return new NgSimpleToken.dash(offset);
       }
       if (matchesGroup(match, 4)) {
+        if (_scanner.peekChar() == $close_bracket) {
+          _scanner.position++;
+          return new NgSimpleToken.closeBanana(offset);
+        }
         return new NgSimpleToken.closeParen(offset);
       }
       if (matchesGroup(match, 5)) {
@@ -124,9 +129,18 @@ class NgSimpleScanner {
         return new NgSimpleToken.tagEnd(offset);
       }
       if (matchesGroup(match, 6)) {
+        if (_scanner.peekChar() == $gt) {
+          _scanner.position++;
+          _state = _NgSimpleScannerState.text;
+          return new NgSimpleToken.voidCloseTag(offset);
+        }
         return new NgSimpleToken.forwardSlash(offset);
       }
       if (matchesGroup(match, 7)) {
+        if (_scanner.peekChar() == $open_paren) {
+          _scanner.position++;
+          return new NgSimpleToken.openBanana(offset);
+        }
         return new NgSimpleToken.openBracket(offset);
       }
       if (matchesGroup(match, 8)) {
@@ -137,9 +151,6 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 10)) {
         String s = _scanner.substring(offset);
-        if (s.contains("-")) {
-          return new NgSimpleToken.dashedIdentifier(offset, s);
-        }
         return new NgSimpleToken.identifier(offset, s);
       }
       if (matchesGroup(match, 12)) {
@@ -155,7 +166,18 @@ class NgSimpleScanner {
             offset, lexeme, isClosed);
       }
       if (matchesGroup(match, 16)) {
-        return new NgSimpleToken.tagStart(offset);
+        if (_scanner.peekChar() == $exclamation &&
+            _scanner.peekChar(1) == $dash &&
+            _scanner.peekChar(2) == $dash) {
+          _state = _NgSimpleScannerState.comment;
+          _scanner.position = offset + 4;
+          return new NgSimpleToken.commentBegin(offset);
+        }
+        if (_scanner.peekChar() == $slash) {
+          _scanner.position++;
+          return new NgSimpleToken.closeTagStart(offset);
+        }
+        return new NgSimpleToken.openTagStart(offset);
       }
       if (matchesGroup(match, 17)) {
         return new NgSimpleToken.equalSign(offset);
@@ -189,8 +211,13 @@ class NgSimpleScanner {
         return new NgSimpleToken.commentBegin(offset);
       }
       if (matchesGroup(match, 3)) {
+        if (_scanner.peekChar() == $slash) {
+          _scanner.position++;
+          _state = _NgSimpleScannerState.element;
+          return new NgSimpleToken.closeTagStart(offset);
+        }
         _state = _NgSimpleScannerState.element;
-        return new NgSimpleToken.tagStart(offset);
+        return new NgSimpleToken.openTagStart(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(

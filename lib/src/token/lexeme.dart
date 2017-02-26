@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of angular_ast.src.token;
+part of angular_ast.src.token.tokens;
 
 // A token that has a custom lexeme, i.e. not predefined by a token type.
 //
 // For example, an `elementIdentifier` is (almost) any arbitrary string.
 class _LexemeNgToken extends NgToken {
-  const _LexemeNgToken(int offset, this.lexeme, NgTokenType type)
-      : super._(type, offset);
+  const _LexemeNgToken(int offset, this.lexeme, NgTokenType type,
+      {errorSynthetic: false})
+      : super._(type, offset, errorSynthetic: errorSynthetic);
 
   @override
   bool operator ==(Object o) {

@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/scanner.dart';
-import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:meta/meta.dart';
 
 /// Separates an Angular template into a series of lexical tokens.
@@ -20,8 +21,9 @@ class NgLexer {
   const NgLexer._();
 
   /// Return a series of tokens by incrementally scanning [template].
-  Iterable<NgToken> tokenize(String template) sync* {
-    final scanner = new NgScanner(template);
+  Iterable<NgToken> tokenize(
+      String template, ExceptionHandler exceptionHandler) sync* {
+    final scanner = new NgScanner(template, exceptionHandler);
     NgToken token = scanner.scan();
     while (token != null) {
       yield token;

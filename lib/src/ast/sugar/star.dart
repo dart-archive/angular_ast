@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
-import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
@@ -32,10 +32,11 @@ abstract class StarAst implements TemplateAst {
   factory StarAst.parsed(
     SourceFile sourceFile,
     NgToken beginToken,
-    NgToken nameToken,
-    NgToken endToken, [
-    ExpressionAst expressionAst,
-  ]) = _ParsedStarAst;
+    NgToken prefixToken,
+    NgToken elementDecoratorToken, [
+    NgAttributeValueToken valueToken,
+    NgToken equalSignToken,
+  ]) = ParsedStarAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -59,6 +60,9 @@ abstract class StarAst implements TemplateAst {
   /// Name of the directive being created.
   String get name;
 
+  /// Name of expression string
+  String get value;
+
   @override
   String toString() {
     if (expression != null) {
@@ -68,23 +72,75 @@ abstract class StarAst implements TemplateAst {
   }
 }
 
-class _ParsedStarAst extends TemplateAst with StarAst {
-  final NgToken _nameToken;
+/// Represents a real, non-synthetic sugared form of `*directive="value"`.
+///
+/// This AST may only exist in the parses that do not de-sugar directives (i.e.
+/// useful for tooling, but not useful for compilers). Preserves offsets.
+///
+/// Clients should not extend, implement, or mix-in this class.
+class ParsedStarAst extends TemplateAst
+    with StarAst, TagOffsetInfo, SpecialOffsetInfo {
+  final NgToken prefixToken;
+  final NgToken nameToken;
 
-  _ParsedStarAst(
+  /// [NgAttributeValueToken] that represents `"value"`; may be `null` to have
+  /// no value.
+  final NgAttributeValueToken valueToken;
+
+  /// [NgToken] that represents the equal sign token; may be `null` to have no
+  /// value.
+  final NgToken equalSignToken;
+
+  ParsedStarAst(
     SourceFile sourceFile,
     NgToken beginToken,
-    this._nameToken,
-    NgToken endToken, [
-    this.expression,
+    this.prefixToken,
+    this.nameToken, [
+    this.valueToken,
+    this.equalSignToken,
   ])
-      : super.parsed(beginToken, endToken, sourceFile);
+      : this.expression = valueToken != null
+            ? new ExpressionAst.parse(valueToken.innerValue.lexeme,
+                sourceUrl: sourceFile.url.toString())
+            : null,
+        super.parsed(beginToken,
+            valueToken != null ? valueToken.rightQuote : nameToken, sourceFile);
 
+  /// ExpressionAst of `"value"`; may be null to have no value.
   @override
   final ExpressionAst expression;
 
+  /// Name `directive` in `*directive`.
   @override
-  String get name => _nameToken.lexeme.substring(1);
+  String get name => nameToken.lexeme;
+
+  /// Offset of `directive` in `*directive`.
+  @override
+  int get nameOffset => nameToken.offset;
+
+  /// Offset of equal sign; may be `null` to have no value.
+  @override
+  int get equalSignOffset => equalSignToken.offset;
+
+  /// Value bound to `*directive`; may be `null` to have no value.
+  @override
+  String get value => valueToken?.innerValue?.lexeme;
+
+  /// Offset of value; may be `null to have no value.
+  @override
+  int get valueOffset => valueToken?.innerValue?.offset;
+
+  /// Offset of value starting at left quote; may be `null` to have no value.
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
+
+  /// Offset of template prefix `*`.
+  @override
+  int get prefixOffset => prefixToken.offset;
+
+  /// Always returns `null` since `*directive` has no suffix.
+  @override
+  int get suffixOffset => null;
 }
 
 class _SyntheticStarAst extends SyntheticTemplateAst with StarAst {
@@ -105,4 +161,7 @@ class _SyntheticStarAst extends SyntheticTemplateAst with StarAst {
 
   @override
   final String name;
+
+  @override
+  String get value => expression.expression.toString();
 }

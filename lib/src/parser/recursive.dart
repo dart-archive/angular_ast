@@ -3,24 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
-import 'package:angular_ast/src/expression/micro.dart';
 import 'package:angular_ast/src/parser/reader.dart';
-import 'package:angular_ast/src/token.dart';
-import 'package:charcode/charcode.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:source_span/source_span.dart';
 
 /// A recursive descent AST parser from a series of tokens.
 class RecursiveAstParser {
-  final NgTokenReader _reader;
+  final NgTokenReversibleReader _reader;
   final SourceFile _source;
-  final bool _toolFriendlyAstOrigin;
   final List<String> _voidElements;
 
   RecursiveAstParser(
-      SourceFile sourceFile, Iterable<NgToken> tokens, this._voidElements,
-      {bool toolFriendlyAstOrigin: false})
-      : _toolFriendlyAstOrigin = toolFriendlyAstOrigin,
-        _reader = new NgTokenReader(sourceFile, tokens),
+    SourceFile sourceFile,
+    Iterable<NgToken> tokens,
+    this._voidElements,
+  )
+      : _reader = new NgTokenReversibleReader(sourceFile, tokens),
         _source = sourceFile;
 
   /// Iterates through and returns the top-level AST nodes from the tokens.
@@ -55,67 +53,102 @@ class RecursiveAstParser {
   }
 
   /// Parses and returns a template AST beginning at the token provided.
+  /// No desugaring of any kind occurs here.
   TemplateAst parseDecorator(NgToken beginToken) {
     // The first token is the decorator/name.
-    final nameToken = _reader.expect(NgTokenType.elementDecorator);
-    final startChar = nameToken.lexeme.codeUnitAt(0);
-    NgToken valueToken;
-    NgToken endValueToken;
-    var endToken = nameToken;
+    NgToken prefixToken;
+    NgToken decoratorToken;
+    NgToken suffixToken;
 
-    // If the next token starts a value then we need to parse the expression.
-    if (_reader.peek().type == NgTokenType.beforeElementDecoratorValue) {
-      _reader.next();
-      valueToken = _reader.expect(NgTokenType.elementDecoratorValue);
-      endValueToken = _reader.expect(NgTokenType.afterElementDecoratorValue);
-      endToken = endValueToken;
+    NgTokenType peekType = _reader.peekType();
+    if (peekType == NgTokenType.bananaPrefix ||
+        peekType == NgTokenType.eventPrefix ||
+        peekType == NgTokenType.propertyPrefix) {
+      prefixToken = _reader.next();
+      decoratorToken = _reader.next();
+      suffixToken = _reader.next();
+    } else if (peekType == NgTokenType.referencePrefix ||
+        peekType == NgTokenType.templatePrefix) {
+      prefixToken = _reader.next();
+      decoratorToken = _reader.next();
+    } else {
+      decoratorToken = _reader.next();
     }
 
-    // Determine what the decorator type is, i.e. either a:
-    // - property
-    // - event
-    // - reference
-    // - attribute
-    switch (startChar) {
-      case $open_bracket:
-        return new PropertyAst.parsed(
+    NgAttributeValueToken valueToken;
+    NgToken equalSignToken;
+
+    if (_reader.peekTypeIgnoringType(NgTokenType.whitespace) ==
+        NgTokenType.beforeElementDecoratorValue) {
+      while (_reader.peekType() == NgTokenType.whitespace) {
+        _reader.next();
+      }
+      equalSignToken = _reader.next();
+      valueToken = _reader.expectTypeIgnoringType(
+              NgTokenType.elementDecoratorValue, NgTokenType.whitespace)
+          as NgAttributeValueToken;
+    }
+
+    if (prefixToken != null) {
+      NgTokenType prefixType = prefixToken.type;
+
+      if (prefixType == NgTokenType.bananaPrefix) {
+        return new BananaAst.parsed(
           _source,
           beginToken,
-          nameToken,
-          endToken,
-          valueToken != null
-              ? new ExpressionAst.parse(
-                  valueToken.lexeme,
-                  sourceUrl: _source.url.toString(),
-                )
-              : null,
+          prefixToken,
+          decoratorToken,
+          suffixToken,
+          valueToken,
+          equalSignToken,
         );
-      case $open_parenthesis:
+      } else if (prefixType == NgTokenType.eventPrefix) {
         return new EventAst.parsed(
           _source,
           beginToken,
-          nameToken,
-          new ExpressionAst.parse(
-            valueToken.lexeme,
-            sourceUrl: _source.url.toString(),
-          ),
-          endToken,
+          prefixToken,
+          decoratorToken,
+          suffixToken,
+          valueToken,
+          equalSignToken,
         );
-      case $hash:
+      } else if (prefixType == NgTokenType.propertyPrefix) {
+        return new PropertyAst.parsed(
+          _source,
+          beginToken,
+          prefixToken,
+          decoratorToken,
+          suffixToken,
+          valueToken,
+          equalSignToken,
+        );
+      } else if (prefixType == NgTokenType.referencePrefix) {
         return new ReferenceAst.parsed(
           _source,
-          nameToken,
+          beginToken,
+          prefixToken,
+          decoratorToken,
           valueToken,
-          endValueToken,
+          equalSignToken,
         );
-      default:
-        return new AttributeAst.parsed(
+      } else if (prefixType == NgTokenType.templatePrefix) {
+        return new StarAst.parsed(
           _source,
-          nameToken,
+          beginToken,
+          prefixToken,
+          decoratorToken,
           valueToken,
-          endValueToken,
+          equalSignToken,
         );
+      }
     }
+    return new AttributeAst.parsed(
+      _source,
+      beginToken,
+      decoratorToken,
+      valueToken,
+      equalSignToken,
+    );
   }
 
   /// Returns a DOM element AST starting at the provided token.
@@ -124,6 +157,7 @@ class RecursiveAstParser {
   StandaloneTemplateAst parseElement(NgToken beginToken) {
     // Parse the element identifier.
     final nameToken = _reader.expect(NgTokenType.elementIdentifier);
+    //TODO: do we want to allow trailing spaces in content/template tags?
     if (nameToken.lexeme == 'ng-content') {
       return parseEmbeddedContent(beginToken);
     } else if (nameToken.lexeme == 'template') {
@@ -137,8 +171,12 @@ class RecursiveAstParser {
     final events = <EventAst>[];
     final properties = <PropertyAst>[];
     final references = <ReferenceAst>[];
+    final bananas = <BananaAst>[];
+    final stars = <StarAst>[];
+    final whitespaces = <WhitespaceAst>[];
+    int openTagEnd;
+    int closeTagStart;
     NgToken nextToken;
-    AttributeAst deSugarTemplateAst;
 
     // Start looping and get all of the decorators within the element.
     do {
@@ -146,63 +184,37 @@ class RecursiveAstParser {
       if (nextToken.type == NgTokenType.beforeElementDecorator) {
         var decoratorAst = parseDecorator(nextToken);
         if (decoratorAst is AttributeAst) {
-          // De-sugar into a EmbeddedTemplateAst or create a StarAst.
-          if (decoratorAst.name.codeUnitAt(0) == $asterisk) {
-            if (deSugarTemplateAst != null) {
-              _reader.error(''
-                  'Already found an *-directive, limit 1 per element, but also '
-                  'found ${decoratorAst.sourceSpan.highlight()}');
-              return null;
-            }
-            deSugarTemplateAst = decoratorAst;
-          } else {
-            attributes.add(decoratorAst);
+          attributes.add(decoratorAst);
+        } else if (decoratorAst is StarAst) {
+          if (stars.isNotEmpty) {
+            _reader.error(''
+                'Already found an *-directive, limit 1 per element, but also '
+                'found ${decoratorAst.sourceSpan.highlight()}');
+            return null;
           }
+          stars.add(decoratorAst);
         } else if (decoratorAst is EventAst) {
           events.add(decoratorAst);
         } else if (decoratorAst is PropertyAst) {
-          // De-sugar into a property/event (banana syntax).
-          // TODO: Lint this properly.
-          if (decoratorAst.name.codeUnitAt(0) == $open_parenthesis) {
-            TemplateAst origin = decoratorAst;
-            if (_toolFriendlyAstOrigin) {
-              origin = new BananaAst.from(
-                decoratorAst,
-                decoratorAst.name,
-                decoratorAst.expression.expression.toSource(),
-              );
-            }
-            properties.add(
-              new PropertyAst.from(
-                  origin,
-                  decoratorAst.name.substring(1, decoratorAst.name.length - 1),
-                  decoratorAst.expression),
-            );
-            events.add(
-              new EventAst.from(
-                origin,
-                decoratorAst.name.substring(1, decoratorAst.name.length - 1) +
-                    'Changed',
-                new ExpressionAst.parse(
-                  '${decoratorAst.expression.expression} = \$event',
-                  sourceUrl: _source.url.toString(),
-                ),
-              ),
-            );
-          } else {
-            properties.add(decoratorAst);
-          }
+          properties.add(decoratorAst);
+        } else if (decoratorAst is BananaAst) {
+          bananas.add(decoratorAst);
         } else if (decoratorAst is ReferenceAst) {
           references.add(decoratorAst);
         } else {
           throw new StateError('Invalid decorator AST: $decoratorAst');
         }
       }
+      if (nextToken.type == NgTokenType.whitespace) {
+        whitespaces.add(new WhitespaceAst(_source, nextToken));
+      }
     } while (nextToken.type != NgTokenType.openElementEnd &&
         nextToken.type != NgTokenType.openElementEndVoid);
 
     // If this is a void element, skip this part
     var endToken = nextToken;
+    openTagEnd = endToken.offset;
+    //Look for closing tag
     if (!isVoidElement && nextToken.type != NgTokenType.openElementEndVoid) {
       // Collect child nodes.
       nextToken = _reader.next();
@@ -210,10 +222,14 @@ class RecursiveAstParser {
         childNodes.add(parseStandalone(nextToken));
         nextToken = _reader.next();
       }
+      closeTagStart = nextToken.offset;
       // Finally return the element.
       final closeName = _reader.expect(NgTokenType.elementIdentifier);
       if (closeName.lexeme != nameToken.lexeme) {
         _reader.error('Invalid closing tag: $closeName (expected $nameToken)');
+      }
+      while (_reader.peekType() == NgTokenType.whitespace) {
+        _reader.next();
       }
       endToken = _reader.expect(NgTokenType.closeElementEnd);
     }
@@ -222,66 +238,24 @@ class RecursiveAstParser {
       _source,
       beginToken,
       nameToken,
+      openTagEnd,
+      closeTagStart,
       endToken,
       attributes: attributes,
       childNodes: childNodes,
       events: events,
       properties: properties,
       references: references,
+      bananas: bananas,
+      stars: stars,
+      whitespaces: whitespaces,
     );
-    if (deSugarTemplateAst != null) {
-      TemplateAst origin = deSugarTemplateAst;
-      origin = new StarAst.from(
-        deSugarTemplateAst,
-        deSugarTemplateAst.name,
-        new ExpressionAst.parse(
-          deSugarTemplateAst.value,
-          sourceUrl: _source.url.toString(),
-        ),
-      );
-      final starExpression = deSugarTemplateAst.value;
-      final directiveName = deSugarTemplateAst.name.substring(1);
-      if (isMicroExpression(starExpression)) {
-        // This is a micro expression, so we further parse it.
-        final micro = parseMicroExpression(
-          directiveName,
-          starExpression,
-          sourceUrl: _source.url.toString(),
-        );
-        return new EmbeddedTemplateAst.from(
-          origin,
-          childNodes: [
-            element,
-          ],
-          attributes: [
-            new AttributeAst(directiveName),
-          ],
-          properties: micro.properties,
-          references: micro.assignments,
-        );
-      }
-      return new EmbeddedTemplateAst.from(
-        origin,
-        childNodes: [
-          element,
-        ],
-        properties: [
-          new PropertyAst(
-            directiveName,
-            new ExpressionAst.parse(
-              starExpression,
-              sourceUrl: _source.url.toString(),
-            ),
-          ),
-        ],
-      );
-    }
     return element;
   }
 
-  /// Returns and parses an embedded content directive.
+  /// Returns and parses an embedded content directive/transclusions.
   EmbeddedContentAst parseEmbeddedContent(NgToken beginToken) {
-    NgToken valueToken;
+    NgAttributeValueToken valueToken;
     final nextToken = _reader.next();
     if (nextToken.type == NgTokenType.beforeElementDecorator) {
       final decorator = _reader.expect(NgTokenType.elementDecorator);
@@ -293,7 +267,6 @@ class RecursiveAstParser {
       }
       _reader.expect(NgTokenType.beforeElementDecoratorValue);
       valueToken = _reader.expect(NgTokenType.elementDecoratorValue);
-      _reader.expect(NgTokenType.afterElementDecoratorValue);
       _reader.expect(NgTokenType.openElementEnd);
     } else if (nextToken.type != NgTokenType.openElementEnd) {
       _reader.error('Expected ">", got $nextToken');
@@ -312,7 +285,7 @@ class RecursiveAstParser {
       _source,
       beginToken,
       endToken,
-      valueToken,
+      valueToken?.innerValue,
     );
   }
 
@@ -368,10 +341,7 @@ class RecursiveAstParser {
     return new InterpolationAst.parsed(
       _source,
       beginToken,
-      new ExpressionAst.parse(
-        valueToken.lexeme,
-        sourceUrl: _source.url.toString(),
-      ),
+      valueToken.lexeme,
       endToken,
     );
   }

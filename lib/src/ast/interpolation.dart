@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'package:angular_ast/src/ast.dart';
-import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 
@@ -25,7 +25,7 @@ abstract class InterpolationAst implements StandaloneTemplateAst {
   factory InterpolationAst.parsed(
     SourceFile sourceFile,
     NgToken beginToken,
-    ExpressionAst expressionAst,
+    String value,
     NgToken endToken,
   ) = _ParsedInterpolationAst;
 
@@ -36,6 +36,9 @@ abstract class InterpolationAst implements StandaloneTemplateAst {
 
   /// Bound expression.
   ExpressionAst get expression;
+
+  /// Bound String value used in expression; used to preserve offsets
+  String get value;
 
   @override
   bool operator ==(Object o) {
@@ -53,13 +56,20 @@ class _ParsedInterpolationAst extends TemplateAst with InterpolationAst {
   @override
   final ExpressionAst expression;
 
+  @override
+  final String value;
+
   _ParsedInterpolationAst(
     SourceFile sourceFile,
     NgToken beginToken,
-    this.expression,
+    this.value,
     NgToken endToken,
   )
-      : super.parsed(beginToken, endToken, sourceFile);
+      : expression = new ExpressionAst.parse(
+          value,
+          sourceUrl: sourceFile.url.toString(),
+        ),
+        super.parsed(beginToken, endToken, sourceFile);
 }
 
 class _SyntheticInterpolationAst extends SyntheticTemplateAst
@@ -74,4 +84,7 @@ class _SyntheticInterpolationAst extends SyntheticTemplateAst
     this.expression,
   )
       : super.from(origin);
+
+  @override
+  String get value => expression.expression.toString();
 }

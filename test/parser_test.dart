@@ -13,6 +13,13 @@ void main() {
     );
   }
 
+  List<StandaloneTemplateAst> parsePreserve(String template) {
+    return const NgParser().parsePreserve(
+      template,
+      sourceUrl: '/test/parser_test.dart#inline',
+    );
+  }
+
   test('should parse a text node', () {
     expect(
       parse('Hello World'),
@@ -24,7 +31,7 @@ void main() {
 
   test('should parse a DOM element', () {
     expect(
-      parse('<div></div>'),
+      parse('<div></div  >'),
       [
         new ElementAst('div'),
       ],
@@ -55,7 +62,7 @@ void main() {
 
   test('should parse an interpolation', () {
     expect(
-      parse('{{name}}'),
+      parse('{{ name }}'),
       [
         new InterpolationAst(new ExpressionAst.parse(
           'name',
@@ -101,7 +108,7 @@ void main() {
 
   test('should parse an attribute without a value', () {
     expect(
-      parse('<button disabled></button>'),
+      parse('<button disabled ></button>'),
       [
         new ElementAst('button', attributes: [
           new AttributeAst('disabled'),
@@ -121,9 +128,20 @@ void main() {
     );
   });
 
+  test('should parse and attribute with a value including interpolation', () {
+    expect(
+      parse('<div title="Hello {{myName}}"></div>'),
+      [
+        new ElementAst('div', attributes: [
+          new AttributeAst('title', 'Hello {{myName}}'),
+        ]),
+      ],
+    );
+  });
+
   test('should parse an event', () {
     expect(
-      parse('<button (click)="onClick()"></button>'),
+      parse('<button (click) = "onClick()"  ></button>'),
       [
         new ElementAst('button', events: [
           new EventAst(
@@ -233,7 +251,7 @@ void main() {
 
   test('should parse a <template> directive with a reference', () {
     expect(
-      parse('<template #named></template>'),
+      parse('<template #named ></template>'),
       [
         new EmbeddedTemplateAst(
           references: [
@@ -276,7 +294,7 @@ void main() {
 
   test('should parse a banana syntax', () {
     expect(
-      parse('<custom [(name)]="myName"></custom>'),
+      parse('<custom [(name)] ="myName"></custom>'),
       [
         new ElementAst(
           'custom',
@@ -340,5 +358,45 @@ void main() {
         )
       ],
     );
+  });
+
+  test('should parse and preserve strict offset within elements', () {
+    String templateString = '''
+<tab-button *ngFor="let tabLabel of tabLabels; let idx = index"  (trigger)="switchTo(idx)" [id]="tabId(idx)" class="tab-button"  ></tab-button>''';
+    List<StandaloneTemplateAst> asts = parsePreserve(
+      templateString,
+    );
+    ParsedElementAst element = asts[0] as ParsedElementAst;
+    expect(element.beginToken.offset, 0);
+
+    expect(element.stars[0].beginToken.offset, 11);
+    expect((element.stars[0] as ParsedStarAst).prefixOffset, 12);
+
+    expect(element.events[0].beginToken.offset, 63);
+    expect((element.events[0] as ParsedEventAst).prefixOffset, 65);
+
+    expect(element.properties[0].beginToken.offset, 90);
+    expect((element.properties[0] as ParsedPropertyAst).prefixOffset, 91);
+
+    expect(element.attributes[0].beginToken.offset, 108);
+    expect((element.attributes[0] as ParsedAttributeAst).nameOffset, 109);
+
+    expect(element.whitespaces[0].offset, 127);
+
+    expect(element.openTagEndOffset, 129);
+    expect(element.closeTagStartOffset, 130);
+    expect(element.endToken.offset, 142);
+  });
+
+  test('should parse and preserve strict offsets within interpolations', () {
+    String templateString = '''
+<div>{{ 1 + 2 + 3 + 4 }}</div>''';
+    List<StandaloneTemplateAst> asts = parse(templateString);
+    ElementAst element = asts[0] as ElementAst;
+    InterpolationAst interpolation = element.childNodes[0] as InterpolationAst;
+
+    expect(interpolation.beginToken.offset, 5);
+    expect(interpolation.value.length, 15);
+    expect(interpolation.endToken.offset, 22);
   });
 }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
-import 'package:angular_ast/src/token.dart';
+import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
@@ -28,10 +28,12 @@ abstract class ReferenceAst implements TemplateAst {
   /// Create new reference from tokens in [sourceFile].
   factory ReferenceAst.parsed(
     SourceFile sourceFile,
-    NgToken nameToken, [
-    NgToken identifierToken,
-    NgToken endValueToken,
-  ]) = _ParsedReferenceAst;
+    NgToken beginToken,
+    NgToken prefixToken,
+    NgToken elementDecoratorToken, [
+    NgAttributeValueToken valueToken,
+    NgToken equalSignToken,
+  ]) = ParsedReferenceAst;
 
   @override
   bool operator ==(Object o) {
@@ -66,28 +68,70 @@ abstract class ReferenceAst implements TemplateAst {
   }
 }
 
-class _ParsedReferenceAst extends TemplateAst with ReferenceAst {
-  final NgToken _identifierToken;
-  final NgToken _variableToken;
+/// Represents a real, non-synthetic reference to an element or exported
+/// directive instance.
+///
+/// Clients should not extend, implement, or mix-in this class.
+class ParsedReferenceAst extends TemplateAst
+    with ReferenceAst, TagOffsetInfo, SpecialOffsetInfo {
+  /// Tokens representing the `#reference` element decorator
+  final NgToken prefixToken;
+  final NgToken nameToken;
 
-  _ParsedReferenceAst(
+  /// [NgAttributeValueToken] that represents `identifier` in
+  /// `#variable="reference"`.
+  final NgAttributeValueToken valueToken;
+
+  /// [NgToken] that represents the equal sign token; may be `null` to have no
+  /// value.
+  final NgToken equalSignToken;
+
+  ParsedReferenceAst(
     SourceFile sourceFile,
-    NgToken nameToken, [
-    this._identifierToken,
-    NgToken endValueToken,
+    NgToken beginToken,
+    this.prefixToken,
+    this.nameToken, [
+    this.valueToken,
+    this.equalSignToken,
   ])
-      : _variableToken = nameToken,
-        super.parsed(
-          nameToken,
-          endValueToken ?? nameToken,
+      : super.parsed(
+          beginToken,
+          valueToken != null ? valueToken.rightQuote : nameToken,
           sourceFile,
         );
 
+  /// Offset of `variable` in `#variable="identifier"`.
   @override
-  String get identifier => _identifierToken?.lexeme;
+  int get nameOffset => nameToken.offset;
 
+  /// Offset of equal sign; may be `null` if no value.
   @override
-  String get variable => _variableToken.lexeme.substring(1);
+  int get equalSignOffset => equalSignToken.offset;
+
+  /// Offset of `identifier` in `#variable="identifier"`; may be `null` if no
+  /// value.
+  @override
+  int get valueOffset => valueToken?.innerValue?.offset;
+
+  /// Offset of `identifier` starting at left quote; may be `null` if no value.
+  @override
+  int get quotedValueOffset => valueToken?.leftQuote?.offset;
+
+  /// Offset of `#` in `#variable`.
+  @override
+  int get prefixOffset => nameToken.offset;
+
+  /// Always returns `null` since `#ref` has no suffix.
+  @override
+  int get suffixOffset => null;
+
+  /// Name `identifier` in `#variable="identifier"`.
+  @override
+  String get identifier => valueToken?.innerValue?.lexeme;
+
+  /// Name `variable` in `#variable="identifier"`.
+  @override
+  String get variable => nameToken.lexeme;
 }
 
 class _SyntheticReferenceAst extends SyntheticTemplateAst with ReferenceAst {
