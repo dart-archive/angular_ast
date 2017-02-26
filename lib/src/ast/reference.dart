@@ -73,10 +73,10 @@ abstract class ReferenceAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedReferenceAst extends TemplateAst
-    with ReferenceAst, OffsetInfo, SpecialOffsetInfo {
+    with ReferenceAst, TagOffsetInfo, SpecialOffsetInfo {
   /// Tokens representing the `#reference` element decorator
   final NgToken prefixToken;
-  final NgToken elementDecoratorToken;
+  final NgToken nameToken;
 
   /// [NgAttributeValueToken] that represents `identifier` in
   /// `#variable="reference"`.
@@ -90,19 +90,19 @@ class ParsedReferenceAst extends TemplateAst
     SourceFile sourceFile,
     NgToken beginToken,
     this.prefixToken,
-    this.elementDecoratorToken, [
+    this.nameToken, [
     this.valueToken,
     this.equalSignToken,
   ])
       : super.parsed(
           beginToken,
-          valueToken != null ? valueToken.rightQuote : elementDecoratorToken,
+          valueToken != null ? valueToken.rightQuote : nameToken,
           sourceFile,
         );
 
   /// Offset of `variable` in `#variable="identifier"`.
   @override
-  int get nameOffset => elementDecoratorToken.offset;
+  int get nameOffset => nameToken.offset;
 
   /// Offset of equal sign; may be `null` if no value.
   @override
@@ -119,11 +119,11 @@ class ParsedReferenceAst extends TemplateAst
 
   /// Offset of `#` in `#variable`.
   @override
-  int get specialPrefixOffset => elementDecoratorToken.offset;
+  int get prefixOffset => nameToken.offset;
 
   /// Always returns `null` since `#ref` has no suffix.
   @override
-  int get specialSuffixOffset => null;
+  int get suffixOffset => null;
 
   /// Name `identifier` in `#variable="identifier"`.
   @override
@@ -131,7 +131,7 @@ class ParsedReferenceAst extends TemplateAst
 
   /// Name `variable` in `#variable="identifier"`.
   @override
-  String get variable => elementDecoratorToken.lexeme;
+  String get variable => nameToken.lexeme;
 }
 
 class _SyntheticReferenceAst extends SyntheticTemplateAst with ReferenceAst {

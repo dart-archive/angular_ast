@@ -74,10 +74,10 @@ abstract class BananaAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedBananaAst extends TemplateAst
-    with BananaAst, OffsetInfo, SpecialOffsetInfo {
+    with BananaAst, TagOffsetInfo, SpecialOffsetInfo {
   /// Components of element decorator representing [(banana)].
   final NgToken prefixToken;
-  final NgToken elementDecoratorToken;
+  final NgToken nameToken;
   final NgToken suffixToken;
 
   /// [NgAttributeValueToken] that represents `"value"`; may be `null` to have
@@ -92,7 +92,7 @@ class ParsedBananaAst extends TemplateAst
     SourceFile sourceFile,
     NgToken beginToken,
     this.prefixToken,
-    this.elementDecoratorToken,
+    this.nameToken,
     this.suffixToken,
     this.valueToken,
     this.equalSignToken,
@@ -104,11 +104,11 @@ class ParsedBananaAst extends TemplateAst
 
   /// Inner name `property` in `[(property)]`.
   @override
-  String get name => elementDecoratorToken.lexeme;
+  String get name => nameToken.lexeme;
 
   /// Offset of `property` in `[(property)]`.
   @override
-  int get nameOffset => elementDecoratorToken.offset;
+  int get nameOffset => nameToken.offset;
 
   /// Offset of equal sign; may be `null` to have no value.
   @override
@@ -128,11 +128,11 @@ class ParsedBananaAst extends TemplateAst
 
   /// Offset of banana prefix `[(`.
   @override
-  int get specialPrefixOffset => elementDecoratorToken.offset;
+  int get prefixOffset => prefixToken.offset;
 
   /// Offset of banana suffix `)]`.
   @override
-  int get specialSuffixOffset => suffixToken.offset;
+  int get suffixOffset => suffixToken.offset;
 }
 
 class _SyntheticBananaAst extends SyntheticTemplateAst with BananaAst {

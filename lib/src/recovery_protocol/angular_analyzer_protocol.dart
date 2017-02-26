@@ -48,7 +48,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.star ||
         type == NgSimpleTokenType.closeBracket ||
         type == NgSimpleTokenType.closeParen ||
-        type == NgSimpleTokenType.closeBanana) {
+        type == NgSimpleTokenType.closeBanana ||
+        type == NgSimpleTokenType.identifier) {
       reader.putBack(current);
       returnState = NgScannerState.scanElementDecorator;
       returnToken = new NgToken.generateErrorSynthetic(
@@ -64,13 +65,10 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
           offset, NgTokenType.openElementEnd);
     } else if (type == NgSimpleTokenType.doubleQuote ||
         type == NgSimpleTokenType.singleQuote) {
-      int _offset = (current is NgSimpleQuoteToken)
-          ? current.quoteOffset
-          : current.offset;
       reader.putBack(current);
       returnState = NgScannerState.scanElementDecoratorValue;
       returnToken = new NgToken.generateErrorSynthetic(
-          _offset, NgTokenType.beforeElementDecoratorValue);
+          offset, NgTokenType.beforeElementDecoratorValue);
     }
 
     return new RecoverySolution(returnState, returnToken);
@@ -97,12 +95,9 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.doubleQuote ||
         type == NgSimpleTokenType.singleQuote) {
       reader.putBack(current);
-      int _offset = (current is NgSimpleQuoteToken)
-          ? current.quoteOffset
-          : current.offset;
       returnState = NgScannerState.scanElementDecorator;
       returnToken = new NgToken.generateErrorSynthetic(
-          _offset, NgTokenType.beforeElementDecorator,
+          offset, NgTokenType.beforeElementDecorator,
           lexeme: ' ');
     } else if (type == NgSimpleTokenType.EOF ||
         type == NgSimpleTokenType.commentBegin ||
@@ -160,11 +155,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.doubleQuote ||
         type == NgSimpleTokenType.singleQuote) {
       reader.putBack(current);
-      int _offset = (current is NgSimpleQuoteToken)
-          ? current.quoteOffset
-          : current.offset;
       returnToken = new NgToken.generateErrorSynthetic(
-          _offset, NgTokenType.beforeElementDecorator,
+          current.offset, NgTokenType.beforeElementDecorator,
           lexeme: " ");
       returnState = NgScannerState.scanElementDecorator;
     } else if (type == NgSimpleTokenType.commentBegin ||
@@ -245,11 +237,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.doubleQuote ||
         type == NgSimpleTokenType.singleQuote) {
       reader.putBack(current);
-      int _offset = (current is NgSimpleQuoteToken)
-          ? current.quoteOffset
-          : current.offset;
       returnToken = new NgToken.generateErrorSynthetic(
-          _offset, NgTokenType.elementDecorator);
+          offset, NgTokenType.elementDecorator);
       returnState = NgScannerState.scanAfterElementDecorator;
     } else if (type == NgSimpleTokenType.dash ||
         type == NgSimpleTokenType.unexpectedChar ||
@@ -403,12 +392,9 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.whitespace ||
         type == NgSimpleTokenType.doubleQuote ||
         type == NgSimpleTokenType.singleQuote) {
-      int _offset = (current is NgSimpleQuoteToken)
-          ? current.quoteOffset
-          : current.offset;
       reader.putBack(current);
       returnToken = new NgToken.generateErrorSynthetic(
-          _offset, NgTokenType.elementIdentifier);
+          offset, NgTokenType.elementIdentifier);
       returnState = NgScannerState.scanAfterElementIdentifierOpen;
     }
     return new RecoverySolution(returnState, returnToken);
@@ -440,13 +426,10 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.unexpectedChar) {
       return new RecoverySolution.skip();
     }
-
-    int offset =
-        current is NgSimpleQuoteToken ? current.quoteOffset : current.offset;
     reader.putBack(current);
     returnState = NgScannerState.scanAfterElementDecorator;
     returnToken = new NgToken.generateErrorSynthetic(
-        offset, NgTokenType.elementDecorator);
+        current.offset, NgTokenType.elementDecorator);
     return new RecoverySolution(returnState, returnToken);
   }
 
@@ -463,13 +446,10 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.unexpectedChar) {
       return new RecoverySolution.skip();
     }
-
-    int offset =
-        current is NgSimpleQuoteToken ? current.quoteOffset : current.offset;
     reader.putBack(current);
     returnState = NgScannerState.scanSuffixBanana;
     returnToken = new NgToken.generateErrorSynthetic(
-        offset, NgTokenType.elementDecorator);
+        current.offset, NgTokenType.elementDecorator);
     return new RecoverySolution(returnState, returnToken);
   }
 
@@ -486,13 +466,10 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.unexpectedChar) {
       return new RecoverySolution.skip();
     }
-
-    int offset =
-        current is NgSimpleQuoteToken ? current.quoteOffset : current.offset;
     reader.putBack(current);
     returnState = NgScannerState.scanSuffixEvent;
     returnToken = new NgToken.generateErrorSynthetic(
-        offset, NgTokenType.elementDecorator);
+        current.offset, NgTokenType.elementDecorator);
     return new RecoverySolution(returnState, returnToken);
   }
 
@@ -509,13 +486,10 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.unexpectedChar) {
       return new RecoverySolution.skip();
     }
-
-    int offset =
-        current is NgSimpleQuoteToken ? current.quoteOffset : current.offset;
     reader.putBack(current);
     returnState = NgScannerState.scanSuffixProperty;
     returnToken = new NgToken.generateErrorSynthetic(
-        offset, NgTokenType.elementDecorator);
+        current.offset, NgTokenType.elementDecorator);
     return new RecoverySolution(returnState, returnToken);
   }
 
@@ -538,13 +512,10 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.unexpectedChar) {
       return new RecoverySolution.skip();
     }
-
-    int offset =
-        current is NgSimpleQuoteToken ? current.quoteOffset : current.offset;
     reader.putBack(current);
     returnState = NgScannerState.scanAfterElementDecorator;
-    returnToken =
-        new NgToken.generateErrorSynthetic(offset, NgTokenType.bananaSuffix);
+    returnToken = new NgToken.generateErrorSynthetic(
+        current.offset, NgTokenType.bananaSuffix);
     return new RecoverySolution(returnState, returnToken);
   }
 
@@ -561,13 +532,10 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.unexpectedChar) {
       return new RecoverySolution.skip();
     }
-
-    int offset =
-        current is NgSimpleQuoteToken ? current.quoteOffset : current.offset;
     reader.putBack(current);
     returnState = NgScannerState.scanAfterElementDecorator;
-    returnToken =
-        new NgToken.generateErrorSynthetic(offset, NgTokenType.eventSuffix);
+    returnToken = new NgToken.generateErrorSynthetic(
+        current.offset, NgTokenType.eventSuffix);
     return new RecoverySolution(returnState, returnToken);
   }
 
@@ -585,12 +553,10 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       return new RecoverySolution.skip();
     }
 
-    int offset =
-        current is NgSimpleQuoteToken ? current.quoteOffset : current.offset;
     reader.putBack(current);
     returnState = NgScannerState.scanAfterElementDecorator;
-    returnToken =
-        new NgToken.generateErrorSynthetic(offset, NgTokenType.propertySuffix);
+    returnToken = new NgToken.generateErrorSynthetic(
+        current.offset, NgTokenType.propertySuffix);
     return new RecoverySolution(returnState, returnToken);
   }
 

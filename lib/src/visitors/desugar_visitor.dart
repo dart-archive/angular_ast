@@ -46,8 +46,8 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
   TemplateAst visitElement(ElementAst astNode, [_]) {
     if (astNode.bananas.isNotEmpty) {
       for (BananaAst bananaAst in astNode.bananas) {
-        TemplateAst toAddProperty = bananaAst.accept(this, "property");
-        TemplateAst toAddEvent = bananaAst.accept(this, "event");
+        TemplateAst toAddProperty = visitBanana(bananaAst, "property");
+        TemplateAst toAddEvent = visitBanana(bananaAst, "event");
         astNode.properties.add(toAddProperty);
         astNode.events.add(toAddEvent);
       }
@@ -55,7 +55,6 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
     }
 
     if (astNode.stars.isNotEmpty) {
-      // TODO: Look into better structure for better AST visitor pattern
       StarAst starAst = astNode.stars[0];
       TemplateAst origin = _toolFriendlyAstOrigin ? starAst : null;
       final starExpression = starAst.value;
