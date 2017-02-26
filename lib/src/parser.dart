@@ -54,16 +54,11 @@ class NgParser {
     @required String sourceUrl,
     ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
   }) {
-    final tokens = const NgLexer().tokenize(template, exceptionHandler);
-    final parser = new RecursiveAstParser(
-      new SourceFile(
-        template,
-        url: sourceUrl,
-      ),
-      tokens,
-      _voidElements,
+    final asts = parsePreserve(
+      template,
+      sourceUrl: sourceUrl,
+      exceptionHandler: exceptionHandler,
     );
-    List<StandaloneTemplateAst> asts = parser.parse();
     DesugarVisitor visitor =
         new DesugarVisitor(toolFriendlyAstOrigin: _toolFriendlyAstOrigin);
     return asts.map((t) => t.accept(visitor)).toList();

@@ -106,10 +106,10 @@ abstract class PropertyAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedPropertyAst extends TemplateAst
-    with PropertyAst, OffsetInfo, SpecialOffsetInfo {
+    with PropertyAst, TagOffsetInfo, SpecialOffsetInfo {
   /// Tokens representing `[property]` attribute.
   final NgToken prefixToken;
-  final NgToken elementDecoratorToken;
+  final NgToken nameToken;
   final NgToken suffixToken;
 
   /// [NgAttributeValueToken] that represents `"value"`; may be `null` to
@@ -124,7 +124,7 @@ class ParsedPropertyAst extends TemplateAst
     SourceFile sourceFile,
     NgToken beginToken,
     this.prefixToken,
-    this.elementDecoratorToken,
+    this.nameToken,
     this.suffixToken, [
     this.valueToken,
     this.equalSignToken,
@@ -142,7 +142,7 @@ class ParsedPropertyAst extends TemplateAst
   @override
   final ExpressionAst expression;
 
-  String get _nameWithoutBrackets => elementDecoratorToken.lexeme;
+  String get _nameWithoutBrackets => nameToken.lexeme;
 
   /// Name `name` of `[name.postfix.unit]`.
   @override
@@ -150,7 +150,7 @@ class ParsedPropertyAst extends TemplateAst
 
   /// Offset of name.
   @override
-  int get nameOffset => elementDecoratorToken.offset;
+  int get nameOffset => nameToken.offset;
 
   /// Offset of equal sign; may be `null` if no value.
   @override
@@ -169,11 +169,11 @@ class ParsedPropertyAst extends TemplateAst
 
   /// Offset of `[` prefix in `[name.postfix.unit]`.
   @override
-  int get specialPrefixOffset => prefixToken.offset;
+  int get prefixOffset => prefixToken.offset;
 
   /// Offset of `]` suffix in `[name.postfix.unit]`.
   @override
-  int get specialSuffixOffset => suffixToken.offset;
+  int get suffixOffset => suffixToken.offset;
 
   /// Name `postfix` in `[name.postfix.unit]`; may be `null` to have no value.
   @override

@@ -74,7 +74,7 @@ abstract class AttributeAst implements TemplateAst {
 /// Represents a real(non-synthetic) parsed AttributeAst. Preserves offsets.
 ///
 /// Clients should not extend, implement, or mix-in this class.
-class ParsedAttributeAst extends TemplateAst with AttributeAst, OffsetInfo {
+class ParsedAttributeAst extends TemplateAst with AttributeAst, TagOffsetInfo {
   /// [NgToken] that represents the attribute name.
   final NgToken nameToken;
 

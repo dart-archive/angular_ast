@@ -5,7 +5,7 @@
 /// Mixin used to preserve offsets of tokens to be able to reproduce the same
 /// text. In addition, preserves offsets in cases where banana syntax and
 /// template syntax are desugared.
-abstract class OffsetInfo {
+abstract class TagOffsetInfo {
   int get nameOffset;
   int get valueOffset;
   int get quotedValueOffset;
@@ -15,6 +15,6 @@ abstract class OffsetInfo {
 /// Mixin used to preserve offset of special attribute token tokens
 /// used for banana, property, event, reference, and template
 abstract class SpecialOffsetInfo {
-  int get specialPrefixOffset;
-  int get specialSuffixOffset; //May be null for reference and template
+  int get prefixOffset;
+  int get suffixOffset; //May be null for reference and template
 }

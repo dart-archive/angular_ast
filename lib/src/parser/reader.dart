@@ -129,10 +129,10 @@ class NgTokenReversibleReader extends NgTokenReader {
   @override
   NgBaseToken expect(NgBaseTokenType type) {
     final next = this.next();
-    String message = 'Expected a token of $type but got ${next.type}';
     if (next.type == type) {
       return next;
     }
+    String message = 'Expected a token of $type but got ${next.type}';
     error(message);
     return null;
   }

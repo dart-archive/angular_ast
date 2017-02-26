@@ -79,10 +79,10 @@ abstract class EventAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedEventAst extends TemplateAst
-    with EventAst, OffsetInfo, SpecialOffsetInfo {
+    with EventAst, TagOffsetInfo, SpecialOffsetInfo {
   /// Token representing the `(property)` element decorator.
   final NgToken prefixToken;
-  final NgToken elementDecoratorToken;
+  final NgToken nameToken;
   final NgToken suffixToken;
 
   /// [NgAttributeValueToken] that represents `"expression"`; may be `null` to
@@ -97,7 +97,7 @@ class ParsedEventAst extends TemplateAst
     SourceFile sourceFile,
     NgToken beginToken,
     this.prefixToken,
-    this.elementDecoratorToken,
+    this.nameToken,
     this.suffixToken,
     this.valueToken,
     this.equalSignToken,
@@ -113,7 +113,7 @@ class ParsedEventAst extends TemplateAst
         );
 
   String get _nameWithoutParentheses {
-    return elementDecoratorToken.lexeme;
+    return nameToken.lexeme;
   }
 
   /// ExpressionAst of `"expression"`; may be `null` to have no value.
@@ -126,7 +126,7 @@ class ParsedEventAst extends TemplateAst
 
   /// Offset of name.
   @override
-  int get nameOffset => elementDecoratorToken.offset;
+  int get nameOffset => nameToken.offset;
 
   /// Offset of equal sign; may be `null` if no value.
   @override
@@ -145,11 +145,11 @@ class ParsedEventAst extends TemplateAst
 
   /// Offset of `(` prefix in `(eventName.postfix)`.
   @override
-  int get specialPrefixOffset => prefixToken.offset;
+  int get prefixOffset => prefixToken.offset;
 
   /// Offset of `)` suffix in `(eventName.postfix)`.
   @override
-  int get specialSuffixOffset => suffixToken.offset;
+  int get suffixOffset => suffixToken.offset;
 
   /// Name `postfix` in `(eventName.postfix)`; may be `null` to have no value.
   @override

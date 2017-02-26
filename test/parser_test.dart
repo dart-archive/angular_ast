@@ -370,14 +370,13 @@ void main() {
     expect(element.beginToken.offset, 0);
 
     expect(element.stars[0].beginToken.offset, 11);
-    expect((element.stars[0] as ParsedStarAst).specialPrefixOffset, 12);
+    expect((element.stars[0] as ParsedStarAst).prefixOffset, 12);
 
     expect(element.events[0].beginToken.offset, 63);
-    expect((element.events[0] as ParsedEventAst).specialPrefixOffset, 65);
+    expect((element.events[0] as ParsedEventAst).prefixOffset, 65);
 
     expect(element.properties[0].beginToken.offset, 90);
-    expect(
-        (element.properties[0] as ParsedPropertyAst).specialPrefixOffset, 91);
+    expect((element.properties[0] as ParsedPropertyAst).prefixOffset, 91);
 
     expect(element.attributes[0].beginToken.offset, 108);
     expect((element.attributes[0] as ParsedAttributeAst).nameOffset, 109);

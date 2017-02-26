@@ -24,5 +24,5 @@ export 'package:angular_ast/src/ast/sugar/banana.dart'
 export 'package:angular_ast/src/ast/sugar/star.dart'
     show StarAst, ParsedStarAst;
 export 'package:angular_ast/src/ast/offset_info.dart'
-    show OffsetInfo, SpecialOffsetInfo;
+    show TagOffsetInfo, SpecialOffsetInfo;
 export 'package:angular_ast/src/ast/whitespace.dart' show WhitespaceAst;

@@ -79,9 +79,9 @@ abstract class StarAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedStarAst extends TemplateAst
-    with StarAst, OffsetInfo, SpecialOffsetInfo {
+    with StarAst, TagOffsetInfo, SpecialOffsetInfo {
   final NgToken prefixToken;
-  final NgToken elementDecoratorToken;
+  final NgToken nameToken;
 
   /// [NgAttributeValueToken] that represents `"value"`; may be `null` to have
   /// no value.
@@ -95,7 +95,7 @@ class ParsedStarAst extends TemplateAst
     SourceFile sourceFile,
     NgToken beginToken,
     this.prefixToken,
-    this.elementDecoratorToken, [
+    this.nameToken, [
     this.valueToken,
     this.equalSignToken,
   ])
@@ -103,10 +103,8 @@ class ParsedStarAst extends TemplateAst
             ? new ExpressionAst.parse(valueToken.innerValue.lexeme,
                 sourceUrl: sourceFile.url.toString())
             : null,
-        super.parsed(
-            beginToken,
-            valueToken != null ? valueToken.rightQuote : elementDecoratorToken,
-            sourceFile);
+        super.parsed(beginToken,
+            valueToken != null ? valueToken.rightQuote : nameToken, sourceFile);
 
   /// ExpressionAst of `"value"`; may be null to have no value.
   @override
@@ -114,11 +112,11 @@ class ParsedStarAst extends TemplateAst
 
   /// Name `directive` in `*directive`.
   @override
-  String get name => elementDecoratorToken.lexeme;
+  String get name => nameToken.lexeme;
 
   /// Offset of `directive` in `*directive`.
   @override
-  int get nameOffset => elementDecoratorToken.offset;
+  int get nameOffset => nameToken.offset;
 
   /// Offset of equal sign; may be `null` to have no value.
   @override
@@ -138,11 +136,11 @@ class ParsedStarAst extends TemplateAst
 
   /// Offset of template prefix `*`.
   @override
-  int get specialPrefixOffset => prefixToken.offset;
+  int get prefixOffset => prefixToken.offset;
 
   /// Always returns `null` since `*directive` has no suffix.
   @override
-  int get specialSuffixOffset => null;
+  int get suffixOffset => null;
 }
 
 class _SyntheticStarAst extends SyntheticTemplateAst with StarAst {
