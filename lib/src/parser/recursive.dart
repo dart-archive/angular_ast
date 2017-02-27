@@ -12,12 +12,10 @@ class RecursiveAstParser {
   final NgTokenReversibleReader _reader;
   final SourceFile _source;
   final List<String> _voidElements;
+  final exceptionHandler;
 
-  RecursiveAstParser(
-    SourceFile sourceFile,
-    Iterable<NgToken> tokens,
-    this._voidElements,
-  )
+  RecursiveAstParser(SourceFile sourceFile, Iterable<NgToken> tokens,
+      this._voidElements, this.exceptionHandler)
       : _reader = new NgTokenReversibleReader(sourceFile, tokens),
         _source = sourceFile;
 
@@ -26,7 +24,6 @@ class RecursiveAstParser {
     // Start with an empty list.
     final nodes = <StandaloneTemplateAst>[];
     NgToken token;
-
     // Iterate through until and wait until EOF.
     //
     // Collects comments, elements, and text.
@@ -42,6 +39,14 @@ class RecursiveAstParser {
 
   CloseElementAst parseCloseElement(NgToken beginToken) {
     final nameToken = _reader.expect(NgTokenType.elementIdentifier);
+    if (_voidElements.contains(nameToken.lexeme)) {
+      exceptionHandler.handle(new FormatException(
+        "${nameToken.lexeme} is a void element and cannot be used in a close element tag",
+        _source.getText(0),
+        nameToken.offset,
+      ));
+    }
+
     List<WhitespaceAst> whitespaces = <WhitespaceAst>[];
     while (_reader.peekType() == NgTokenType.whitespace) {
       whitespaces.add(new WhitespaceAst(_source, _reader.next()));
@@ -227,33 +232,51 @@ class RecursiveAstParser {
 
     NgToken endToken = nextToken;
     CloseElementAst closeElementAst;
+    int scopeEnd = endToken.end;
 
-    // Check if an element tag name is NOT a valid void tag;
-    // If introduced token is '/>', then it is an error.
-    if (!isVoidElement && endToken.type == NgTokenType.openElementEndVoid) {
-      // TODO: error recovery here
-      throw new StateError(
-          "Void element close '/>' cannot be used with non-void elements");
-    }
+    // TODO: Potentially check if openElementEndVoid is being used on a
+    // TODO: non-valid element name
 
     // If not a void element, look for closing tag OR child nodes.
     if (!isVoidElement && nextToken.type != NgTokenType.openElementEndVoid) {
       // Collect child nodes.
       nextToken = _reader.next();
-      while (nextToken.type != NgTokenType.closeElementStart) {
-        childNodes.add(parseStandalone(nextToken));
+      // Guaranteed by scanner w/ recovery that next token is beginning of a
+      // a standaloneAst-starting token OR null.
+      while (nextToken != null &&
+          nextToken.type != NgTokenType.closeElementStart) {
+        TemplateAst childAst = parseStandalone(nextToken);
+        if (childAst is ElementAst &&
+            childAst.closeComplement != null &&
+            !childAst.closeComplement.isSynthetic) {
+          scopeEnd = childAst.closeComplement.endToken.end;
+        } else {
+          scopeEnd = childAst.endToken.end;
+        }
+        childNodes.add(childAst);
         nextToken = _reader.next();
       }
-      // Evaluate the CloseElementAst
-      // TODO: Check if it is validliy closed - error recovery
-      //CloseElementAst closeElementAst = parseCloseElement(nextToken);
-      // Finally return the element.
-      final closeNameToken = _reader.peek();
-      if (closeNameToken.lexeme != nameToken.lexeme) {
-        _reader.error(
-            'Invalid closing tag: $closeNameToken (expected $nameToken)');
+      if (nextToken == null) {
+        exceptionHandler.handle(new FormatException(
+          "Expected close element for '${nameToken.lexeme}'",
+          _source.getText(0), // TODO: Inefficient - remove later
+          scopeEnd,
+        ));
+        closeElementAst = new CloseElementAst(nameToken.lexeme);
+      } else {
+        final closeNameToken = _reader.peek();
+        if (closeNameToken.lexeme != nameToken.lexeme) {
+          exceptionHandler.handle(new FormatException(
+            'Invalid closing tag: $closeNameToken (expected $nameToken)',
+            _source.getText(0),
+            closeNameToken.offset,
+          ));
+          _reader.putBack(nextToken);
+          closeElementAst = new CloseElementAst(nameToken.lexeme);
+        } else {
+          closeElementAst = parseCloseElement(nextToken);
+        }
       }
-      closeElementAst = parseCloseElement(nextToken);
     }
 
     final element = new ElementAst.parsed(
@@ -382,6 +405,17 @@ class RecursiveAstParser {
         return parseInterpolation(token);
       case NgTokenType.text:
         return parseText(token);
+      // Always an error case
+      case NgTokenType.closeElementStart:
+        exceptionHandler.handle(new FormatException(
+          "Close element cannot exist before matching open element",
+          _source.getText(0),
+          token.offset,
+        ));
+        CloseElementAst closeElementAst = parseCloseElement(token);
+        ElementAst synthElementAst = new ElementAst(closeElementAst.name);
+        synthElementAst.closeComplement = closeElementAst;
+        return synthElementAst;
       default:
         _reader.error('Expected standalone token, got ${token.type}');
         return null;

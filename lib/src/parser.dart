@@ -81,6 +81,7 @@ class NgParser {
       ),
       tokens,
       _voidElements,
+      exceptionHandler,
     );
     return parser.parse();
   }

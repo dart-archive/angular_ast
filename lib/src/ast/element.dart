@@ -121,6 +121,7 @@ abstract class ElementAst implements StandaloneTemplateAst {
   ///
   /// If [isVoidElement] is `true`, closeComplement must be null.
   CloseElementAst get closeComplement;
+  set closeComplement(CloseElementAst closeElementAst);
 
   /// Name (tag) of the element.
   String get name;

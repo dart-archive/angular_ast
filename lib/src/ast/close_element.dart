@@ -6,7 +6,6 @@ import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
-import 'package:quiver/core.dart';
 
 /// Represents the closing DOM element that was parsed.
 ///
@@ -15,7 +14,6 @@ abstract class CloseElementAst implements StandaloneTemplateAst {
   /// Creates a synthetic close element AST.
   factory CloseElementAst(
     String name, {
-    ElementAst openComplement,
     List<WhitespaceAst> whitespaces,
   }) = _SyntheticCloseElementAst;
 
@@ -23,7 +21,6 @@ abstract class CloseElementAst implements StandaloneTemplateAst {
   factory CloseElementAst.from(
     TemplateAst origin,
     String name, {
-    ElementAst openComplement,
     List<WhitespaceAst> whitespaces,
   }) = _SyntheticCloseElementAst.from;
 
@@ -40,13 +37,13 @@ abstract class CloseElementAst implements StandaloneTemplateAst {
   @override
   bool operator ==(Object o) {
     if (o is CloseElementAst) {
-      return name == o.name && openComplement == o.openComplement;
+      return name == o.name;
     }
     return false;
   }
 
   @override
-  int get hashCode => hash2(name, openComplement);
+  int get hashCode => name.hashCode;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -59,18 +56,12 @@ abstract class CloseElementAst implements StandaloneTemplateAst {
   /// Name (tag) of the close element.
   String get name;
 
-  /// [ElementAst] that represents the open complement.
-  ElementAst get openComplement;
-
   /// Whitespaces at the end
   List<WhitespaceAst> get whitespaces;
 
   @override
   String toString() {
     final buffer = new StringBuffer('$CloseElementAst <$name> { ');
-    if (openComplement != null) {
-      buffer..write('openComplement=')..write(openComplement)..write(' ');
-    }
     if (whitespaces.isNotEmpty) {
       buffer
         ..write('whitespaces=')
@@ -97,15 +88,10 @@ class ParsedCloseElementAst extends TemplateAst with CloseElementAst {
     ElementAst openComplement,
     this.whitespaces: const [],
   })
-      : openComplement = openComplement,
-        super.parsed(closeElementStart, closeElementEnd, sourceFile);
+      : super.parsed(closeElementStart, closeElementEnd, sourceFile);
 
   @override
   String get name => identifierToken.lexeme;
-
-  /// Complement open element ast
-  @override
-  ElementAst openComplement;
 
   /// Whitespaces
   @override
@@ -116,23 +102,18 @@ class _SyntheticCloseElementAst extends SyntheticTemplateAst
     with CloseElementAst {
   _SyntheticCloseElementAst(
     this.name, {
-    this.openComplement,
     this.whitespaces: const [],
   });
 
   _SyntheticCloseElementAst.from(
     TemplateAst origin,
     this.name, {
-    this.openComplement,
     this.whitespaces: const [],
   })
       : super.from(origin);
 
   @override
   final String name;
-
-  @override
-  ElementAst openComplement;
 
   @override
   final List<WhitespaceAst> whitespaces;
