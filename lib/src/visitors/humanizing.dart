@@ -76,13 +76,7 @@ class HumanizingTemplateAstVisitor
     if (astNode.whitespaces.isNotEmpty) {
       context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
     }
-    if (astNode.isVoidTag) {
-      if (astNode.isSynthetic) {
-        context.write('/>');
-      } else {
-        context.write(astNode.endToken.lexeme);
-      }
-    }
+    context.write(astNode.usesVoidTagEnd ? '/>' : '>');
     if (astNode.childNodes.isNotEmpty) {
       context.writeAll(astNode.childNodes.map((c) => c.accept(this)));
     }

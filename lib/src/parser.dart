@@ -31,6 +31,7 @@ class NgParser {
     'source',
     'track',
     'wbr',
+    'path',
   ];
 
   final bool _toolFriendlyAstOrigin;

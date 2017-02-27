@@ -286,7 +286,7 @@ void main() {
     expect(
       parse('<input><div></div>'),
       [
-        new ElementAst('input'),
+        new ElementAst('input', isVoidElement: true),
         new ElementAst('div'),
       ],
     );
@@ -383,9 +383,9 @@ void main() {
 
     expect(element.whitespaces[0].offset, 127);
 
-    expect(element.openTagEndOffset, 129);
-    expect(element.closeTagStartOffset, 130);
-    expect(element.endToken.offset, 142);
+    expect(element.endToken.offset, 129);
+    expect(element.closeComplement.beginToken.offset, 130);
+    expect(element.closeComplement.endToken.offset, 142);
   });
 
   test('should parse and preserve strict offsets within interpolations', () {

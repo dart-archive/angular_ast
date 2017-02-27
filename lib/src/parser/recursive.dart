@@ -225,15 +225,18 @@ class RecursiveAstParser {
     } while (nextToken.type != NgTokenType.openElementEnd &&
         nextToken.type != NgTokenType.openElementEndVoid);
 
-    NgToken openElementEnd = nextToken;
-    if (!isVoidElement &&
-        openElementEnd.type == NgTokenType.openElementEndVoid) {
+    NgToken endToken = nextToken;
+    CloseElementAst closeElementAst;
+
+    // Check if an element tag name is NOT a valid void tag;
+    // If introduced token is '/>', then it is an error.
+    if (!isVoidElement && endToken.type == NgTokenType.openElementEndVoid) {
       // TODO: error recovery here
       throw new StateError(
           "Void element close '/>' cannot be used with non-void elements");
     }
-    var endToken = nextToken;
-    //Look for closing tag
+
+    // If not a void element, look for closing tag OR child nodes.
     if (!isVoidElement && nextToken.type != NgTokenType.openElementEndVoid) {
       // Collect child nodes.
       nextToken = _reader.next();
@@ -241,23 +244,24 @@ class RecursiveAstParser {
         childNodes.add(parseStandalone(nextToken));
         nextToken = _reader.next();
       }
+      // Evaluate the CloseElementAst
+      // TODO: Check if it is validliy closed - error recovery
+      //CloseElementAst closeElementAst = parseCloseElement(nextToken);
       // Finally return the element.
-      final closeName = _reader.expect(NgTokenType.elementIdentifier);
-      if (closeName.lexeme != nameToken.lexeme) {
-        _reader.error('Invalid closing tag: $closeName (expected $nameToken)');
+      final closeNameToken = _reader.peek();
+      if (closeNameToken.lexeme != nameToken.lexeme) {
+        _reader.error(
+            'Invalid closing tag: $closeNameToken (expected $nameToken)');
       }
-      while (_reader.peekType() == NgTokenType.whitespace) {
-        _reader.next();
-      }
-      endToken = _reader.expect(NgTokenType.closeElementEnd);
+      closeElementAst = parseCloseElement(nextToken);
     }
 
     final element = new ElementAst.parsed(
       _source,
       beginToken,
       nameToken,
-      openElementEnd,
-      isVoidTag: isVoidElement,
+      endToken,
+      isVoidElement: isVoidElement,
       attributes: attributes,
       childNodes: childNodes,
       events: events,
@@ -266,6 +270,7 @@ class RecursiveAstParser {
       bananas: bananas,
       stars: stars,
       whitespaces: whitespaces,
+      closeComplement: closeElementAst,
     );
     return element;
   }
