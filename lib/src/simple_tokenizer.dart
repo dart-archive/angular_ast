@@ -83,7 +83,9 @@ class NgSimpleScanner {
           _scanner.peekChar(2) == $gt) {
         break;
       }
-      _scanner.position++;
+      if (_scanner.position < _scanner.string.length) {
+        _scanner.position++;
+      }
       if (_scanner.isDone) {
         _state = _NgSimpleScannerState.text;
         String substring = _scanner.string.substring(offset);

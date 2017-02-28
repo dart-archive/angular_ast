@@ -10,7 +10,7 @@ import 'package:source_span/source_span.dart';
 /// Represents the closing DOM element that was parsed.
 ///
 /// Clients should not extend, implement, or mix-in this class.
-abstract class CloseElementAst implements StandaloneTemplateAst {
+abstract class CloseElementAst implements TemplateAst {
   /// Creates a synthetic close element AST.
   factory CloseElementAst(
     String name, {

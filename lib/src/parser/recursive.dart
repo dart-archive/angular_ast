@@ -206,10 +206,12 @@ class RecursiveAstParser {
           attributes.add(decoratorAst);
         } else if (decoratorAst is StarAst) {
           if (stars.isNotEmpty) {
-            _reader.error(''
-                'Already found an *-directive, limit 1 per element, but also '
-                'found ${decoratorAst.sourceSpan.highlight()}');
-            return null;
+            exceptionHandler.handle(new FormatException(
+              'Already found an *-directive, limit 1 per element, but also '
+                  'found ${decoratorAst.sourceSpan.highlight()}',
+              _source.getText(0),
+              decoratorAst.beginToken.offset,
+            ));
           }
           stars.add(decoratorAst);
         } else if (decoratorAst is EventAst) {

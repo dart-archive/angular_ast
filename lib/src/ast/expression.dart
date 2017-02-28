@@ -21,12 +21,23 @@ class ExpressionAst implements TemplateAst {
     String expression, {
     bool deSugarPipes: true,
     @required String sourceUrl,
+    ExceptionHandler exceptionHandler,
   }) {
-    return new ExpressionAst(parseExpression(
-      expression,
-      deSugarPipes: deSugarPipes,
-      sourceUrl: sourceUrl,
-    ));
+    // TODO: REMOVE exceptionHandling LATER
+    ExpressionAst expressionAst;
+    if (exceptionHandler == null) {
+      exceptionHandler = new RecoveringExceptionHandler();
+    }
+    try {
+      expressionAst = new ExpressionAst(parseExpression(
+        expression,
+        deSugarPipes: deSugarPipes,
+        sourceUrl: sourceUrl,
+      ));
+    } catch (e) {
+      exceptionHandler.handle(e);
+    }
+    return expressionAst;
   }
 
   @override

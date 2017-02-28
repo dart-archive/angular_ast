@@ -133,7 +133,11 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitEvent(EventAst astNode, [_]) {
-    return '(${astNode.name})="${astNode.expression.expression.toSource()}"';
+    if (astNode.expression != null) {
+      return '(${astNode.name})="${astNode.expression.expression.toSource()}"';
+    } else {
+      return '(${astNode.name})';
+    }
   }
 
   @override
