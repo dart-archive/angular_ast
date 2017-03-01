@@ -114,6 +114,13 @@ class RecursiveAstParser {
       NgTokenType prefixType = prefixToken.type;
 
       if (prefixType == NgTokenType.bananaPrefix) {
+        ExpressionAst eventExpression;
+        ExpressionAst propertyExpression;
+        if (valueToken != null) {
+          eventExpression =
+              parseExpression('${valueToken.innerValue?.lexeme} = \$event');
+          propertyExpression = parseExpression(valueToken.innerValue?.lexeme);
+        }
         return new BananaAst.parsed(
           _source,
           beginToken,
@@ -121,9 +128,13 @@ class RecursiveAstParser {
           decoratorToken,
           suffixToken,
           valueToken,
+          eventExpression,
+          propertyExpression,
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.eventPrefix) {
+        ExpressionAst expressionAst =
+            parseExpression(valueToken?.innerValue?.lexeme);
         return new EventAst.parsed(
           _source,
           beginToken,
@@ -131,9 +142,12 @@ class RecursiveAstParser {
           decoratorToken,
           suffixToken,
           valueToken,
+          expressionAst,
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.propertyPrefix) {
+        ExpressionAst expressionAst =
+            parseExpression(valueToken?.innerValue?.lexeme);
         return new PropertyAst.parsed(
           _source,
           beginToken,
@@ -141,6 +155,7 @@ class RecursiveAstParser {
           decoratorToken,
           suffixToken,
           valueToken,
+          expressionAst,
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.referencePrefix) {
@@ -426,4 +441,18 @@ class RecursiveAstParser {
 
   /// Returns and parses a text AST.
   TextAst parseText(NgToken token) => new TextAst.parsed(_source, token);
+
+  /// Parse expression
+  ExpressionAst parseExpression(String expression) {
+    try {
+      if (expression == null) {
+        return null;
+      }
+      return new ExpressionAst.parse(expression,
+          sourceUrl: _source.url.toString());
+    } catch (e) {
+      exceptionHandler.handle(e);
+    }
+    return null;
+  }
 }

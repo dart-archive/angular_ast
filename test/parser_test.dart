@@ -146,6 +146,7 @@ void main() {
         new ElementAst('button', events: [
           new EventAst(
               'click',
+              'onClick()',
               new ExpressionAst.parse(
                 'onClick()',
                 sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -173,6 +174,7 @@ void main() {
         new ElementAst('button', properties: [
           new PropertyAst(
               'value',
+              'btnValue',
               new ExpressionAst.parse(
                 'btnValue',
                 sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -239,6 +241,7 @@ void main() {
           properties: [
             new PropertyAst(
                 'ngIf',
+                'someValue',
                 new ExpressionAst.parse(
                   'someValue',
                   sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -301,6 +304,7 @@ void main() {
           events: [
             new EventAst(
                 'nameChanged',
+                'myName = \$event',
                 new ExpressionAst.parse(
                   'myName = \$event',
                   sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -309,6 +313,7 @@ void main() {
           properties: [
             new PropertyAst(
                 'name',
+                'myName',
                 new ExpressionAst.parse(
                   'myName',
                   sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -333,6 +338,7 @@ void main() {
           properties: [
             new PropertyAst(
               'ngForOf',
+              'items',
               new ExpressionAst.parse(
                 'items',
                 sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -340,6 +346,7 @@ void main() {
             ),
             new PropertyAst(
               'ngForTrackBy',
+              'byId',
               new ExpressionAst.parse(
                 'byId',
                 sourceUrl: '/test/expression/parser_test.dart#inline',

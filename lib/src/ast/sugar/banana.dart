@@ -36,6 +36,8 @@ abstract class BananaAst implements TemplateAst {
     NgToken elementDecoratorToken,
     NgToken suffixToken,
     NgAttributeValueToken valueToken,
+    ExpressionAst eventExpression,
+    ExpressionAst propertyExpression,
     NgToken equalSignToken,
   ) = ParsedBananaAst;
 
@@ -47,7 +49,10 @@ abstract class BananaAst implements TemplateAst {
   @override
   bool operator ==(Object o) {
     if (o is BananaAst) {
-      return name == o.name && value == o.value;
+      return name == o.name &&
+          value == o.value &&
+          eventExpression == o.eventExpression &&
+          propertyExpression == o.propertyExpression;
     }
     return false;
   }
@@ -60,6 +65,12 @@ abstract class BananaAst implements TemplateAst {
 
   /// Value bound to.
   String get value;
+
+  /// Expression to be bound to event after desugaring.
+  ExpressionAst get eventExpression;
+
+  /// Expression to be bound to property after desugaring.
+  ExpressionAst get propertyExpression;
 
   @override
   String toString() {
@@ -80,6 +91,12 @@ class ParsedBananaAst extends TemplateAst
   final NgToken nameToken;
   final NgToken suffixToken;
 
+  @override
+  final ExpressionAst eventExpression;
+
+  @override
+  final ExpressionAst propertyExpression;
+
   /// [NgAttributeValueToken] that represents `"value"`; may be `null` to have
   /// no value.
   final NgAttributeValueToken valueToken;
@@ -95,6 +112,8 @@ class ParsedBananaAst extends TemplateAst
     this.nameToken,
     this.suffixToken,
     this.valueToken,
+    this.eventExpression,
+    this.propertyExpression,
     this.equalSignToken,
   )
       : super.parsed(
@@ -142,12 +161,21 @@ class _SyntheticBananaAst extends SyntheticTemplateAst with BananaAst {
   @override
   final String value;
 
-  _SyntheticBananaAst(this.name, [this.value]);
+  @override
+  final ExpressionAst eventExpression;
+
+  @override
+  final ExpressionAst propertyExpression;
+
+  _SyntheticBananaAst(this.name,
+      [this.value, this.eventExpression, this.propertyExpression]);
 
   _SyntheticBananaAst.from(
     TemplateAst origin,
     this.name, [
     this.value,
+    this.eventExpression,
+    this.propertyExpression,
   ])
       : super.from(origin);
 }

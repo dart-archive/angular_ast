@@ -23,15 +23,12 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
   TemplateAst visitBanana(BananaAst astNode, [String flag]) {
     TemplateAst origin = _toolFriendlyAstOrigin ? astNode : null;
     if (flag == "event") {
-      return new EventAst.from(
-          origin,
-          astNode.name + 'Changed',
-          new ExpressionAst.parse('${astNode.value} = \$event',
-              sourceUrl: astNode.sourceUrl));
+      return new EventAst.from(origin, astNode.name + 'Changed',
+          '${astNode.value} = \$event', astNode.eventExpression);
     }
     if (flag == "property") {
-      return new PropertyAst.from(origin, astNode.name,
-          new ExpressionAst.parse(astNode.value, sourceUrl: astNode.sourceUrl));
+      return new PropertyAst.from(
+          origin, astNode.name, astNode.value, astNode.propertyExpression);
     }
     return astNode;
   }
@@ -87,6 +84,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
           properties: [
             new PropertyAst(
               directiveName,
+              starExpression,
               new ExpressionAst.parse(
                 starExpression,
                 sourceUrl: astNode.sourceUrl,

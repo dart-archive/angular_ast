@@ -16,6 +16,7 @@ abstract class PropertyAst implements TemplateAst {
   /// Create a new synthetic [PropertyAst] assigned to [name].
   factory PropertyAst(
     String name, [
+    String value,
     ExpressionAst expression,
     String postfix,
     String unit,
@@ -25,6 +26,7 @@ abstract class PropertyAst implements TemplateAst {
   factory PropertyAst.from(
     TemplateAst origin,
     String name, [
+    String value,
     ExpressionAst expression,
     String postfix,
     String unit,
@@ -38,6 +40,7 @@ abstract class PropertyAst implements TemplateAst {
     NgToken elementDecoratorToken,
     NgToken suffixToken, [
     NgAttributeValueToken valueToken,
+    ExpressionAst expressionAst,
     NgToken equalSignToken,
   ]) = ParsedPropertyAst;
 
@@ -65,6 +68,9 @@ abstract class PropertyAst implements TemplateAst {
 
   /// Name of the property being set.
   String get name;
+
+  /// Unquoted value being bound to property
+  String get value;
 
   /// An optional indicator for some properties as a shorthand syntax.
   ///
@@ -127,13 +133,10 @@ class ParsedPropertyAst extends TemplateAst
     this.nameToken,
     this.suffixToken, [
     this.valueToken,
+    this.expression,
     this.equalSignToken,
   ])
-      : this.expression = valueToken != null
-            ? new ExpressionAst.parse(valueToken.innerValue.lexeme,
-                sourceUrl: sourceFile.url.toString())
-            : null,
-        super.parsed(
+      : super.parsed(
             beginToken,
             valueToken == null ? suffixToken : valueToken.rightQuote,
             sourceFile);
@@ -157,6 +160,7 @@ class ParsedPropertyAst extends TemplateAst
   int get equalSignOffset => equalSignToken?.offset;
 
   /// Expression value as [String] bound to property; may be `null` if no value.
+  @override
   String get value => valueToken?.innerValue?.lexeme;
 
   /// Offset of value; may be `null` to have no value.
@@ -193,6 +197,7 @@ class ParsedPropertyAst extends TemplateAst
 class _SyntheticPropertyAst extends SyntheticTemplateAst with PropertyAst {
   _SyntheticPropertyAst(
     this.name, [
+    this.value,
     this.expression,
     this.postfix,
     this.unit,
@@ -201,6 +206,7 @@ class _SyntheticPropertyAst extends SyntheticTemplateAst with PropertyAst {
   _SyntheticPropertyAst.from(
     TemplateAst origin,
     this.name, [
+    this.value,
     this.expression,
     this.postfix,
     this.unit,
@@ -212,6 +218,9 @@ class _SyntheticPropertyAst extends SyntheticTemplateAst with PropertyAst {
 
   @override
   final String name;
+
+  @override
+  final String value;
 
   @override
   final String postfix;
