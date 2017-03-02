@@ -170,10 +170,10 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitStar(StarAst astNode, [_]) {
-    if (astNode.expression == null) {
+    if (astNode.value == null) {
       return '*${astNode.name}';
     } else {
-      return '*${astNode.name}="${visitExpression(astNode.expression)}"';
+      return '*${astNode.name}="${astNode.value}"';
     }
   }
 

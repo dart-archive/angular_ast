@@ -23,11 +23,11 @@ class ExpressionAst implements TemplateAst {
     @required String sourceUrl,
     ExceptionHandler exceptionHandler,
   }) {
-      return new ExpressionAst(parseExpression(
-        expression,
-        deSugarPipes: deSugarPipes,
-        sourceUrl: sourceUrl,
-      ));
+    return new ExpressionAst(parseExpression(
+      expression,
+      deSugarPipes: deSugarPipes,
+      sourceUrl: sourceUrl,
+    ));
   }
 
   @override
