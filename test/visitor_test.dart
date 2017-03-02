@@ -6,6 +6,7 @@ import 'package:angular_ast/angular_ast.dart';
 import 'package:test/test.dart';
 
 void main() {
+  // DesugarVisitor is tested by parser_test.dart
   final visitor = const HumanizingTemplateAstVisitor();
 
   test('should humanize a simple template and preserve inner spaces', () {

@@ -114,13 +114,6 @@ class RecursiveAstParser {
       NgTokenType prefixType = prefixToken.type;
 
       if (prefixType == NgTokenType.bananaPrefix) {
-        ExpressionAst eventExpression;
-        ExpressionAst propertyExpression;
-        if (valueToken != null) {
-          eventExpression =
-              parseExpression('${valueToken.innerValue?.lexeme} = \$event');
-          propertyExpression = parseExpression(valueToken.innerValue?.lexeme);
-        }
         return new BananaAst.parsed(
           _source,
           beginToken,
@@ -128,8 +121,6 @@ class RecursiveAstParser {
           decoratorToken,
           suffixToken,
           valueToken,
-          eventExpression,
-          propertyExpression,
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.eventPrefix) {

@@ -8,8 +8,21 @@ import 'package:test/test.dart';
 RecoveringExceptionHandler recoveringExceptionHandler =
     new RecoveringExceptionHandler();
 
+DesugarVisitor desugarVisitor =
+    new DesugarVisitor(exceptionHandler: recoveringExceptionHandler);
+
 List<StandaloneTemplateAst> parse(String template) {
-  return const NgParser().parse(
+  recoveringExceptionHandler.exceptions.clear();
+  return const NgParser().parsePreserve(
+    template,
+    sourceUrl: '/test/recover_error_Parser.dart#inline',
+    exceptionHandler: recoveringExceptionHandler,
+  );
+}
+
+List<StandaloneTemplateAst> parsePreserve(String template) {
+  recoveringExceptionHandler.exceptions.clear();
+  return const NgParser().parsePreserve(
     template,
     sourceUrl: '/test/recover_error_Parser.dart#inline',
     exceptionHandler: recoveringExceptionHandler,
@@ -74,5 +87,97 @@ void main() {
     ElementAst element = asts[2];
     expect(element.isSynthetic, true);
     expect(element.closeComplement.isSynthetic, false);
+  });
+
+  test('Should parse property decorators with invalid dart value', () {
+    final asts = parse('<div [myProp]="["></div>');
+    expect(asts.length, 1);
+
+    ElementAst element = asts[0];
+    expect(element.properties.length, 1);
+    PropertyAst property = element.properties[0];
+    expect(property.expression, null);
+    expect(property.value, '[');
+
+    expect(recoveringExceptionHandler.exceptions.length, 1);
+    Exception exception = recoveringExceptionHandler.exceptions[0];
+    expect(exception, new isInstanceOf<FormatException>());
+    expect((exception as FormatException).offset,
+        0); // 0 offset is relative to value offset
+  });
+
+  test('Should parse event decorators with invalid dart value', () {
+    final asts = parse('<div (myEvnt)="["></div>');
+    expect(asts.length, 1);
+
+    ElementAst element = asts[0];
+    expect(element.events.length, 1);
+    EventAst event = element.events[0];
+    expect(event.expression, null);
+    expect(event.value, '[');
+
+    expect(recoveringExceptionHandler.exceptions.length, 1);
+    Exception exception = recoveringExceptionHandler.exceptions[0];
+    expect(exception, new isInstanceOf<FormatException>());
+    expect((exception as FormatException).offset,
+        0); // 0 offset is relative to value offset
+  });
+
+  test('Should parse banana decorator with invalid dart value', () {
+    List asts = parsePreserve('<div [(myBnna)]="["></div>');
+    expect(asts.length, 1);
+
+    ElementAst element = asts[0];
+    expect(element.bananas.length, 1);
+    expect(element.bananas[0].value, '[');
+
+    element.accept(desugarVisitor);
+    expect(element.events.length, 1);
+    expect(element.properties.length, 1);
+    expect(element.events[0].expression, null);
+    expect(element.properties[0].expression, null);
+
+    expect(recoveringExceptionHandler.exceptions.length, 2);
+    Exception exception1 = recoveringExceptionHandler.exceptions[0];
+    Exception exception2 = recoveringExceptionHandler.exceptions[1];
+    expect(exception1, new isInstanceOf<FormatException>());
+    expect((exception1 as FormatException).offset, 2);
+    expect(exception2, new isInstanceOf<FormatException>());
+    expect((exception2 as FormatException).offset, 0);
+  });
+
+  test('Should parse star(non micro) decorator with invalid dart value', () {
+    List asts = parsePreserve('<div *ngFor="["></div>');
+    expect(asts.length, 1);
+
+    ElementAst element = asts[0];
+    expect(element.stars.length, 1);
+    expect(element.stars[0].value, '[');
+
+    EmbeddedTemplateAst template =
+        element.accept(desugarVisitor) as EmbeddedTemplateAst;
+    expect(template.properties.length, 1);
+    expect(template.properties[0].expression, null);
+
+    expect(recoveringExceptionHandler.exceptions.length, 1);
+    Exception exception = recoveringExceptionHandler.exceptions[0];
+    expect(exception, new isInstanceOf<FormatException>());
+    expect((exception as FormatException).offset, 0);
+  });
+
+  test('Should parse star(micro) decorator with invalid dart value', () {
+    List asts = parsePreserve('<div *ngFor="let["></div>');
+    expect(asts.length, 1);
+
+    ElementAst element = asts[0];
+    expect(element.stars.length, 1);
+    expect(element.stars[0].value, 'let[');
+
+    EmbeddedTemplateAst template =
+      element.accept(desugarVisitor) as EmbeddedTemplateAst;
+    expect(template.properties.length, 0);
+    expect(template.references.length, 0);
+
+    expect(recoveringExceptionHandler.exceptions.length, 1);
   });
 }
