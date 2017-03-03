@@ -174,7 +174,7 @@ void main() {
     expect(element.stars[0].value, 'let[');
 
     EmbeddedTemplateAst template =
-      element.accept(desugarVisitor) as EmbeddedTemplateAst;
+        element.accept(desugarVisitor) as EmbeddedTemplateAst;
     expect(template.properties.length, 0);
     expect(template.references.length, 0);
 

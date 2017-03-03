@@ -88,10 +88,10 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
         } catch (e) {
           exceptionHandler.handle(e);
         }
-        List<PropertyAst> properties = micro == null ?
-          <PropertyAst>[] : micro.properties;
-        List<ReferenceAst> references = micro == null ?
-          <ReferenceAst>[] : micro.assignments;
+        List<PropertyAst> properties =
+            micro == null ? <PropertyAst>[] : micro.properties;
+        List<ReferenceAst> references =
+            micro == null ? <ReferenceAst>[] : micro.assignments;
         newAst = new EmbeddedTemplateAst.from(
           origin,
           childNodes: [
