@@ -26,6 +26,7 @@ abstract class InterpolationAst implements StandaloneTemplateAst {
     SourceFile sourceFile,
     NgToken beginToken,
     String value,
+    ExpressionAst expression,
     NgToken endToken,
   ) = _ParsedInterpolationAst;
 
@@ -63,13 +64,10 @@ class _ParsedInterpolationAst extends TemplateAst with InterpolationAst {
     SourceFile sourceFile,
     NgToken beginToken,
     this.value,
+    this.expression,
     NgToken endToken,
   )
-      : expression = new ExpressionAst.parse(
-          value,
-          sourceUrl: sourceFile.url.toString(),
-        ),
-        super.parsed(beginToken, endToken, sourceFile);
+      : super.parsed(beginToken, endToken, sourceFile);
 }
 
 class _SyntheticInterpolationAst extends SyntheticTemplateAst

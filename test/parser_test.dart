@@ -405,5 +405,6 @@ void main() {
     expect(interpolation.beginToken.offset, 5);
     expect(interpolation.value.length, 15);
     expect(interpolation.endToken.offset, 22);
+    expect(interpolation.expression, isNotNull);
   });
 }

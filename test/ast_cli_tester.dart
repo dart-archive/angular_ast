@@ -10,7 +10,7 @@ RecoveringExceptionHandler exceptionHandler = new RecoveringExceptionHandler();
 //ThrowingExceptionHandler exceptionHandler = new ThrowingExceptionHandler();
 
 List<StandaloneTemplateAst> parse(String template) {
-  return const NgParser().parse(
+  return const NgParser().parsePreserve(
     template,
     sourceUrl: '/test/parser_test.dart#inline',
     exceptionHandler: exceptionHandler,

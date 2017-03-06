@@ -391,10 +391,13 @@ class RecursiveAstParser {
   InterpolationAst parseInterpolation(NgToken beginToken) {
     final valueToken = _reader.expect(NgTokenType.interpolationValue);
     final endToken = _reader.expect(NgTokenType.interpolationEnd);
+    ExpressionAst expressionAst =
+        parseExpression(valueToken?.lexeme);
     return new InterpolationAst.parsed(
       _source,
       beginToken,
       valueToken.lexeme,
+      expressionAst,
       endToken,
     );
   }
