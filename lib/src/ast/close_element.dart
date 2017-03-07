@@ -61,7 +61,7 @@ abstract class CloseElementAst implements TemplateAst {
 
   @override
   String toString() {
-    final buffer = new StringBuffer('$CloseElementAst <$name> { ');
+    final buffer = new StringBuffer('$CloseElementAst </$name> { ');
     if (whitespaces.isNotEmpty) {
       buffer
         ..write('whitespaces=')
@@ -72,10 +72,9 @@ abstract class CloseElementAst implements TemplateAst {
   }
 }
 
-/// Represents a real, non-synthetic DOM close element that was parsed,
-/// that could be upgraded.abstract
+/// Represents a real, non-synthetic DOM close element that was parsed.
 ///
-/// Clients should not extned, implement, or mix-in this class.
+/// Clients should not extend, implement, or mix-in this class.
 class ParsedCloseElementAst extends TemplateAst with CloseElementAst {
   /// [NgToken] that represents the identifier tag in `</tag>`.
   final NgToken identifierToken;

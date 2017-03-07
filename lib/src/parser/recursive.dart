@@ -14,8 +14,12 @@ class RecursiveAstParser {
   final List<String> _voidElements;
   final exceptionHandler;
 
-  RecursiveAstParser(SourceFile sourceFile, Iterable<NgToken> tokens,
-      this._voidElements, this.exceptionHandler)
+  RecursiveAstParser(
+    SourceFile sourceFile,
+    Iterable<NgToken> tokens,
+    this._voidElements,
+    this.exceptionHandler,
+  )
       : _reader = new NgTokenReversibleReader(sourceFile, tokens),
         _source = sourceFile;
 
@@ -391,8 +395,7 @@ class RecursiveAstParser {
   InterpolationAst parseInterpolation(NgToken beginToken) {
     final valueToken = _reader.expect(NgTokenType.interpolationValue);
     final endToken = _reader.expect(NgTokenType.interpolationEnd);
-    ExpressionAst expressionAst =
-        parseExpression(valueToken?.lexeme);
+    ExpressionAst expressionAst = parseExpression(valueToken?.lexeme);
     return new InterpolationAst.parsed(
       _source,
       beginToken,

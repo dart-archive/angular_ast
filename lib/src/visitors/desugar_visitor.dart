@@ -39,12 +39,20 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
         exceptionHandler.handle(e);
       }
       if (flag == "event") {
-        return new EventAst.from(origin, astNode.name + 'Changed',
-            '${astNode.value}', expressionAst);
+        return new EventAst.from(
+          origin,
+          astNode.name + 'Changed',
+          astNode.value + appendedValue,
+          expressionAst,
+        );
       }
       if (flag == "property") {
         return new PropertyAst.from(
-            origin, astNode.name, astNode.value, expressionAst);
+          origin,
+          astNode.name,
+          astNode.value,
+          expressionAst,
+        );
       }
     }
 

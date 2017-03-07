@@ -20,7 +20,12 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitBanana(BananaAst astNode, [_]) {
-    return '[(${astNode.name})]="${astNode.value}"';
+    String name = '[(${astNode.name})]';
+    if (astNode.value != null) {
+      return '$name="${astNode.value}"';
+    } else {
+      return name;
+    }
   }
 
   @override
@@ -133,10 +138,11 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitEvent(EventAst astNode, [_]) {
-    if (astNode.expression != null) {
-      return '(${astNode.name})="${astNode.expression.expression.toSource()}"';
+    String name = '(${astNode.name})';
+    if (astNode.value != null) {
+      return '$name="${astNode.value}"';
     } else {
-      return '(${astNode.name})';
+      return name;
     }
   }
 
@@ -147,33 +153,36 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitInterpolation(InterpolationAst astNode, [_]) {
-    return '{{${astNode.expression.expression.toSource()}}}';
+    return '{{${astNode.value}}}';
   }
 
   @override
   String visitProperty(PropertyAst astNode, [_]) {
-    if (astNode.expression != null) {
-      return '[${astNode.name}]="${astNode.expression.expression.toSource()}"';
+    String name = '[${astNode.name}]';
+    if (astNode.value != null) {
+      return '$name="${astNode.value}"';
     } else {
-      return '[${astNode.name}]';
+      return name;
     }
   }
 
   @override
   String visitReference(ReferenceAst astNode, [_]) {
+    String identifier = '#${astNode.identifier}';
     if (astNode.variable != null) {
-      return '#${astNode.identifier}="${astNode.variable}"';
+      return '$identifier="${astNode.variable}"';
     } else {
-      return '#${astNode.identifier}';
+      return identifier;
     }
   }
 
   @override
   String visitStar(StarAst astNode, [_]) {
-    if (astNode.value == null) {
-      return '*${astNode.name}';
+    String name = '${astNode.name}';
+    if (astNode.value != null) {
+      return 'name="${astNode.value}"';
     } else {
-      return '*${astNode.name}="${astNode.value}"';
+      return name;
     }
   }
 
