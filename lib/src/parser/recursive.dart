@@ -406,9 +406,6 @@ class RecursiveAstParser {
   }
 
   /// Returns and parses a top-level AST structure.
-  ///
-  /// [CloseElementAst] is returned if and only if it cannot be
-  /// matched to an [ElementAst] and only if errorRecovery is enabled.
   StandaloneTemplateAst parseStandalone(NgToken token) {
     switch (token.type) {
       case NgTokenType.commentStart:
@@ -419,7 +416,9 @@ class RecursiveAstParser {
         return parseInterpolation(token);
       case NgTokenType.text:
         return parseText(token);
-      // Always an error case
+      // Dangling close tag. If error recovery is enabled, returns
+      // a synthetic open with the dangling close. If not enabled,
+      // simply throws error.
       case NgTokenType.closeElementStart:
         exceptionHandler.handle(new FormatException(
           "Close element cannot exist before matching open element",
