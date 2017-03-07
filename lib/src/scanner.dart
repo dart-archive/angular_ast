@@ -6,6 +6,7 @@ import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/simple_tokenizer.dart';
 import 'package:angular_ast/src/parser/reader.dart';
 import 'package:angular_ast/src/recovery_protocol/recovery_protocol.dart';
+import 'package:angular_ast/src/exception_handler/angular_parser_exception.dart';
 import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:meta/meta.dart';
 import 'package:string_scanner/string_scanner.dart';
@@ -33,8 +34,11 @@ class NgScanner {
     return _current;
   }
 
-  factory NgScanner(String html, ExceptionHandler exceptionHandler,
-      {sourceUrl}) {
+  factory NgScanner(
+    String html,
+    ExceptionHandler exceptionHandler, {
+    sourceUrl,
+  }) {
     NgTokenReader reader = new NgTokenReversibleReader(
         new SourceFile(html, url: sourceUrl),
         new NgSimpleTokenizer().tokenize(html));
@@ -542,7 +546,7 @@ class NgScanner {
   NgToken handleError([NgSimpleToken override]) {
     NgScannerState currentState = _state;
     _state = NgScannerState.hasError;
-    Exception e = _generateException(override);
+    var e = _generateException(override);
     if (e != null) {
       exceptionHandler.handle(e);
     }
@@ -560,8 +564,8 @@ class NgScanner {
     }
   }
 
-  FormatException _generateException([NgSimpleToken override]) {
-    NgSimpleToken token = override ?? _current;
+  AngularParserException _generateException([NgSimpleToken override]) {
+    var token = override ?? _current;
     if (_recoverErrors && _lastToken != null && _lastToken.errorSynthetic) {
       return null;
     }
@@ -570,13 +574,11 @@ class NgScanner {
       return null;
     }
     _lastErrorToken = token;
-    String lexeme = token.lexeme;
-    int offset = token.offset;
 
-    return new FormatException(
+    return new AngularParserException(
       'Unexpected character: $token',
-      lexeme,
-      offset,
+      token.lexeme,
+      token.offset,
     );
   }
 }

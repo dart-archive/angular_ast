@@ -100,10 +100,8 @@ void main() {
     expect(property.value, '[');
 
     expect(recoveringExceptionHandler.exceptions.length, 1);
-    Exception exception = recoveringExceptionHandler.exceptions[0];
-    expect(exception, new isInstanceOf<FormatException>());
-    expect((exception as FormatException).offset,
-        0); // 0 offset is relative to value offset
+    var exception = recoveringExceptionHandler.exceptions[0];
+    expect(exception.offset, 0); // 0 offset is relative to value offset
   });
 
   test('Should parse event decorators with invalid dart value', () {
@@ -117,10 +115,8 @@ void main() {
     expect(event.value, '[');
 
     expect(recoveringExceptionHandler.exceptions.length, 1);
-    Exception exception = recoveringExceptionHandler.exceptions[0];
-    expect(exception, new isInstanceOf<FormatException>());
-    expect((exception as FormatException).offset,
-        0); // 0 offset is relative to value offset
+    var exception = recoveringExceptionHandler.exceptions[0];
+    expect(exception.offset, 0); // 0 offset is relative to value offset
   });
 
   test('Should parse banana decorator with invalid dart value', () {
@@ -138,12 +134,10 @@ void main() {
     expect(element.properties[0].expression, null);
 
     expect(recoveringExceptionHandler.exceptions.length, 2);
-    Exception exception1 = recoveringExceptionHandler.exceptions[0];
-    Exception exception2 = recoveringExceptionHandler.exceptions[1];
-    expect(exception1, new isInstanceOf<FormatException>());
-    expect((exception1 as FormatException).offset, 2);
-    expect(exception2, new isInstanceOf<FormatException>());
-    expect((exception2 as FormatException).offset, 0);
+    var exception1 = recoveringExceptionHandler.exceptions[0];
+    var exception2 = recoveringExceptionHandler.exceptions[1];
+    expect(exception1.offset, 2);
+    expect(exception2.offset, 0);
   });
 
   test('Should parse star(non micro) decorator with invalid dart value', () {
@@ -160,9 +154,8 @@ void main() {
     expect(template.properties[0].expression, null);
 
     expect(recoveringExceptionHandler.exceptions.length, 1);
-    Exception exception = recoveringExceptionHandler.exceptions[0];
-    expect(exception, new isInstanceOf<FormatException>());
-    expect((exception as FormatException).offset, 0);
+    var exception = recoveringExceptionHandler.exceptions[0];
+    expect(exception.offset, 0);
   });
 
   test('Should parse star(micro) decorator with invalid dart value', () {

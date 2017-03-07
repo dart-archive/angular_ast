@@ -46,6 +46,8 @@ export 'package:angular_ast/src/visitor.dart'
         IdentityTemplateAstVisitor,
         TemplateAstVisitor,
         DesugarVisitor;
+export 'package:angular_ast/src/exception_handler/angular_parser_exception.dart'
+    show AngularParserException;
 export 'package:angular_ast/src/exception_handler/exception_handler.dart'
     show RecoveringExceptionHandler, ExceptionHandler, ThrowingExceptionHandler;
 export 'package:angular_ast/src/recovery_protocol/recovery_protocol.dart';

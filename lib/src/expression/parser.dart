@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:angular_ast/src/exception_handler/angular_parser_exception.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -21,7 +22,7 @@ class _ThrowingListener implements AnalysisErrorListener {
 
   @override
   void onError(AnalysisError error) {
-    throw new FormatException(
+    throw new AngularParserException(
       error.toString(),
       error.source.contents.data,
       error.offset,
@@ -104,7 +105,7 @@ class _NgExpressionParser extends Parser {
       pipeArgs.add(this.parseExpression2());
     }
     if (expression.rightOperand is! Identifier) {
-      throw new FormatException(
+      throw new AngularParserException(
         'Pipe name must be a valid identifier',
         expression.toSource(),
         expression.rightOperand.offset,
