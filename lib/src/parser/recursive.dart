@@ -42,7 +42,7 @@ class RecursiveAstParser {
   }
 
   CloseElementAst parseCloseElement(NgToken beginToken) {
-    final nameToken = _reader.expect(NgTokenType.elementIdentifier);
+    var nameToken = _reader.expect(NgTokenType.elementIdentifier);
     if (_voidElements.contains(nameToken.lexeme)) {
       exceptionHandler.handle(new FormatException(
         "${nameToken.lexeme} is a void element and cannot be used in a close element tag",

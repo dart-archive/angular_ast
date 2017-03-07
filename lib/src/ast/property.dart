@@ -69,7 +69,7 @@ abstract class PropertyAst implements TemplateAst {
   /// Name of the property being set.
   String get name;
 
-  /// Unquoted value being bound to property
+  /// Unquoted value being bound to property.
   String get value;
 
   /// An optional indicator for some properties as a shorthand syntax.

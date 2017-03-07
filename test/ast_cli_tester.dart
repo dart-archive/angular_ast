@@ -6,16 +6,14 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:angular_ast/angular_ast.dart';
 
-RecoveringExceptionHandler exceptionHandler = new RecoveringExceptionHandler();
-//ThrowingExceptionHandler exceptionHandler = new ThrowingExceptionHandler();
+final exceptionHandler = new RecoveringExceptionHandler();
 
-List<StandaloneTemplateAst> parse(String template) {
-  return const NgParser().parsePreserve(
-    template,
-    sourceUrl: '/test/parser_test.dart#inline',
-    exceptionHandler: exceptionHandler,
-  );
-}
+List<StandaloneTemplateAst> parse(String template) =>
+    const NgParser().parsePreserve(
+      template,
+      sourceUrl: '/test/parser_test.dart#inline',
+      exceptionHandler: exceptionHandler,
+    );
 
 void main() {
   String input;
@@ -24,24 +22,24 @@ void main() {
       exceptionHandler.exceptions.clear();
     }
     input = stdin.readLineSync(encoding: UTF8);
-    if (input == "QUIT") {
+    if (input == 'QUIT') {
       break;
     }
     List<StandaloneTemplateAst> ast = parse(input);
     print("----------------------------------------------");
     if (exceptionHandler is ThrowingExceptionHandler) {
-      print("CORRECT!");
+      print('CORRECT!');
     }
     if (exceptionHandler is RecoveringExceptionHandler) {
       final exceptionsList = exceptionHandler.exceptions;
       if (exceptionsList.isEmpty) {
-        print("CORRECT!");
+        print('CORRECT!');
       } else {
         HumanizingTemplateAstVisitor visitor =
             const HumanizingTemplateAstVisitor();
         String fixed = ast.map((t) => t.accept(visitor)).join('');
-        print("ORGNL: " + input);
-        print("FIXED: " + fixed);
+        print('ORGNL: $input');
+        print('FIXED: $fixed');
       }
       print('\n\nERRORS:');
       print(exceptionHandler.exceptions);

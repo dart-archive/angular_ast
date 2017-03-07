@@ -24,7 +24,7 @@ abstract class CloseElementAst implements TemplateAst {
     List<WhitespaceAst> whitespaces,
   }) = _SyntheticCloseElementAst.from;
 
-  /// Creates a new close element AST from a parsed source
+  /// Creates a new close element AST from a parsed source.
   factory CloseElementAst.parsed(
     SourceFile sourceFile,
     NgToken closeTagStart,
@@ -46,9 +46,8 @@ abstract class CloseElementAst implements TemplateAst {
   int get hashCode => name.hashCode;
 
   @override
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
-    return visitor.visitCloseElement(this, context);
-  }
+  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) =>
+      visitor.visitCloseElement(this, context);
 
   /// Whether this is a `</template>` tag and should be directly rendered.
   bool get isEmbeddedTemplate => name == 'template';
@@ -56,12 +55,12 @@ abstract class CloseElementAst implements TemplateAst {
   /// Name (tag) of the close element.
   String get name;
 
-  /// Whitespaces at the end
+  /// Whitespaces at the end.
   List<WhitespaceAst> get whitespaces;
 
   @override
   String toString() {
-    final buffer = new StringBuffer('$CloseElementAst </$name> { ');
+    var buffer = new StringBuffer('$CloseElementAst </$name> { ');
     if (whitespaces.isNotEmpty) {
       buffer
         ..write('whitespaces=')
