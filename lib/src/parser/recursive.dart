@@ -283,7 +283,7 @@ class RecursiveAstParser {
             _source.getText(0),
             closeNameToken.offset,
           ));
-          _reader.putBack(nextToken);
+          childNodes.add(parseStandalone(nextToken));
           closeElementAst = new CloseElementAst(nameToken.lexeme);
         } else {
           closeElementAst = parseCloseElement(nextToken);
