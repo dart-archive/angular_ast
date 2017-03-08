@@ -175,7 +175,11 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
   @override
   RecoverySolution scanAfterInterpolation(
       NgSimpleToken current, NgTokenReversibleReader reader) {
-    if (current.type == NgSimpleTokenType.EOF) {
+    if (current.type == NgSimpleTokenType.EOF ||
+        current.type == NgSimpleTokenType.commentBegin ||
+        current.type == NgSimpleTokenType.openTagStart ||
+        current.type == NgSimpleTokenType.closeTagStart ||
+        current.type == NgSimpleTokenType.mustacheBegin) {
       reader.putBack(current);
       return new RecoverySolution(
           NgScannerState.scanStart,
@@ -194,7 +198,17 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
   @override
   RecoverySolution scanBeforeInterpolation(
       NgSimpleToken current, NgTokenReversibleReader reader) {
-    return new RecoverySolution.skip();
+    NgScannerState returnState;
+    NgToken returnToken;
+
+    if (current.type == NgSimpleTokenType.text ||
+        current.type == NgSimpleTokenType.mustacheEnd) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.offset, NgTokenType.interpolationStart);
+      returnState = NgScannerState.scanInterpolation;
+    }
+    return new RecoverySolution(returnState, returnToken);
   }
 
   @override
@@ -218,7 +232,22 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
   @override
   RecoverySolution scanInterpolation(
       NgSimpleToken current, NgTokenReversibleReader reader) {
-    return new RecoverySolution.skip();
+    NgScannerState returnState;
+    NgToken returnToken;
+
+    if (current.type == NgSimpleTokenType.EOF ||
+        current.type == NgSimpleTokenType.commentBegin ||
+        current.type == NgSimpleTokenType.openTagStart ||
+        current.type == NgSimpleTokenType.closeTagStart ||
+        current.type == NgSimpleTokenType.mustacheBegin ||
+        current.type == NgSimpleTokenType.mustacheEnd) {
+      reader.putBack(current);
+      returnToken = new NgToken.generateErrorSynthetic(
+          current.offset, NgTokenType.interpolationValue,
+          lexeme: '');
+      returnState = NgScannerState.scanAfterInterpolation;
+    }
+    return new RecoverySolution(returnState, returnToken);
   }
 
   @override

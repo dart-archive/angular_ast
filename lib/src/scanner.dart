@@ -142,6 +142,11 @@ class NgScanner {
             returnToken = scanElementStart();
           } else if (_current.type == NgSimpleTokenType.commentBegin) {
             returnToken = scanBeforeComment();
+          } else if (_current.type == NgSimpleTokenType.mustacheBegin ||
+              _current.type == NgSimpleTokenType.mustacheEnd) {
+            // If [NgSimpleTokenType.mustacheEnd], then error - but let
+            // scanBeforeInterpolation handle it.
+            return scanBeforeInterpolation();
           } else {
             returnToken = scanText();
           }
@@ -512,31 +517,33 @@ class NgScanner {
 
   @protected
   NgToken scanText() {
-    // TODO: move interpolation token finding logic elsewhere(?)
-    // TODO: be able to pinpoint incorrectly overlapping mustaches too.
     if (_current.type == NgSimpleTokenType.text) {
-      String text = _current.lexeme;
-      int beforeInterpolation = text.indexOf(_findBeforeInterpolation);
-
-      if (beforeInterpolation != -1) {
-        int afterMustacheTextOffset =
-            beforeInterpolation + _findBeforeInterpolation.length;
-
-        _reader.putBack(new NgSimpleToken.text(
-            _current.offset + afterMustacheTextOffset,
-            text.substring(afterMustacheTextOffset)));
-
-        if (beforeInterpolation == 0) {
-          _state = NgScannerState.scanInterpolation;
-          return new NgToken.interpolationStart(_current.offset);
-        } else {
-          _reader.putBack(new NgSimpleToken.mustacheBegin(
-              _current.offset + beforeInterpolation));
-          _state = NgScannerState.scanBeforeInterpolation;
-          return new NgToken.text(
-              _current.offset, text.substring(0, beforeInterpolation));
-        }
+      if (_reader.peekType() == NgSimpleTokenType.mustacheEnd) {
+        return scanBeforeInterpolation();
       }
+
+//      String text = _current.lexeme;
+//      var beforeInterpolation = text.indexOf(_findBeforeInterpolation);
+//
+//      if (beforeInterpolation != -1) {
+//        int afterMustacheTextOffset =
+//            beforeInterpolation + _findBeforeInterpolation.length;
+//
+//        _reader.putBack(new NgSimpleToken.text(
+//            _current.offset + afterMustacheTextOffset,
+//            text.substring(afterMustacheTextOffset)));
+//
+//        if (beforeInterpolation == 0) {
+//          _state = NgScannerState.scanInterpolation;
+//          return new NgToken.interpolationStart(_current.offset);
+//        } else {
+//          _reader.putBack(new NgSimpleToken.mustacheBegin(
+//              _current.offset + beforeInterpolation));
+//          _state = NgScannerState.scanBeforeInterpolation;
+//          return new NgToken.text(
+//              _current.offset, text.substring(0, beforeInterpolation));
+//        }
+//      }
       _state = NgScannerState.scanStart;
       return new NgToken.text(_current.offset, _current.lexeme);
     }

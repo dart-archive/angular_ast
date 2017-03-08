@@ -47,8 +47,10 @@ class NgSimpleScanner {
       r"(\#)|" //19 #
       r"(\.)"); //20 .
   static final _commentEnd = new RegExp('-->');
+  static final _mustaches = new RegExp(r'({{)|(}})');
 
   final StringScanner _scanner;
+  StringScanner _mustacheScanner;
   _NgSimpleScannerState _state = _NgSimpleScannerState.text;
 
   factory NgSimpleScanner(String html, {sourceUrl, initialTextState: true}) {
@@ -206,7 +208,31 @@ class NgSimpleScanner {
     if (_scanner.scan(_allTextMatches)) {
       Match match = _scanner.lastMatch;
       if (matchesGroup(match, 1)) {
-        return new NgSimpleToken.text(offset, _scanner.substring(offset));
+        var text = _scanner.substring(offset);
+        var mustacheMatch = _mustaches.firstMatch(text);
+
+        // Mustache exists
+        if (mustacheMatch != null) {
+          var mustacheStart = offset + mustacheMatch.start;
+
+          // Mustache exists, but text precedes it - return the text first.
+          if (mustacheStart != offset) {
+            _scanner.position = mustacheStart;
+            return new NgSimpleToken.text(
+                offset, _scanner.substring(offset, mustacheStart));
+          }
+
+          // Mustache exists and text doesn't precede it - return mustache.
+          _scanner.position = offset + mustacheMatch.end;
+          if (mustacheMatch.group(1) != null) {
+            return new NgSimpleToken.mustacheBegin(mustacheStart);
+          }
+          if (mustacheMatch.group(2) != null) {
+            return new NgSimpleToken.mustacheEnd(mustacheStart);
+          }
+        }
+        // Mustache doesn't exist; simple text.
+        return new NgSimpleToken.text(offset, text);
       }
       if (matchesGroup(match, 2)) {
         _state = _NgSimpleScannerState.comment;

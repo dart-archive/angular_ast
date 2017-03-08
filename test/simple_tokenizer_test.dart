@@ -337,4 +337,22 @@ void main() {
       new NgSimpleToken.EOF(15),
     ]);
   });
+
+  test('should tokenize mustaches despite incorrect ordering', () {
+    expect(tokenize('blah {{ blah {{ blah }} blah }} blah {{ blah }}'), [
+      new NgSimpleToken.text(0, 'blah '),
+      new NgSimpleToken.mustacheBegin(5),
+      new NgSimpleToken.text(7, ' blah '),
+      new NgSimpleToken.mustacheBegin(13),
+      new NgSimpleToken.text(15, ' blah '),
+      new NgSimpleToken.mustacheEnd(21),
+      new NgSimpleToken.text(23, ' blah '),
+      new NgSimpleToken.mustacheEnd(29),
+      new NgSimpleToken.text(31, ' blah '),
+      new NgSimpleToken.mustacheBegin(37),
+      new NgSimpleToken.text(39, ' blah '),
+      new NgSimpleToken.mustacheEnd(45),
+      new NgSimpleToken.EOF(47),
+    ]);
+  });
 }
