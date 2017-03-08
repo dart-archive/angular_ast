@@ -283,7 +283,7 @@ class RecursiveAstParser {
             _source.getText(0),
             closeNameToken.offset,
           ));
-          childNodes.add(parseStandalone(nextToken));
+          childNodes.add(_handleDanglingCloseElement(nextToken));
           closeElementAst = new CloseElementAst(nameToken.lexeme);
         } else {
           closeElementAst = parseCloseElement(nextToken);
@@ -425,14 +425,18 @@ class RecursiveAstParser {
           _source.getText(0),
           token.offset,
         ));
-        CloseElementAst closeElementAst = parseCloseElement(token);
-        ElementAst synthElementAst = new ElementAst(closeElementAst.name);
-        synthElementAst.closeComplement = closeElementAst;
-        return synthElementAst;
+        return _handleDanglingCloseElement(token);
       default:
         _reader.error('Expected standalone token, got ${token.type}');
         return null;
     }
+  }
+
+  StandaloneTemplateAst _handleDanglingCloseElement(NgToken closeStart) {
+    var closeElementAst = parseCloseElement(closeStart);
+    var synthElementAst = new ElementAst(closeElementAst.name);
+    synthElementAst.closeComplement = closeElementAst;
+    return synthElementAst;
   }
 
   /// Returns and parses a text AST.
