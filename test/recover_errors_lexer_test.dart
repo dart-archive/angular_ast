@@ -138,8 +138,8 @@ void beforeInterpolation() {
     ]);
     expect(recoveringException.exceptions.length, 1);
     var e = recoveringException.exceptions[0];
-    expect(e.context, 'mustache text');
-    expect(e.offset, 0);
+    expect(e.context, '}}');
+    expect(e.offset, 13);
 
     expect(untokenize(results), '{{mustache text}}');
   });

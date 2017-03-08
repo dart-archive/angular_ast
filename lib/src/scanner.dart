@@ -275,7 +275,13 @@ class NgScanner {
       _state = NgScannerState.scanInterpolation;
       return new NgToken.interpolationStart(_current.offset);
     }
-    return handleError();
+
+    var override = _current;
+    if (_current.type == NgSimpleTokenType.text &&
+        _reader.peekType() == NgSimpleTokenType.mustacheEnd) {
+      override = _reader.peek();
+    }
+    return handleError(override);
   }
 
   @protected
