@@ -270,14 +270,16 @@ class RecursiveAstParser {
         closeElementAst = new CloseElementAst(nameToken.lexeme);
       } else {
         final closeNameToken = _reader.peek();
+        // Found a close tag, but unmatching identifier.
         if (closeNameToken.lexeme != nameToken.lexeme) {
           exceptionHandler.handle(new AngularParserException(
             'Invalid closing tag: $closeNameToken (expected $nameToken)',
             closeNameToken.lexeme,
             closeNameToken.offset,
           ));
-          _reader.putBack(nextToken);
+          childNodes.add(parseStandalone(nextToken));
           closeElementAst = new CloseElementAst(nameToken.lexeme);
+          // Correct path
         } else {
           closeElementAst = parseCloseElement(nextToken);
         }
