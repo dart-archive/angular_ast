@@ -89,6 +89,7 @@ void testRecoverySolution(
 }
 
 void main() {
+  beforeInterpolation();
   afterComment();
   afterElementDecorator();
   afterElementDecoratorValue();
@@ -111,6 +112,39 @@ void main() {
   suffixProperty();
 }
 
+void beforeInterpolation() {
+  test('should resolve: dangling mustacheEnd at start', () {
+    var results = tokenize('}} some text');
+    expect(results, [
+      new NgToken.interpolationStart(0), // Synthetic
+      new NgToken.interpolationValue(0, ''), // Synthetic
+      new NgToken.interpolationEnd(0),
+      new NgToken.text(2, ' some text'),
+    ]);
+    expect(recoveringException.exceptions.length, 1);
+    var e = recoveringException.exceptions[0];
+    expect(e.context, '}}');
+    expect(e.offset, 0);
+
+    expect(untokenize(results), '{{}} some text');
+  });
+
+  test('should resolve: dangling mustacheEnd at end of text', () {
+    var results = tokenize('mustache text}}');
+    expect(results, [
+      new NgToken.interpolationStart(0), // Synthetic
+      new NgToken.interpolationValue(0, 'mustache text'),
+      new NgToken.interpolationEnd(13),
+    ]);
+    expect(recoveringException.exceptions.length, 1);
+    var e = recoveringException.exceptions[0];
+    expect(e.context, 'mustache text');
+    expect(e.offset, 0);
+
+    expect(untokenize(results), '{{mustache text}}');
+  });
+}
+
 void afterComment() {
   test('should resolve: unexpected EOF in afterComment', () {
     Iterable<NgToken> results = tokenize('<!-- some comment ');
@@ -130,8 +164,8 @@ void afterComment() {
 }
 
 void afterInterpolation() {
-  String baseHtml = "{{ 1 + 2 ";
-  NgScannerState startState = NgScannerState.scanAfterInterpolation;
+  var baseHtml = "{{ 1 + 2 ";
+  var startState = NgScannerState.scanAfterInterpolation;
 
   var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.commentBegin,

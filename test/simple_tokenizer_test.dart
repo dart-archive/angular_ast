@@ -338,6 +338,14 @@ void main() {
     ]);
   });
 
+  test('should tokenize text beginning with dangling close mustache', () {
+    expect(tokenize('}} some text'), [
+      new NgSimpleToken.mustacheEnd(0),
+      new NgSimpleToken.text(2, ' some text'),
+      new NgSimpleToken.EOF(12),
+    ]);
+  });
+
   test('should tokenize mustaches despite incorrect ordering', () {
     expect(tokenize('blah {{ blah {{ blah }} blah }} blah {{ blah }}'), [
       new NgSimpleToken.text(0, 'blah '),

@@ -200,7 +200,6 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-
     if (current.type == NgSimpleTokenType.text ||
         current.type == NgSimpleTokenType.mustacheEnd) {
       reader.putBack(current);
