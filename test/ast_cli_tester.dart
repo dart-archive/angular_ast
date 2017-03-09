@@ -29,11 +29,13 @@ void main() {
     print("----------------------------------------------");
     if (exceptionHandler is ThrowingExceptionHandler) {
       print('CORRECT!');
+      print(ast);
     }
     if (exceptionHandler is RecoveringExceptionHandler) {
       final exceptionsList = exceptionHandler.exceptions;
       if (exceptionsList.isEmpty) {
         print('CORRECT!');
+        print(ast);
       } else {
         HumanizingTemplateAstVisitor visitor =
             const HumanizingTemplateAstVisitor();
