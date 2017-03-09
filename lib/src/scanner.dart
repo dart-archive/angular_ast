@@ -14,9 +14,6 @@ import 'package:source_span/source_span.dart';
 
 /// A wrapper around [StringScanner] that scans tokens from an HTML string.
 class NgScanner {
-  static const _findAfterInterpolation = '}}';
-  static const _findBeforeInterpolation = '{{';
-
   final NgTokenReversibleReader _reader;
   NgScannerState _state = NgScannerState.scanStart;
   final ExceptionHandler exceptionHandler;
@@ -242,7 +239,8 @@ class NgScanner {
       _state = NgScannerState.scanStart;
       return new NgToken.interpolationEnd(_current.offset);
     }
-    return handleError();
+    var overrideMessage = 'Unclosed mustache';
+    return handleError(overrideMessage: overrideMessage);
   }
 
   @protected
@@ -281,7 +279,9 @@ class NgScanner {
         _reader.peekType() == NgSimpleTokenType.mustacheEnd) {
       override = _reader.peek();
     }
-    return handleError(override);
+    var overrideMessage = 'Unopened mustache';
+    return handleError(
+        overrideMessage: overrideMessage, overrideToken: override);
   }
 
   @protected
@@ -357,7 +357,7 @@ class NgScanner {
         if (_recoverErrors) {
           rightQuoteOffset = current.end;
         } else {
-          return handleError(current);
+          return handleError(overrideToken: current);
         }
       } else {
         rightQuoteOffset = current.quoteEndOffset;
@@ -517,10 +517,14 @@ class NgScanner {
     return handleError();
   }
 
-  NgToken handleError([NgSimpleToken override]) {
+  NgToken handleError({
+    String overrideMessage,
+    NgSimpleToken overrideToken,
+  }) {
     NgScannerState currentState = _state;
     _state = NgScannerState.hasError;
-    var e = _generateException(override);
+    var e = _generateException(
+        overrideMessage: overrideMessage, overrideToken: overrideToken);
     if (e != null) {
       exceptionHandler.handle(e);
     }
@@ -538,8 +542,12 @@ class NgScanner {
     }
   }
 
-  AngularParserException _generateException([NgSimpleToken override]) {
-    var token = override ?? _current;
+  AngularParserException _generateException({
+    String overrideMessage,
+    NgSimpleToken overrideToken,
+  }) {
+    var token = overrideToken ?? _current;
+    var message = overrideMessage ?? 'Unexpected token: $token';
     if (_recoverErrors && _lastToken != null && _lastToken.errorSynthetic) {
       return null;
     }
@@ -550,7 +558,7 @@ class NgScanner {
     _lastErrorToken = token;
 
     return new AngularParserException(
-      'Unexpected character: $token',
+      message,
       token.lexeme,
       token.offset,
     );

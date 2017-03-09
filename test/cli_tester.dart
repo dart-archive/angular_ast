@@ -31,7 +31,10 @@ void main() {
       } else {
         print("ORGNL: $input");
         print("FIXED: $fixed");
-        print("ERRORS:" + exceptionHandler.exceptions.toString());
+        print("ERRORS:");
+        exceptionHandler.exceptions.forEach((e) {
+          print('${e.message} :: ${e.context} at ${e.offset}');
+        });
       }
     } catch (e) {
       print(e);

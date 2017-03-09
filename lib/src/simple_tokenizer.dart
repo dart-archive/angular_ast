@@ -50,7 +50,6 @@ class NgSimpleScanner {
   static final _mustaches = new RegExp(r'({{)|(}})');
 
   final StringScanner _scanner;
-  StringScanner _mustacheScanner;
   _NgSimpleScannerState _state = _NgSimpleScannerState.text;
 
   factory NgSimpleScanner(String html, {sourceUrl, initialTextState: true}) {
