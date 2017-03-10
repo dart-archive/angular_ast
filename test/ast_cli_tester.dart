@@ -44,7 +44,9 @@ void main() {
         print('FIXED: $fixed');
       }
       print('\n\nERRORS:');
-      print(exceptionHandler.exceptions);
+      exceptionHandler.exceptions.forEach((e) {
+        print('${e.message} :: ${e.context} at ${e.offset}');
+      });
     }
   }
 }

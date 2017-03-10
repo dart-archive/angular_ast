@@ -89,6 +89,33 @@ void main() {
     expect(element.closeComplement.isSynthetic, false);
   });
 
+  test('Should resolve complicated nested danglings', () {
+    var asts = parse('<a><b></c></a></b>');
+    expect(asts.length, 2);
+
+    var elementA = asts[0];
+    expect(elementA.childNodes.length, 1);
+    expect(elementA.isSynthetic, false);
+    expect((elementA as ElementAst).closeComplement.isSynthetic, false);
+
+    var elementInnerB = elementA.childNodes[0];
+    expect(elementInnerB.childNodes.length, 1);
+    expect(elementInnerB.isSynthetic, false);
+    expect((elementInnerB as ElementAst).closeComplement.isSynthetic, true);
+
+    var elementC = elementInnerB.childNodes[0];
+    expect(elementC.childNodes.length, 0);
+    expect(elementC.isSynthetic, true);
+    expect((elementC as ElementAst).closeComplement.isSynthetic, false);
+
+    var elementOuterB = asts[1];
+    expect(elementOuterB.childNodes.length, 0);
+    expect(elementOuterB.isSynthetic, true);
+    expect((elementOuterB as ElementAst).closeComplement.isSynthetic, false);
+
+    expect(astsToString(asts), '<a><b><c></c></b></a><b></b>');
+  });
+
   test('Should parse property decorators with invalid dart value', () {
     final asts = parse('<div [myProp]="["></div>');
     expect(asts.length, 1);

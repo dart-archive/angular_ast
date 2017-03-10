@@ -26,8 +26,12 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
   factory EmbeddedContentAst.parsed(
     SourceFile sourceFile,
     NgToken startElementToken,
-    NgToken endElementToken, [
-    NgToken selectorValueToken,
+    NgToken elementIdentifierToken,
+    NgToken endElementToken,
+    CloseElementAst closeComplement, [
+    NgToken selectToken,
+    NgToken equalSign,
+    NgAttributeValueToken selectorValueToken,
   ]) = _ParsedEmbeddedContentAst;
 
   @override
@@ -39,6 +43,10 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
   ///
   /// May be `*` to signify _all_ elements.
   String get selector;
+
+  /// </ng-content> that is paired to this <ng-content>.
+  CloseElementAst get closeComplement;
+  set closeComplement(CloseElementAst closeComplement);
 
   @override
   bool operator ==(Object o) {
@@ -53,13 +61,30 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
 }
 
 class _ParsedEmbeddedContentAst extends TemplateAst with EmbeddedContentAst {
-  final NgToken _selectorValueToken;
+  // Token for 'ng-content'.
+  final NgToken identifierToken;
+
+  // Token for 'select'. May be null.
+  final NgToken selectToken;
+
+  // Token for '='. May be null.
+  final NgToken equalSign;
+
+  // Token for value paired to 'select'. May be null.
+  final NgAttributeValueToken selectorValueToken;
+
+  @override
+  CloseElementAst closeComplement;
 
   _ParsedEmbeddedContentAst(
     SourceFile sourceFile,
     NgToken startElementToken,
-    NgToken endElementToken, [
-    this._selectorValueToken,
+    this.identifierToken,
+    NgToken endElementToken,
+    this.closeComplement, [
+    this.selectToken,
+    this.equalSign,
+    this.selectorValueToken,
   ])
       : super.parsed(
           startElementToken,
@@ -68,7 +93,7 @@ class _ParsedEmbeddedContentAst extends TemplateAst with EmbeddedContentAst {
         );
 
   @override
-  String get selector => _selectorValueToken?.lexeme ?? '*';
+  String get selector => selectorValueToken?.innerValue?.lexeme ?? '*';
 }
 
 class _SyntheticEmbeddedContentAst extends SyntheticTemplateAst
@@ -76,11 +101,19 @@ class _SyntheticEmbeddedContentAst extends SyntheticTemplateAst
   @override
   final String selector;
 
-  _SyntheticEmbeddedContentAst([this.selector = '*']);
+  @override
+  CloseElementAst closeComplement;
+
+  _SyntheticEmbeddedContentAst([this.selector = '*', this.closeComplement]) {
+    this.closeComplement = new CloseElementAst('ng-content');
+  }
 
   _SyntheticEmbeddedContentAst.from(
     TemplateAst origin, [
     this.selector = ' *',
+    this.closeComplement,
   ])
-      : super.from(origin);
+      : super.from(origin) {
+    this.closeComplement = new CloseElementAst('ng-content');
+  }
 }
