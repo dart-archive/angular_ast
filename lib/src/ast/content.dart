@@ -32,7 +32,7 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
     NgToken selectToken,
     NgToken equalSign,
     NgAttributeValueToken selectorValueToken,
-  ]) = _ParsedEmbeddedContentAst;
+  ]) = ParsedEmbeddedContentAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -60,7 +60,7 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
   String toString() => '$EmbeddedContentAst {$selector}';
 }
 
-class _ParsedEmbeddedContentAst extends TemplateAst with EmbeddedContentAst {
+class ParsedEmbeddedContentAst extends TemplateAst with EmbeddedContentAst {
   // Token for 'ng-content'.
   final NgToken identifierToken;
 
@@ -76,7 +76,7 @@ class _ParsedEmbeddedContentAst extends TemplateAst with EmbeddedContentAst {
   @override
   CloseElementAst closeComplement;
 
-  _ParsedEmbeddedContentAst(
+  ParsedEmbeddedContentAst(
     SourceFile sourceFile,
     NgToken startElementToken,
     this.identifierToken,
