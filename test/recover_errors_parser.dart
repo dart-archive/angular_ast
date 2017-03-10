@@ -116,6 +116,39 @@ void main() {
     expect(astsToString(asts), '<a><b><c></c></b></a><b></b>');
   });
 
+  test('Should resolve dangling open ng-content', () {
+    var asts = parse('<div><ng-content></div>');
+    expect(asts.length, 1);
+
+    var div = asts[0];
+    expect(div.childNodes.length, 1);
+
+    var ngContent = div.childNodes[0];
+    expect(ngContent, new isInstanceOf<EmbeddedContentAst>());
+    expect(ngContent.isSynthetic, false);
+    expect((ngContent as EmbeddedContentAst).closeComplement.isSynthetic, true);
+
+    expect(
+        astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
+  });
+
+  test('Should resolve dangling close ng-content', () {
+    var asts = parse('<div></ng-content></div>');
+    expect(asts.length, 1);
+
+    var div = asts[0];
+    expect(div.childNodes.length, 1);
+
+    var ngContent = div.childNodes[0];
+    expect(ngContent, new isInstanceOf<EmbeddedContentAst>());
+    expect(ngContent.isSynthetic, true);
+    expect(
+        (ngContent as EmbeddedContentAst).closeComplement.isSynthetic, false);
+
+    expect(
+        astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
+  });
+
   test('Should parse property decorators with invalid dart value', () {
     final asts = parse('<div [myProp]="["></div>');
     expect(asts.length, 1);
