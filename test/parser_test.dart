@@ -33,7 +33,7 @@ void main() {
     expect(
       parse('<div></div  >'),
       [
-        new ElementAst('div'),
+        new ElementAst('div', new CloseElementAst('div')),
       ],
     );
   });
@@ -77,7 +77,7 @@ void main() {
       parse('Hello<div></div><!--Goodbye-->{{name}}'),
       [
         new TextAst('Hello'),
-        new ElementAst('div'),
+        new ElementAst('div', new CloseElementAst('div')),
         new CommentAst('Goodbye'),
         new InterpolationAst(new ExpressionAst.parse(
           'name',
@@ -94,9 +94,9 @@ void main() {
           '  <span>Hello World</span>\n'
           '</div>\n'),
       [
-        new ElementAst('div', childNodes: [
+        new ElementAst('div', new CloseElementAst('div'), childNodes: [
           new TextAst('\n  '),
-          new ElementAst('span', childNodes: [
+          new ElementAst('span', new CloseElementAst('span'), childNodes: [
             new TextAst('Hello World'),
           ]),
           new TextAst('\n'),
@@ -110,7 +110,7 @@ void main() {
     expect(
       parse('<button disabled ></button>'),
       [
-        new ElementAst('button', attributes: [
+        new ElementAst('button', new CloseElementAst('button'), attributes: [
           new AttributeAst('disabled'),
         ]),
       ],
@@ -121,7 +121,7 @@ void main() {
     expect(
       parse('<button title="Submit"></button>'),
       [
-        new ElementAst('button', attributes: [
+        new ElementAst('button', new CloseElementAst('button'), attributes: [
           new AttributeAst('title', 'Submit'),
         ]),
       ],
@@ -132,7 +132,7 @@ void main() {
     expect(
       parse('<div title="Hello {{myName}}"></div>'),
       [
-        new ElementAst('div', attributes: [
+        new ElementAst('div', new CloseElementAst('div'), attributes: [
           new AttributeAst('title', 'Hello {{myName}}'),
         ]),
       ],
@@ -143,7 +143,7 @@ void main() {
     expect(
       parse('<button (click) = "onClick()"  ></button>'),
       [
-        new ElementAst('button', events: [
+        new ElementAst('button', new CloseElementAst('button'), events: [
           new EventAst(
               'click',
               'onClick()',
@@ -160,7 +160,7 @@ void main() {
     expect(
       parse('<button [value]></button>'),
       [
-        new ElementAst('button', properties: [
+        new ElementAst('button', new CloseElementAst('button'), properties: [
           new PropertyAst('value'),
         ]),
       ],
@@ -171,7 +171,7 @@ void main() {
     expect(
       parse('<button [value]="btnValue"></button>'),
       [
-        new ElementAst('button', properties: [
+        new ElementAst('button', new CloseElementAst('button'), properties: [
           new PropertyAst(
               'value',
               'btnValue',
@@ -188,7 +188,7 @@ void main() {
     expect(
       parse('<button #btnRef></button>'),
       [
-        new ElementAst('button', references: [
+        new ElementAst('button', new CloseElementAst('button'), references: [
           new ReferenceAst('btnRef'),
         ]),
       ],
@@ -199,9 +199,10 @@ void main() {
     expect(
       parse('<mat-button #btnRef="mat-button"></mat-button>'),
       [
-        new ElementAst('mat-button', references: [
-          new ReferenceAst('btnRef', 'mat-button'),
-        ]),
+        new ElementAst('mat-button', new CloseElementAst('mat-button'),
+            references: [
+              new ReferenceAst('btnRef', 'mat-button'),
+            ]),
       ],
     );
   });
@@ -289,8 +290,8 @@ void main() {
     expect(
       parse('<input><div></div>'),
       [
-        new ElementAst('input', isVoidElement: true),
-        new ElementAst('div'),
+        new ElementAst('input', null),
+        new ElementAst('div', new CloseElementAst('div')),
       ],
     );
   });
@@ -301,6 +302,7 @@ void main() {
       [
         new ElementAst(
           'custom',
+          new CloseElementAst('custom'),
           events: [
             new EventAst(
                 'nameChanged',
@@ -333,7 +335,7 @@ void main() {
             new AttributeAst('ngFor'),
           ],
           childNodes: [
-            new ElementAst('a'),
+            new ElementAst('a', new CloseElementAst('a')),
           ],
           properties: [
             new PropertyAst(

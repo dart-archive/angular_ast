@@ -40,7 +40,7 @@ void main() {
     expect(asts.length, 1);
 
     ElementAst element = asts[0];
-    expect(element, new ElementAst('div'));
+    expect(element, new ElementAst('div', new CloseElementAst('div')));
     expect(element.closeComplement, new CloseElementAst('div'));
     expect(element.isSynthetic, false);
     expect(element.closeComplement.isSynthetic, true);
@@ -52,7 +52,7 @@ void main() {
     expect(asts.length, 1);
 
     ElementAst element = asts[0];
-    expect(element, new ElementAst('div'));
+    expect(element, new ElementAst('div', new CloseElementAst('div')));
     expect(element.closeComplement, new CloseElementAst('div'));
     expect(element.isSynthetic, true);
     expect(element.closeComplement.isSynthetic, false);
@@ -64,8 +64,7 @@ void main() {
     expect(asts.length, 1);
 
     ElementAst element = asts[0];
-    expect(element,
-        new ElementAst('hr', isVoidElement: true, usesVoidTagEnd: true));
+    expect(element, new ElementAst('hr', new CloseElementAst('hr')));
     expect(element.closeComplement, null);
   });
 
