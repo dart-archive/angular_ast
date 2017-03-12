@@ -55,6 +55,8 @@ class RecursiveAstParser {
       ));
     }
 
+    //TODO: Max: remove entirely
+    @deprecated
     List<WhitespaceAst> whitespaces = <WhitespaceAst>[];
     while (_reader.peekType() == NgTokenType.whitespace) {
       whitespaces.add(new WhitespaceAst(_source, _reader.next()));
@@ -312,7 +314,6 @@ class RecursiveAstParser {
       beginToken,
       nameToken,
       endToken,
-      isVoidElement: isVoidElement,
       attributes: attributes,
       childNodes: childNodes,
       events: events,
@@ -558,8 +559,7 @@ class RecursiveAstParser {
       synthContentAst.closeComplement = closeElementAst;
       return synthContentAst;
     }
-    var synthElementAst = new ElementAst(closeElementAst.name);
-    synthElementAst.closeComplement = closeElementAst;
+    var synthElementAst = new ElementAst(closeElementAst.name, closeElementAst);
     return synthElementAst;
   }
 
