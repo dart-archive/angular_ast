@@ -19,7 +19,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
   factory ElementAst(
     String name, {
     bool isVoidElement,
-    bool usesVoidTagEnd,
     CloseElementAst closeComplement,
     List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
@@ -36,7 +35,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
     TemplateAst origin,
     String name, {
     bool isVoidElement,
-    bool usesVoidTagEnd,
     CloseElementAst closeComplement,
     List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
@@ -72,7 +70,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
       return name == o.name &&
           closeComplement == o.closeComplement &&
           isVoidElement == o.isVoidElement &&
-          usesVoidTagEnd == o.usesVoidTagEnd &&
           _listEquals.equals(attributes, o.attributes) &&
           _listEquals.equals(childNodes, o.childNodes) &&
           _listEquals.equals(events, o.events) &&
@@ -90,7 +87,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
       name,
       closeComplement,
       isVoidElement,
-      usesVoidTagEnd,
       _listEquals.hash(attributes),
       _listEquals.hash(childNodes),
       _listEquals.hash(events),
@@ -111,11 +107,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
 
   /// Determines whether the element tag name is void element.
   bool get isVoidElement;
-
-  /// Whether this uses the void tag end '/>'.
-  ///
-  /// By definition, a void element can use either '>' or '/>'.
-  bool get usesVoidTagEnd;
 
   /// CloseElement complement
   ///
@@ -143,6 +134,9 @@ abstract class ElementAst implements StandaloneTemplateAst {
 
   /// Star assignments.
   List<StarAst> get stars;
+
+  //TODO: Max: remove entirely
+  @deprecated
 
   /// Whitespaces
   List<WhitespaceAst> get whitespaces;
@@ -217,9 +211,6 @@ class ParsedElementAst extends TemplateAst with ElementAst {
   @override
   final bool isVoidElement;
 
-  @override
-  final bool usesVoidTagEnd;
-
   ParsedElementAst(
     SourceFile sourceFile,
     NgToken openElementStart,
@@ -236,8 +227,7 @@ class ParsedElementAst extends TemplateAst with ElementAst {
     this.stars: const [],
     this.whitespaces: const [],
   })
-      : usesVoidTagEnd = openElementEnd.type == NgTokenType.openElementEndVoid,
-        super.parsed(openElementStart, openElementEnd, sourceFile);
+      : super.parsed(openElementStart, openElementEnd, sourceFile);
 
   /// Name (tag) of the element.
   @override
@@ -284,7 +274,6 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
   _SyntheticElementAst(
     this.name, {
     this.isVoidElement: false,
-    this.usesVoidTagEnd: false,
     this.closeComplement,
     this.attributes: const [],
     this.childNodes: const [],
@@ -304,7 +293,6 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
     TemplateAst origin,
     this.name, {
     this.isVoidElement: false,
-    this.usesVoidTagEnd: false,
     this.closeComplement,
     this.attributes: const [],
     this.childNodes: const [],
@@ -329,9 +317,6 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
 
   @override
   final bool isVoidElement;
-
-  @override
-  final bool usesVoidTagEnd;
 
   @override
   final List<AttributeAst> attributes;

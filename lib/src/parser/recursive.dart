@@ -51,6 +51,8 @@ class RecursiveAstParser {
       ));
     }
 
+    //TODO: Max: remove entirely
+    @deprecated
     List<WhitespaceAst> whitespaces = <WhitespaceAst>[];
     while (_reader.peekType() == NgTokenType.whitespace) {
       whitespaces.add(new WhitespaceAst(_source, _reader.next()));
