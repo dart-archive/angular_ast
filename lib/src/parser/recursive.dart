@@ -298,7 +298,6 @@ class RecursiveAstParser {
       beginToken,
       nameToken,
       endToken,
-      isVoidElement: isVoidElement,
       attributes: attributes,
       childNodes: childNodes,
       events: events,
@@ -436,8 +435,7 @@ class RecursiveAstParser {
 
   StandaloneTemplateAst _handleDanglingCloseElement(NgToken closeStart) {
     var closeElementAst = parseCloseElement(closeStart);
-    var synthElementAst = new ElementAst(closeElementAst.name);
-    synthElementAst.closeComplement = closeElementAst;
+    var synthElementAst = new ElementAst(closeElementAst.name, closeElementAst);
     return synthElementAst;
   }
 
