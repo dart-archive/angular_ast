@@ -207,6 +207,7 @@ void main() {
   test('doubleQuotedText - closed', () {
     NgSimpleQuoteToken quoteToken = new NgSimpleQuoteToken.doubleQuotedText(
         0, '"this is a \"quoted\" text"', true);
+    expect(quoteToken.lexeme, '"this is a \"quoted\" text"');
     expect(quoteToken.contentLexeme, 'this is a \"quoted\" text');
     expect(quoteToken.contentEnd, 24);
     expect(quoteToken.contentLength, 23);

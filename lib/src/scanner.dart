@@ -22,11 +22,9 @@ class NgScanner {
   RecoveryProtocol _rp = new NgAnalyzerRecoveryProtocol();
 
   NgSimpleToken _current;
-  NgSimpleToken _lastToken;
   NgSimpleToken _lastErrorToken;
 
   NgSimpleToken _moveNext() {
-    _lastToken = _current;
     _current = _reader.next();
     return _current;
   }
@@ -36,7 +34,7 @@ class NgScanner {
     ExceptionHandler exceptionHandler, {
     sourceUrl,
   }) {
-    NgTokenReader reader = new NgTokenReversibleReader(
+    NgTokenReader reader = new NgTokenReversibleReader<NgSimpleTokenType>(
         new SourceFile(html, url: sourceUrl),
         new NgSimpleTokenizer().tokenize(html));
     bool recoverError = exceptionHandler is RecoveringExceptionHandler;
@@ -548,9 +546,6 @@ class NgScanner {
   }) {
     var token = overrideToken ?? _current;
     var message = overrideMessage ?? 'Unexpected token: $token';
-    if (_recoverErrors && _lastToken != null && _lastToken.errorSynthetic) {
-      return null;
-    }
     // Avoid throwing same error
     if (_lastErrorToken == token) {
       return null;

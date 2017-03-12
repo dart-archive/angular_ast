@@ -42,7 +42,7 @@ void testRecoverySolution(
 
   for (NgSimpleTokenType type in encounteredTokens) {
     NgTokenReversibleReader reader = new NgTokenReversibleReader(null, []);
-    NgSimpleToken token = new NgSimpleToken(type, recoveryOffset, '');
+    NgSimpleToken token = new NgSimpleToken(type, recoveryOffset);
 
     String errorString;
     if (type == NgSimpleTokenType.doubleQuote) {
@@ -153,7 +153,7 @@ void afterComment() {
       [
         new NgToken.commentStart(0),
         new NgToken.commentValue(4, ' some comment '),
-        new NgToken.commentEnd(18)
+        new NgToken.commentEnd(18),
       ],
     );
     expect(recoveringException.exceptions.length, 1);

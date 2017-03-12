@@ -3,26 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 library angular_ast.src.token.tokens;
 
-import 'package:meta/meta.dart';
 import 'package:quiver/core.dart';
 
 part 'lexeme.dart';
 part 'token_types.dart';
 
-abstract class NgBaseToken {
+abstract class NgBaseToken<TokenType> {
   int get offset;
   int get end;
   int get length;
   String get lexeme;
-  NgBaseTokenType get type;
-  bool get errorSynthetic;
+  TokenType get type;
 }
 
 /// Represents string tokens that are of interest to the parser.
 ///
 /// Clients should not extend, implement, or mix-in this class.
-class NgSimpleToken implements NgBaseToken {
-  static final Map<NgSimpleTokenType, String> lexemeMap = {
+class NgSimpleToken implements NgBaseToken<NgSimpleTokenType> {
+  static final Map<NgSimpleTokenType, String> lexemeMap = const {
     NgSimpleTokenType.bang: "!",
     NgSimpleTokenType.closeBanana: ")]",
     NgSimpleTokenType.closeBracket: "]",
@@ -51,131 +49,123 @@ class NgSimpleToken implements NgBaseToken {
     NgSimpleTokenType.whitespace: " ",
   };
 
-  factory NgSimpleToken.generateErrorSynthetic(
-      int offset, NgSimpleTokenType type) {
-    return new NgSimpleToken._(type, offset, lexemeMap[type] ?? "",
-        errorSynthetic: true);
-  }
-
   factory NgSimpleToken.bang(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.bang, offset, '!');
+    return new NgSimpleToken._(NgSimpleTokenType.bang, offset);
   }
 
   factory NgSimpleToken.closeBanana(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.closeBanana, offset, ')]');
+    return new NgSimpleToken._(NgSimpleTokenType.closeBanana, offset);
   }
 
   factory NgSimpleToken.closeBracket(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.closeBracket, offset, ']');
+    return new NgSimpleToken._(NgSimpleTokenType.closeBracket, offset);
   }
 
   factory NgSimpleToken.closeParen(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.closeParen, offset, ')');
+    return new NgSimpleToken._(NgSimpleTokenType.closeParen, offset);
   }
 
   factory NgSimpleToken.closeTagStart(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.closeTagStart, offset, '</');
+    return new NgSimpleToken._(NgSimpleTokenType.closeTagStart, offset);
   }
 
   factory NgSimpleToken.commentBegin(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.commentBegin, offset, '<!--');
+    return new NgSimpleToken._(NgSimpleTokenType.commentBegin, offset);
   }
 
   factory NgSimpleToken.commentEnd(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.commentEnd, offset, '-->');
+    return new NgSimpleToken._(NgSimpleTokenType.commentEnd, offset);
   }
 
   factory NgSimpleToken.dash(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.dash, offset, '-');
+    return new NgSimpleToken._(NgSimpleTokenType.dash, offset);
   }
 
   factory NgSimpleToken.openTagStart(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.openTagStart, offset, '<');
+    return new NgSimpleToken._(NgSimpleTokenType.openTagStart, offset);
   }
 
   factory NgSimpleToken.tagEnd(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.tagEnd, offset, '>');
+    return new NgSimpleToken._(NgSimpleTokenType.tagEnd, offset);
   }
 
   factory NgSimpleToken.EOF(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.EOF, offset, '');
+    return new NgSimpleToken._(NgSimpleTokenType.EOF, offset);
   }
 
   factory NgSimpleToken.equalSign(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.equalSign, offset, '=');
+    return new NgSimpleToken._(NgSimpleTokenType.equalSign, offset);
   }
 
   factory NgSimpleToken.forwardSlash(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.forwardSlash, offset, '/');
+    return new NgSimpleToken._(NgSimpleTokenType.forwardSlash, offset);
   }
 
   factory NgSimpleToken.hash(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.hash, offset, '#');
+    return new NgSimpleToken._(NgSimpleTokenType.hash, offset);
   }
 
   factory NgSimpleToken.identifier(int offset, String lexeme) {
-    return new NgSimpleToken(NgSimpleTokenType.identifier, offset, lexeme);
+    return new _LexemeNgSimpleToken(
+        offset, lexeme, NgSimpleTokenType.identifier);
   }
 
   factory NgSimpleToken.mustacheBegin(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.mustacheBegin, offset, "{{");
+    return new NgSimpleToken._(NgSimpleTokenType.mustacheBegin, offset);
   }
 
   factory NgSimpleToken.mustacheEnd(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.mustacheEnd, offset, "}}");
+    return new NgSimpleToken._(NgSimpleTokenType.mustacheEnd, offset);
   }
 
   factory NgSimpleToken.openBanana(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.openBanana, offset, '[(');
+    return new NgSimpleToken._(NgSimpleTokenType.openBanana, offset);
   }
 
   factory NgSimpleToken.openBracket(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.openBracket, offset, '[');
+    return new NgSimpleToken._(NgSimpleTokenType.openBracket, offset);
   }
 
   factory NgSimpleToken.openParen(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.openParen, offset, '(');
+    return new NgSimpleToken._(NgSimpleTokenType.openParen, offset);
   }
 
   factory NgSimpleToken.period(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.period, offset, '.');
+    return new NgSimpleToken._(NgSimpleTokenType.period, offset);
   }
 
   factory NgSimpleToken.star(int offset) {
-    return new NgSimpleToken._(NgSimpleTokenType.star, offset, '*');
+    return new NgSimpleToken._(NgSimpleTokenType.star, offset);
   }
 
   factory NgSimpleToken.text(int offset, String lexeme) {
-    return new NgSimpleToken(NgSimpleTokenType.text, offset, lexeme);
+    return new _LexemeNgSimpleToken(offset, lexeme, NgSimpleTokenType.text);
   }
 
   factory NgSimpleToken.unexpectedChar(int offset, String lexeme) {
-    return new NgSimpleToken(NgSimpleTokenType.unexpectedChar, offset, lexeme);
+    return new _LexemeNgSimpleToken(
+        offset, lexeme, NgSimpleTokenType.unexpectedChar);
   }
 
   factory NgSimpleToken.voidCloseTag(int offset) {
-    return new NgSimpleToken(NgSimpleTokenType.voidCloseTag, offset, "/>");
+    return new NgSimpleToken(NgSimpleTokenType.voidCloseTag, offset);
   }
 
   factory NgSimpleToken.whitespace(int offset, String lexeme) {
-    return new NgSimpleToken(NgSimpleTokenType.whitespace, offset, lexeme);
+    return new _LexemeNgSimpleToken(
+        offset, lexeme, NgSimpleTokenType.whitespace);
   }
 
   const NgSimpleToken._(
     this.type,
-    this.offset,
-    this.lexeme, {
+    this.offset, {
     bool errorSynthetic: false,
-  })
-      : errorSynthetic = errorSynthetic;
+  });
 
   NgSimpleToken(
     this.type,
     this.offset,
-    this.lexeme, {
-    bool errorSynthetic: false,
-  })
-      : errorSynthetic = errorSynthetic;
+  );
 
   @override
   bool operator ==(Object o) {
@@ -190,30 +180,20 @@ class NgSimpleToken implements NgBaseToken {
   @override
   int get end => offset + length;
   @override
-  int get length => errorSynthetic ? 0 : lexeme.length;
+  int get length => lexeme.length;
 
   @override
   final int offset;
   @override
   final NgSimpleTokenType type;
   @override
-  final String lexeme;
-  @override
-  final bool errorSynthetic;
+  String get lexeme => lexemeMap[type];
 
   @override
-  String toString() => '#$NgSimpleToken(${type.name}) {$offset:$lexeme}';
+  String toString() => '#$NgSimpleToken(${type}) {$offset:$lexeme}';
 }
 
-class NgSimpleQuoteToken extends NgSimpleToken {
-  factory NgSimpleQuoteToken.generateErrorSynthetic(
-    int offset,
-  ) {
-    return new NgSimpleQuoteToken(
-        NgSimpleTokenType.doubleQuote, offset, "", true,
-        isErrorSynthetic: true);
-  }
-
+class NgSimpleQuoteToken extends _LexemeNgSimpleToken {
   factory NgSimpleQuoteToken.doubleQuotedText(
     int offset,
     String lexeme,
@@ -226,9 +206,8 @@ class NgSimpleQuoteToken extends NgSimpleToken {
   factory NgSimpleQuoteToken.singleQuotedText(
     int offset,
     String lexeme,
-    bool isClosed, {
-    bool errorSynthetic: false,
-  }) {
+    bool isClosed,
+  ) {
     return new NgSimpleQuoteToken(
         NgSimpleTokenType.singleQuote, offset, lexeme, isClosed);
   }
@@ -255,10 +234,9 @@ class NgSimpleQuoteToken extends NgSimpleToken {
                 1, (isClosed ? lexeme.length - 1 : lexeme.length)),
         quoteEndOffset = isClosed ? offset + lexeme.length - 1 : null,
         super(
-          type,
           offset,
           lexeme,
-          errorSynthetic: isErrorSynthetic,
+          type,
         );
 
   @override
@@ -274,19 +252,42 @@ class NgSimpleQuoteToken extends NgSimpleToken {
 
   /// Lexeme including quotes.
   bool get isClosed => quoteEndOffset != null;
-  int get contentLength => errorSynthetic ? 0 : contentLexeme.length;
+  int get contentLength => contentLexeme.length;
 
   @override
   int get hashCode => hash4(super.hashCode, lexeme, contentOffset, end);
 
   @override
-  String toString() => '#$NgSimpleQuoteToken(${type.name}) {$offset:$lexeme}';
+  String toString() => '#$NgSimpleQuoteToken(${type}) {$offset:$lexeme}';
 }
 
 /// Represents a Angular text/token entities.
 ///
 /// Clients should not extend, implement, or mix-in this class.
-class NgToken implements NgBaseToken {
+class NgToken implements NgBaseToken<NgTokenType> {
+  static final Map<NgTokenType, String> lexemeMap = const {
+    NgTokenType.bananaPrefix: '[(',
+    NgTokenType.bananaSuffix: ')]',
+    NgTokenType.beforeElementDecoratorValue: '=',
+    NgTokenType.closeElementEnd: '>',
+    NgTokenType.closeElementStart: '</',
+    NgTokenType.commentEnd: '-->',
+    NgTokenType.commentStart: '<!--',
+    NgTokenType.doubleQuote: '"',
+    NgTokenType.eventPrefix: '(',
+    NgTokenType.eventSuffix: ')',
+    NgTokenType.interpolationEnd: '}}',
+    NgTokenType.interpolationStart: '{{',
+    NgTokenType.openElementEnd: '>',
+    NgTokenType.openElementEndVoid: '/>',
+    NgTokenType.openElementStart: '<',
+    NgTokenType.propertyPrefix: '[',
+    NgTokenType.propertySuffix: ']',
+    NgTokenType.referencePrefix: '#',
+    NgTokenType.singleQuote: "'",
+    NgTokenType.templatePrefix: '*',
+  };
+
   factory NgToken.generateErrorSynthetic(int offset, NgTokenType type,
       {String lexeme: ""}) {
     if (type == NgTokenType.beforeElementDecorator ||
@@ -300,10 +301,6 @@ class NgToken implements NgBaseToken {
       return new _LexemeNgToken(offset, lexeme, type, errorSynthetic: true);
     }
     return new NgToken._(type, offset, errorSynthetic: true);
-  }
-
-  factory NgToken.afterElementDecoratorValue(int offset) {
-    return new NgToken._(NgTokenType.afterElementDecoratorValue, offset);
   }
 
   factory NgToken.bananaPrefix(int offset) {
@@ -426,18 +423,20 @@ class NgToken implements NgBaseToken {
     return new _LexemeNgToken(offset, string, NgTokenType.whitespace);
   }
 
-  const NgToken._(this.type, this.offset, {bool errorSynthetic: false})
+  const NgToken._(
+    this.type,
+    this.offset, {
+    bool errorSynthetic: false,
+  })
       : errorSynthetic = errorSynthetic;
 
   @override
   bool operator ==(Object o) {
     if (o is NgToken) {
       if (this.errorSynthetic || o.errorSynthetic) {
-        return o.offset == offset && o.type.name == type.name;
+        return o.offset == offset && o.type == type;
       }
-      return o.offset == offset &&
-          o.type.name == type.name &&
-          o.type.lexeme == type.lexeme;
+      return o.offset == offset && o.type == type && o.lexeme == lexeme;
     }
     return false;
   }
@@ -455,7 +454,7 @@ class NgToken implements NgBaseToken {
 
   /// What characters were scanned and represent this token.
   @override
-  String get lexeme => type.lexeme;
+  String get lexeme => lexemeMap[type];
 
   /// Indexed location where the token begins in the original source text.
   @override
@@ -466,11 +465,10 @@ class NgToken implements NgBaseToken {
   final NgTokenType type;
 
   /// Indicates synthetic token generated from error.
-  @override
   final bool errorSynthetic;
 
   @override
-  String toString() => '#$NgToken(${type.name}) {$offset:$lexeme}';
+  String toString() => '#$NgToken(${type}) {$offset:$lexeme}';
 }
 
 class NgAttributeValueToken extends NgToken {
@@ -516,8 +514,7 @@ class NgAttributeValueToken extends NgToken {
   String get lexeme => leftQuote.lexeme + innerValue.lexeme + rightQuote.lexeme;
 
   @override
-  String toString() =>
-      '#$NgAttributeValueToken(${type.name}) {$offset:$lexeme} '
+  String toString() => '#$NgAttributeValueToken(${type}) {$offset:$lexeme} '
       '[\n\t$leftQuote,\n\t$innerValue,\n\t$rightQuote]';
 
   bool get isDoubleQuote => leftQuote.type == NgTokenType.doubleQuote;
