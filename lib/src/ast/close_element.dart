@@ -13,16 +13,14 @@ import 'package:source_span/source_span.dart';
 abstract class CloseElementAst implements TemplateAst {
   /// Creates a synthetic close element AST.
   factory CloseElementAst(
-    String name, {
-    List<WhitespaceAst> whitespaces,
-  }) = _SyntheticCloseElementAst;
+    String name,
+  ) = _SyntheticCloseElementAst;
 
   /// Creates a synthetic close element AST from an existing AST node.
   factory CloseElementAst.from(
     TemplateAst origin,
-    String name, {
-    List<WhitespaceAst> whitespaces,
-  }) = _SyntheticCloseElementAst.from;
+    String name,
+  ) = _SyntheticCloseElementAst.from;
 
   /// Creates a new close element AST from a parsed source.
   factory CloseElementAst.parsed(
@@ -31,7 +29,6 @@ abstract class CloseElementAst implements TemplateAst {
     NgToken nameToken,
     NgToken closeTagEnd, {
     ElementAst openComplement,
-    List<WhitespaceAst> whitespaces,
   }) = ParsedCloseElementAst;
 
   @override
@@ -55,22 +52,9 @@ abstract class CloseElementAst implements TemplateAst {
   /// Name (tag) of the close element.
   String get name;
 
-  //TODO: Max: remove entirely
-  @deprecated
-
-  /// Whitespaces at the end.
-  List<WhitespaceAst> get whitespaces;
-
   @override
   String toString() {
-    var buffer = new StringBuffer('$CloseElementAst </$name> { ');
-    if (whitespaces.isNotEmpty) {
-      buffer
-        ..write('whitespaces=')
-        ..writeAll(whitespaces, ', ')
-        ..write(' ');
-    }
-    return (buffer..write('}')).toString();
+    return '$CloseElementAst </$name>';
   }
 }
 
@@ -87,35 +71,25 @@ class ParsedCloseElementAst extends TemplateAst with CloseElementAst {
     this.identifierToken,
     NgToken closeElementEnd, {
     ElementAst openComplement,
-    this.whitespaces: const [],
   })
       : super.parsed(closeElementStart, closeElementEnd, sourceFile);
 
   @override
   String get name => identifierToken.lexeme;
-
-  /// Whitespaces
-  @override
-  final List<WhitespaceAst> whitespaces;
 }
 
 class _SyntheticCloseElementAst extends SyntheticTemplateAst
     with CloseElementAst {
   _SyntheticCloseElementAst(
-    this.name, {
-    this.whitespaces: const [],
-  });
+    this.name,
+  );
 
   _SyntheticCloseElementAst.from(
     TemplateAst origin,
-    this.name, {
-    this.whitespaces: const [],
-  })
+    this.name,
+  )
       : super.from(origin);
 
   @override
   final String name;
-
-  @override
-  final List<WhitespaceAst> whitespaces;
 }

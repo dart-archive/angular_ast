@@ -394,8 +394,6 @@ void main() {
     expect(element.attributes[0].beginToken.offset, 108);
     expect((element.attributes[0] as ParsedAttributeAst).nameOffset, 109);
 
-    expect(element.whitespaces[0].offset, 127);
-
     expect(element.endToken.offset, 129);
     expect(element.closeComplement.beginToken.offset, 130);
     expect(element.closeComplement.endToken.offset, 142);

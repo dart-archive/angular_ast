@@ -31,11 +31,7 @@ class HumanizingTemplateAstVisitor
   @override
   String visitCloseElement(CloseElementAst astNode, [StringBuffer context]) {
     context ??= new StringBuffer();
-    context..write('</')..write(astNode.name);
-    if (astNode.whitespaces.isNotEmpty) {
-      context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
-    }
-    context.write('>');
+    context..write('</')..write(astNode.name)..write('>');
     return context.toString();
   }
 
@@ -77,9 +73,6 @@ class HumanizingTemplateAstVisitor
       context
         ..write(' ')
         ..writeAll(astNode.stars.map(visitStar), ' ');
-    }
-    if (astNode.whitespaces.isNotEmpty) {
-      context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
     }
 
     if (astNode.isSynthetic) {
@@ -194,7 +187,4 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitText(TextAst astNode, [_]) => astNode.value;
-
-  @override
-  String visitWhitespace(WhitespaceAst astNode, [_]) => astNode.value;
 }

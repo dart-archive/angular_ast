@@ -26,7 +26,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
     List<ReferenceAst> references,
     List<BananaAst> bananas,
     List<StarAst> stars,
-    List<WhitespaceAst> whitespaces,
   }) = _SyntheticElementAst;
 
   /// Create a synthetic element AST from an existing AST node.
@@ -41,7 +40,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
     List<ReferenceAst> references,
     List<BananaAst> bananas,
     List<StarAst> stars,
-    List<WhitespaceAst> whitespaces,
   }) = _SyntheticElementAst.from;
 
   /// Create a new element AST from parsed source.
@@ -58,7 +56,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
     List<ReferenceAst> references,
     List<BananaAst> bananas,
     List<StarAst> stars,
-    List<WhitespaceAst> whitespaces,
   }) = ParsedElementAst;
 
   @override
@@ -130,12 +127,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
   /// Star assignments.
   List<StarAst> get stars;
 
-  //TODO: Max: remove entirely
-  @deprecated
-
-  /// Whitespaces
-  List<WhitespaceAst> get whitespaces;
-
   @override
   String toString() {
     final buffer = new StringBuffer('$ElementAst <$name> { ');
@@ -175,12 +166,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
         ..writeAll(stars, ', ')
         ..write(' ');
     }
-    if (whitespaces.isNotEmpty) {
-      buffer
-        ..write('whitespaces=')
-        ..writeAll(whitespaces, ', ')
-        ..write(' ');
-    }
     if (childNodes.isNotEmpty) {
       buffer
         ..write('childNodes=')
@@ -215,7 +200,6 @@ class ParsedElementAst extends TemplateAst with ElementAst {
     this.references: const [],
     this.bananas: const [],
     this.stars: const [],
-    this.whitespaces: const [],
   })
       : super.parsed(openElementStart, openElementEnd, sourceFile);
 
@@ -257,10 +241,6 @@ class ParsedElementAst extends TemplateAst with ElementAst {
   /// Star assignments.
   @override
   final List<StarAst> stars;
-
-  /// Whitespaces
-  @override
-  final List<WhitespaceAst> whitespaces;
 }
 
 class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
@@ -274,7 +254,6 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
     this.references: const [],
     this.bananas: const [],
     this.stars: const [],
-    this.whitespaces: const [],
   });
 
   _SyntheticElementAst.from(
@@ -288,7 +267,6 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
     this.references: const [],
     this.bananas: const [],
     this.stars: const [],
-    this.whitespaces: const [],
   })
       : super.from(origin);
 
@@ -321,7 +299,4 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
 
   @override
   final List<StarAst> stars;
-
-  @override
-  final List<WhitespaceAst> whitespaces;
 }

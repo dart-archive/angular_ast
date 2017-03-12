@@ -170,7 +170,4 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
 
   @override
   TemplateAst visitText(TextAst astNode, [_]) => astNode;
-
-  @override
-  TemplateAst visitWhitespace(WhitespaceAst astNode, [_]) => astNode;
 }

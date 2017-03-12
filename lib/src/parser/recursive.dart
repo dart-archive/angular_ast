@@ -55,11 +55,8 @@ class RecursiveAstParser {
       ));
     }
 
-    //TODO: Max: remove entirely
-    @deprecated
-    List<WhitespaceAst> whitespaces = <WhitespaceAst>[];
     while (_reader.peekType() == NgTokenType.whitespace) {
-      whitespaces.add(new WhitespaceAst(_source, _reader.next()));
+      _reader.next();
     }
     final closeElementEnd = _reader.expect(NgTokenType.closeElementEnd);
     return new CloseElementAst.parsed(
@@ -67,7 +64,6 @@ class RecursiveAstParser {
       beginToken,
       nameToken,
       closeElementEnd,
-      whitespaces: whitespaces,
     );
   }
 
@@ -211,7 +207,6 @@ class RecursiveAstParser {
     final references = <ReferenceAst>[];
     final bananas = <BananaAst>[];
     final stars = <StarAst>[];
-    final whitespaces = <WhitespaceAst>[];
     NgToken nextToken;
 
     // Start looping and get all of the decorators within the element.
@@ -242,9 +237,6 @@ class RecursiveAstParser {
         } else {
           throw new StateError('Invalid decorator AST: $decoratorAst');
         }
-      }
-      if (nextToken.type == NgTokenType.whitespace) {
-        whitespaces.add(new WhitespaceAst(_source, nextToken));
       }
     } while (nextToken.type != NgTokenType.openElementEnd &&
         nextToken.type != NgTokenType.openElementEndVoid);
@@ -321,7 +313,6 @@ class RecursiveAstParser {
       references: references,
       bananas: bananas,
       stars: stars,
-      whitespaces: whitespaces,
       closeComplement: closeElementAst,
     );
     return element;

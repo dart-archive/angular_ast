@@ -55,7 +55,4 @@ class IdentityTemplateAstVisitor<C>
 
   @override
   TemplateAst visitText(TextAst astNode, [_]) => astNode;
-
-  @override
-  TemplateAst visitWhitespace(WhitespaceAst astNode, [_]) => astNode;
 }
