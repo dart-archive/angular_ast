@@ -20,7 +20,23 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitBanana(BananaAst astNode, [_]) {
-    return '[(${astNode.name})]="${astNode.value}"';
+    String name = '[(${astNode.name})]';
+    if (astNode.value != null) {
+      return '$name="${astNode.value}"';
+    } else {
+      return name;
+    }
+  }
+
+  @override
+  String visitCloseElement(CloseElementAst astNode, [StringBuffer context]) {
+    context ??= new StringBuffer();
+    context..write('</')..write(astNode.name);
+    if (astNode.whitespaces.isNotEmpty) {
+      context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
+    }
+    context.write('>');
+    return context.toString();
   }
 
   @override
@@ -65,11 +81,19 @@ class HumanizingTemplateAstVisitor
     if (astNode.whitespaces.isNotEmpty) {
       context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
     }
-    context.write('>');
+
+    if (astNode.isSynthetic && astNode.isVoidElement) {
+      context.write(astNode.isVoidElement ? '/>' : '>');
+    } else {
+      context.write(astNode.endToken.lexeme);
+    }
+
     if (astNode.childNodes.isNotEmpty) {
       context.writeAll(astNode.childNodes.map((c) => c.accept(this)));
     }
-    context..write('</')..write(astNode.name)..write('>');
+    if (astNode.closeComplement != null) {
+      context.write(visitCloseElement(astNode.closeComplement));
+    }
     return context.toString();
   }
 
@@ -120,7 +144,12 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitEvent(EventAst astNode, [_]) {
-    return '(${astNode.name})="${astNode.expression.expression.toSource()}"';
+    String name = '(${astNode.name})';
+    if (astNode.value != null) {
+      return '$name="${astNode.value}"';
+    } else {
+      return name;
+    }
   }
 
   @override
@@ -130,33 +159,36 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitInterpolation(InterpolationAst astNode, [_]) {
-    return '{{${astNode.expression.expression.toSource()}}}';
+    return '{{${astNode.value}}}';
   }
 
   @override
   String visitProperty(PropertyAst astNode, [_]) {
-    if (astNode.expression != null) {
-      return '[${astNode.name}]="${astNode.expression.expression.toSource()}"';
+    String name = '[${astNode.name}]';
+    if (astNode.value != null) {
+      return '$name="${astNode.value}"';
     } else {
-      return '[${astNode.name}]';
+      return name;
     }
   }
 
   @override
   String visitReference(ReferenceAst astNode, [_]) {
+    String identifier = '#${astNode.identifier}';
     if (astNode.variable != null) {
-      return '#${astNode.identifier}="${astNode.variable}"';
+      return '$identifier="${astNode.variable}"';
     } else {
-      return '#${astNode.identifier}';
+      return identifier;
     }
   }
 
   @override
   String visitStar(StarAst astNode, [_]) {
-    if (astNode.expression == null) {
-      return '*${astNode.name}';
+    String name = '${astNode.name}';
+    if (astNode.value != null) {
+      return 'name="${astNode.value}"';
     } else {
-      return '*${astNode.name}="${visitExpression(astNode.expression)}"';
+      return name;
     }
   }
 

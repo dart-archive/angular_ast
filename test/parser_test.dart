@@ -33,7 +33,7 @@ void main() {
     expect(
       parse('<div></div  >'),
       [
-        new ElementAst('div'),
+        new ElementAst('div', new CloseElementAst('div')),
       ],
     );
   });
@@ -77,7 +77,7 @@ void main() {
       parse('Hello<div></div><!--Goodbye-->{{name}}'),
       [
         new TextAst('Hello'),
-        new ElementAst('div'),
+        new ElementAst('div', new CloseElementAst('div')),
         new CommentAst('Goodbye'),
         new InterpolationAst(new ExpressionAst.parse(
           'name',
@@ -94,9 +94,9 @@ void main() {
           '  <span>Hello World</span>\n'
           '</div>\n'),
       [
-        new ElementAst('div', childNodes: [
+        new ElementAst('div', new CloseElementAst('div'), childNodes: [
           new TextAst('\n  '),
-          new ElementAst('span', childNodes: [
+          new ElementAst('span', new CloseElementAst('span'), childNodes: [
             new TextAst('Hello World'),
           ]),
           new TextAst('\n'),
@@ -110,7 +110,7 @@ void main() {
     expect(
       parse('<button disabled ></button>'),
       [
-        new ElementAst('button', attributes: [
+        new ElementAst('button', new CloseElementAst('button'), attributes: [
           new AttributeAst('disabled'),
         ]),
       ],
@@ -121,7 +121,7 @@ void main() {
     expect(
       parse('<button title="Submit"></button>'),
       [
-        new ElementAst('button', attributes: [
+        new ElementAst('button', new CloseElementAst('button'), attributes: [
           new AttributeAst('title', 'Submit'),
         ]),
       ],
@@ -132,7 +132,7 @@ void main() {
     expect(
       parse('<div title="Hello {{myName}}"></div>'),
       [
-        new ElementAst('div', attributes: [
+        new ElementAst('div', new CloseElementAst('div'), attributes: [
           new AttributeAst('title', 'Hello {{myName}}'),
         ]),
       ],
@@ -143,9 +143,10 @@ void main() {
     expect(
       parse('<button (click) = "onClick()"  ></button>'),
       [
-        new ElementAst('button', events: [
+        new ElementAst('button', new CloseElementAst('button'), events: [
           new EventAst(
               'click',
+              'onClick()',
               new ExpressionAst.parse(
                 'onClick()',
                 sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -159,7 +160,7 @@ void main() {
     expect(
       parse('<button [value]></button>'),
       [
-        new ElementAst('button', properties: [
+        new ElementAst('button', new CloseElementAst('button'), properties: [
           new PropertyAst('value'),
         ]),
       ],
@@ -170,9 +171,10 @@ void main() {
     expect(
       parse('<button [value]="btnValue"></button>'),
       [
-        new ElementAst('button', properties: [
+        new ElementAst('button', new CloseElementAst('button'), properties: [
           new PropertyAst(
               'value',
+              'btnValue',
               new ExpressionAst.parse(
                 'btnValue',
                 sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -186,7 +188,7 @@ void main() {
     expect(
       parse('<button #btnRef></button>'),
       [
-        new ElementAst('button', references: [
+        new ElementAst('button', new CloseElementAst('button'), references: [
           new ReferenceAst('btnRef'),
         ]),
       ],
@@ -197,9 +199,10 @@ void main() {
     expect(
       parse('<mat-button #btnRef="mat-button"></mat-button>'),
       [
-        new ElementAst('mat-button', references: [
-          new ReferenceAst('btnRef', 'mat-button'),
-        ]),
+        new ElementAst('mat-button', new CloseElementAst('mat-button'),
+            references: [
+              new ReferenceAst('btnRef', 'mat-button'),
+            ]),
       ],
     );
   });
@@ -239,6 +242,7 @@ void main() {
           properties: [
             new PropertyAst(
                 'ngIf',
+                'someValue',
                 new ExpressionAst.parse(
                   'someValue',
                   sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -286,8 +290,8 @@ void main() {
     expect(
       parse('<input><div></div>'),
       [
-        new ElementAst('input'),
-        new ElementAst('div'),
+        new ElementAst('input', null),
+        new ElementAst('div', new CloseElementAst('div')),
       ],
     );
   });
@@ -298,9 +302,11 @@ void main() {
       [
         new ElementAst(
           'custom',
+          new CloseElementAst('custom'),
           events: [
             new EventAst(
                 'nameChanged',
+                'myName = \$event',
                 new ExpressionAst.parse(
                   'myName = \$event',
                   sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -309,6 +315,7 @@ void main() {
           properties: [
             new PropertyAst(
                 'name',
+                'myName',
                 new ExpressionAst.parse(
                   'myName',
                   sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -328,11 +335,12 @@ void main() {
             new AttributeAst('ngFor'),
           ],
           childNodes: [
-            new ElementAst('a'),
+            new ElementAst('a', new CloseElementAst('a')),
           ],
           properties: [
             new PropertyAst(
               'ngForOf',
+              'items',
               new ExpressionAst.parse(
                 'items',
                 sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -340,6 +348,7 @@ void main() {
             ),
             new PropertyAst(
               'ngForTrackBy',
+              'byId',
               new ExpressionAst.parse(
                 'byId',
                 sourceUrl: '/test/expression/parser_test.dart#inline',
@@ -383,9 +392,9 @@ void main() {
 
     expect(element.whitespaces[0].offset, 127);
 
-    expect(element.openTagEndOffset, 129);
-    expect(element.closeTagStartOffset, 130);
-    expect(element.endToken.offset, 142);
+    expect(element.endToken.offset, 129);
+    expect(element.closeComplement.beginToken.offset, 130);
+    expect(element.closeComplement.endToken.offset, 142);
   });
 
   test('should parse and preserve strict offsets within interpolations', () {
@@ -398,5 +407,6 @@ void main() {
     expect(interpolation.beginToken.offset, 5);
     expect(interpolation.value.length, 15);
     expect(interpolation.endToken.offset, 22);
+    expect(interpolation.expression, isNotNull);
   });
 }

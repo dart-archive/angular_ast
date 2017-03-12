@@ -4,6 +4,8 @@
 
 export 'package:angular_ast/src/ast/attribute.dart'
     show AttributeAst, ParsedAttributeAst;
+export 'package:angular_ast/src/ast/close_element.dart'
+    show CloseElementAst, ParsedCloseElementAst;
 export 'package:angular_ast/src/ast/comment.dart' show CommentAst;
 export 'package:angular_ast/src/ast/content.dart' show EmbeddedContentAst;
 export 'package:angular_ast/src/ast/element.dart'

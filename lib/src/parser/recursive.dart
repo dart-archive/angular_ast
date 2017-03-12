@@ -12,11 +12,13 @@ class RecursiveAstParser {
   final NgTokenReversibleReader _reader;
   final SourceFile _source;
   final List<String> _voidElements;
+  final exceptionHandler;
 
   RecursiveAstParser(
     SourceFile sourceFile,
     Iterable<NgToken> tokens,
     this._voidElements,
+    this.exceptionHandler,
   )
       : _reader = new NgTokenReversibleReader(sourceFile, tokens),
         _source = sourceFile;
@@ -26,7 +28,6 @@ class RecursiveAstParser {
     // Start with an empty list.
     final nodes = <StandaloneTemplateAst>[];
     NgToken token;
-
     // Iterate through until and wait until EOF.
     //
     // Collects comments, elements, and text.
@@ -38,6 +39,32 @@ class RecursiveAstParser {
 
     // Return the collected nodes.
     return nodes;
+  }
+
+  CloseElementAst parseCloseElement(NgToken beginToken) {
+    var nameToken = _reader.expect(NgTokenType.elementIdentifier);
+    if (_voidElements.contains(nameToken.lexeme)) {
+      exceptionHandler.handle(new FormatException(
+        "${nameToken.lexeme} is a void element and cannot be used in a close element tag",
+        _source.getText(0),
+        nameToken.offset,
+      ));
+    }
+
+    //TODO: Max: remove entirely
+    @deprecated
+    List<WhitespaceAst> whitespaces = <WhitespaceAst>[];
+    while (_reader.peekType() == NgTokenType.whitespace) {
+      whitespaces.add(new WhitespaceAst(_source, _reader.next()));
+    }
+    final closeElementEnd = _reader.expect(NgTokenType.closeElementEnd);
+    return new CloseElementAst.parsed(
+      _source,
+      beginToken,
+      nameToken,
+      closeElementEnd,
+      whitespaces: whitespaces,
+    );
   }
 
   /// Parses and returns a comment beginning at the token provided.
@@ -103,6 +130,8 @@ class RecursiveAstParser {
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.eventPrefix) {
+        ExpressionAst expressionAst =
+            parseExpression(valueToken?.innerValue?.lexeme);
         return new EventAst.parsed(
           _source,
           beginToken,
@@ -110,9 +139,12 @@ class RecursiveAstParser {
           decoratorToken,
           suffixToken,
           valueToken,
+          expressionAst,
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.propertyPrefix) {
+        ExpressionAst expressionAst =
+            parseExpression(valueToken?.innerValue?.lexeme);
         return new PropertyAst.parsed(
           _source,
           beginToken,
@@ -120,6 +152,7 @@ class RecursiveAstParser {
           decoratorToken,
           suffixToken,
           valueToken,
+          expressionAst,
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.referencePrefix) {
@@ -174,8 +207,6 @@ class RecursiveAstParser {
     final bananas = <BananaAst>[];
     final stars = <StarAst>[];
     final whitespaces = <WhitespaceAst>[];
-    int openTagEnd;
-    int closeTagStart;
     NgToken nextToken;
 
     // Start looping and get all of the decorators within the element.
@@ -187,10 +218,12 @@ class RecursiveAstParser {
           attributes.add(decoratorAst);
         } else if (decoratorAst is StarAst) {
           if (stars.isNotEmpty) {
-            _reader.error(''
-                'Already found an *-directive, limit 1 per element, but also '
-                'found ${decoratorAst.sourceSpan.highlight()}');
-            return null;
+            exceptionHandler.handle(new FormatException(
+              'Already found an *-directive, limit 1 per element, but also '
+                  'found ${decoratorAst.sourceSpan.highlight()}',
+              _source.getText(0),
+              decoratorAst.beginToken.offset,
+            ));
           }
           stars.add(decoratorAst);
         } else if (decoratorAst is EventAst) {
@@ -211,35 +244,59 @@ class RecursiveAstParser {
     } while (nextToken.type != NgTokenType.openElementEnd &&
         nextToken.type != NgTokenType.openElementEndVoid);
 
-    // If this is a void element, skip this part
-    var endToken = nextToken;
-    openTagEnd = endToken.offset;
-    //Look for closing tag
+    NgToken endToken = nextToken;
+    CloseElementAst closeElementAst;
+    int scopeEnd = endToken.end;
+
+    // TODO: Potentially check if openElementEndVoid is being used on a
+    // TODO: non-valid element name
+
+    // If not a void element, look for closing tag OR child nodes.
     if (!isVoidElement && nextToken.type != NgTokenType.openElementEndVoid) {
       // Collect child nodes.
       nextToken = _reader.next();
-      while (nextToken.type != NgTokenType.closeElementStart) {
-        childNodes.add(parseStandalone(nextToken));
+      // Guaranteed by scanner w/ recovery that next token is beginning of a
+      // a standaloneAst-starting token OR null.
+      while (nextToken != null &&
+          nextToken.type != NgTokenType.closeElementStart) {
+        TemplateAst childAst = parseStandalone(nextToken);
+        if (childAst is ElementAst &&
+            childAst.closeComplement != null &&
+            !childAst.closeComplement.isSynthetic) {
+          scopeEnd = childAst.closeComplement.endToken.end;
+        } else {
+          scopeEnd = childAst.endToken.end;
+        }
+        childNodes.add(childAst);
         nextToken = _reader.next();
       }
-      closeTagStart = nextToken.offset;
-      // Finally return the element.
-      final closeName = _reader.expect(NgTokenType.elementIdentifier);
-      if (closeName.lexeme != nameToken.lexeme) {
-        _reader.error('Invalid closing tag: $closeName (expected $nameToken)');
+      if (nextToken == null) {
+        exceptionHandler.handle(new FormatException(
+          "Expected close element for '${nameToken.lexeme}'",
+          _source.getText(0), // TODO: Inefficient - remove later
+          scopeEnd,
+        ));
+        closeElementAst = new CloseElementAst(nameToken.lexeme);
+      } else {
+        final closeNameToken = _reader.peek();
+        if (closeNameToken.lexeme != nameToken.lexeme) {
+          exceptionHandler.handle(new FormatException(
+            'Invalid closing tag: $closeNameToken (expected $nameToken)',
+            _source.getText(0),
+            closeNameToken.offset,
+          ));
+          childNodes.add(_handleDanglingCloseElement(nextToken));
+          closeElementAst = new CloseElementAst(nameToken.lexeme);
+        } else {
+          closeElementAst = parseCloseElement(nextToken);
+        }
       }
-      while (_reader.peekType() == NgTokenType.whitespace) {
-        _reader.next();
-      }
-      endToken = _reader.expect(NgTokenType.closeElementEnd);
     }
 
     final element = new ElementAst.parsed(
       _source,
       beginToken,
       nameToken,
-      openTagEnd,
-      closeTagStart,
       endToken,
       attributes: attributes,
       childNodes: childNodes,
@@ -249,6 +306,7 @@ class RecursiveAstParser {
       bananas: bananas,
       stars: stars,
       whitespaces: whitespaces,
+      closeComplement: closeElementAst,
     );
     return element;
   }
@@ -338,10 +396,12 @@ class RecursiveAstParser {
   InterpolationAst parseInterpolation(NgToken beginToken) {
     final valueToken = _reader.expect(NgTokenType.interpolationValue);
     final endToken = _reader.expect(NgTokenType.interpolationEnd);
+    ExpressionAst expressionAst = parseExpression(valueToken?.lexeme);
     return new InterpolationAst.parsed(
       _source,
       beginToken,
       valueToken.lexeme,
+      expressionAst,
       endToken,
     );
   }
@@ -357,12 +417,42 @@ class RecursiveAstParser {
         return parseInterpolation(token);
       case NgTokenType.text:
         return parseText(token);
+      // Dangling close tag. If error recovery is enabled, returns
+      // a synthetic open with the dangling close. If not enabled,
+      // simply throws error.
+      case NgTokenType.closeElementStart:
+        exceptionHandler.handle(new FormatException(
+          "Close element cannot exist before matching open element",
+          _source.getText(0),
+          token.offset,
+        ));
+        return _handleDanglingCloseElement(token);
       default:
         _reader.error('Expected standalone token, got ${token.type}');
         return null;
     }
   }
 
+  StandaloneTemplateAst _handleDanglingCloseElement(NgToken closeStart) {
+    var closeElementAst = parseCloseElement(closeStart);
+    var synthElementAst = new ElementAst(closeElementAst.name, closeElementAst);
+    return synthElementAst;
+  }
+
   /// Returns and parses a text AST.
   TextAst parseText(NgToken token) => new TextAst.parsed(_source, token);
+
+  /// Parse expression
+  ExpressionAst parseExpression(String expression) {
+    try {
+      if (expression == null) {
+        return null;
+      }
+      return new ExpressionAst.parse(expression,
+          sourceUrl: _source.url.toString());
+    } catch (e) {
+      exceptionHandler.handle(e);
+    }
+    return null;
+  }
 }

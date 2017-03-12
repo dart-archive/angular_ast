@@ -17,7 +17,8 @@ const _listEquals = const ListEquality();
 abstract class ElementAst implements StandaloneTemplateAst {
   /// Create a synthetic element AST.
   factory ElementAst(
-    String name, {
+    String name,
+    CloseElementAst closeComplement, {
     List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
     List<EventAst> events,
@@ -31,7 +32,8 @@ abstract class ElementAst implements StandaloneTemplateAst {
   /// Create a synthetic element AST from an existing AST node.
   factory ElementAst.from(
     TemplateAst origin,
-    String name, {
+    String name,
+    CloseElementAst closeComplement, {
     List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
     List<EventAst> events,
@@ -45,11 +47,10 @@ abstract class ElementAst implements StandaloneTemplateAst {
   /// Create a new element AST from parsed source.
   factory ElementAst.parsed(
     SourceFile sourceFile,
-    NgToken beginToken,
+    NgToken openElementStart,
     NgToken nameToken,
-    int openTagEnd,
-    int closeTagStart,
-    NgToken endToken, {
+    NgToken openElementEnd, {
+    CloseElementAst closeComplement,
     List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
     List<EventAst> events,
@@ -64,6 +65,7 @@ abstract class ElementAst implements StandaloneTemplateAst {
   bool operator ==(Object o) {
     if (o is ElementAst) {
       return name == o.name &&
+          closeComplement == o.closeComplement &&
           _listEquals.equals(attributes, o.attributes) &&
           _listEquals.equals(childNodes, o.childNodes) &&
           _listEquals.equals(events, o.events) &&
@@ -79,6 +81,7 @@ abstract class ElementAst implements StandaloneTemplateAst {
   int get hashCode {
     return hashObjects([
       name,
+      closeComplement,
       _listEquals.hash(attributes),
       _listEquals.hash(childNodes),
       _listEquals.hash(events),
@@ -96,6 +99,15 @@ abstract class ElementAst implements StandaloneTemplateAst {
 
   /// Whether this is a `<template>` tag and should not be directly rendered.
   bool get isEmbeddedTemplate => name == 'template';
+
+  /// Determines whether the element tag name is void element.
+  bool get isVoidElement;
+
+  /// CloseElement complement
+  ///
+  /// If [closeComplement] == null, then [isVoidElement] is true.
+  CloseElementAst get closeComplement;
+  set closeComplement(CloseElementAst closeElementAst);
 
   /// Name (tag) of the element.
   String get name;
@@ -117,6 +129,9 @@ abstract class ElementAst implements StandaloneTemplateAst {
 
   /// Star assignments.
   List<StarAst> get stars;
+
+  //TODO: Max: remove entirely
+  @deprecated
 
   /// Whitespaces
   List<WhitespaceAst> get whitespaces;
@@ -172,6 +187,9 @@ abstract class ElementAst implements StandaloneTemplateAst {
         ..writeAll(childNodes, ', ')
         ..write(' ');
     }
+    if (closeComplement != null) {
+      buffer..write('closeComplement=')..write(closeComplement)..write(' ');
+    }
     return (buffer..write('}')).toString();
   }
 }
@@ -184,20 +202,12 @@ class ParsedElementAst extends TemplateAst with ElementAst {
   /// [NgToken] that represents the identifier tag in `<tag ...>`.
   final NgToken identifierToken;
 
-  /// Offset of `>` in `<tag ...>` or of `/` in `<voidtag ... />`.
-  final int openTagEndOffset;
-
-  /// Offset of `</` in `</tag>`.
-  /// May be null if a void <tag /> element (no closing tag).
-  final int closeTagStartOffset;
-
   ParsedElementAst(
     SourceFile sourceFile,
-    NgToken beginToken,
+    NgToken openElementStart,
     this.identifierToken,
-    this.openTagEndOffset,
-    this.closeTagStartOffset,
-    NgToken endToken, {
+    NgToken openElementEnd, {
+    this.closeComplement,
     this.attributes: const [],
     this.childNodes: const [],
     this.events: const [],
@@ -207,11 +217,18 @@ class ParsedElementAst extends TemplateAst with ElementAst {
     this.stars: const [],
     this.whitespaces: const [],
   })
-      : super.parsed(beginToken, endToken, sourceFile);
+      : super.parsed(openElementStart, openElementEnd, sourceFile);
 
   /// Name (tag) of the element.
   @override
   String get name => identifierToken.lexeme;
+
+  /// CloseElementAst that complements this elementAst.
+  @override
+  CloseElementAst closeComplement;
+
+  @override
+  bool get isVoidElement => closeComplement == null;
 
   /// Attributes
   @override
@@ -248,7 +265,8 @@ class ParsedElementAst extends TemplateAst with ElementAst {
 
 class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
   _SyntheticElementAst(
-    this.name, {
+    this.name,
+    this.closeComplement, {
     this.attributes: const [],
     this.childNodes: const [],
     this.events: const [],
@@ -261,7 +279,8 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
 
   _SyntheticElementAst.from(
     TemplateAst origin,
-    this.name, {
+    this.name,
+    this.closeComplement, {
     this.attributes: const [],
     this.childNodes: const [],
     this.events: const [],
@@ -275,6 +294,12 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
 
   @override
   final String name;
+
+  @override
+  CloseElementAst closeComplement;
+
+  @override
+  bool get isVoidElement => closeComplement == null;
 
   @override
   final List<AttributeAst> attributes;

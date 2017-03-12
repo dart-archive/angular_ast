@@ -31,6 +31,7 @@ class NgParser {
     'source',
     'track',
     'wbr',
+    'path',
   ];
 
   final bool _toolFriendlyAstOrigin;
@@ -80,6 +81,7 @@ class NgParser {
       ),
       tokens,
       _voidElements,
+      exceptionHandler,
     );
     return parser.parse();
   }

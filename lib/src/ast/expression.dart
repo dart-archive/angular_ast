@@ -21,6 +21,7 @@ class ExpressionAst implements TemplateAst {
     String expression, {
     bool deSugarPipes: true,
     @required String sourceUrl,
+    ExceptionHandler exceptionHandler,
   }) {
     return new ExpressionAst(parseExpression(
       expression,

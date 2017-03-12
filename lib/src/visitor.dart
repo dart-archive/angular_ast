@@ -21,6 +21,9 @@ abstract class TemplateAstVisitor<R, C> {
   /// **NOTE**: When de-sugared, this will never occur in a template tree.
   R visitBanana(BananaAst astNode, [C context]);
 
+  /// Visits all closeElement ASTS.
+  R visitCloseElement(CloseElementAst astNode, [C context]);
+
   /// Visits all comment ASTs.
   R visitComment(CommentAst astNode, [C context]);
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:angular_ast/src/expression/micro.dart';
 
@@ -12,9 +13,14 @@ import 'package:angular_ast/src/expression/micro.dart';
 /// each desugared node can be accessed by 'origin'.
 class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
   final bool _toolFriendlyAstOrigin;
+  final ExceptionHandler exceptionHandler;
 
-  DesugarVisitor({bool toolFriendlyAstOrigin: false})
-      : _toolFriendlyAstOrigin = toolFriendlyAstOrigin;
+  DesugarVisitor({
+    bool toolFriendlyAstOrigin: false,
+    ExceptionHandler exceptionHandler,
+  })
+      : exceptionHandler = exceptionHandler ?? new ThrowingExceptionHandler(),
+        _toolFriendlyAstOrigin = toolFriendlyAstOrigin;
 
   @override
   TemplateAst visitAttribute(AttributeAst astNode, [_]) => astNode;
@@ -22,19 +28,39 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
   @override
   TemplateAst visitBanana(BananaAst astNode, [String flag]) {
     TemplateAst origin = _toolFriendlyAstOrigin ? astNode : null;
-    if (flag == "event") {
-      return new EventAst.from(
+
+    String appendedValue = (flag == 'event') ? ' = \$event' : '';
+    ExpressionAst expressionAst;
+    if (astNode.value != null) {
+      try {
+        expressionAst = new ExpressionAst.parse(astNode.value + appendedValue,
+            sourceUrl: astNode.sourceUrl);
+      } catch (e) {
+        exceptionHandler.handle(e);
+      }
+      if (flag == "event") {
+        return new EventAst.from(
           origin,
           astNode.name + 'Changed',
-          new ExpressionAst.parse('${astNode.value} = \$event',
-              sourceUrl: astNode.sourceUrl));
+          astNode.value + appendedValue,
+          expressionAst,
+        );
+      }
+      if (flag == "property") {
+        return new PropertyAst.from(
+          origin,
+          astNode.name,
+          astNode.value,
+          expressionAst,
+        );
+      }
     }
-    if (flag == "property") {
-      return new PropertyAst.from(origin, astNode.name,
-          new ExpressionAst.parse(astNode.value, sourceUrl: astNode.sourceUrl));
-    }
+
     return astNode;
   }
+
+  @override
+  TemplateAst visitCloseElement(CloseElementAst astNode, [_]) => astNode;
 
   @override
   TemplateAst visitComment(CommentAst astNode, [_]) => astNode;
@@ -43,10 +69,11 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
   TemplateAst visitElement(ElementAst astNode, [_]) {
     if (astNode.bananas.isNotEmpty) {
       for (BananaAst bananaAst in astNode.bananas) {
-        TemplateAst toAddProperty = visitBanana(bananaAst, "property");
         TemplateAst toAddEvent = visitBanana(bananaAst, "event");
-        astNode.properties.add(toAddProperty);
         astNode.events.add(toAddEvent);
+
+        TemplateAst toAddProperty = visitBanana(bananaAst, "property");
+        astNode.properties.add(toAddProperty);
       }
       astNode.bananas.clear();
     }
@@ -59,11 +86,20 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
       TemplateAst newAst;
 
       if (isMicroExpression(starExpression)) {
-        final micro = parseMicroExpression(
-          directiveName,
-          starExpression,
-          sourceUrl: astNode.sourceUrl,
-        );
+        NgMicroAst micro;
+        try {
+          micro = parseMicroExpression(
+            directiveName,
+            starExpression,
+            sourceUrl: astNode.sourceUrl,
+          );
+        } catch (e) {
+          exceptionHandler.handle(e);
+        }
+        List<PropertyAst> properties =
+            micro == null ? <PropertyAst>[] : micro.properties;
+        List<ReferenceAst> references =
+            micro == null ? <ReferenceAst>[] : micro.assignments;
         newAst = new EmbeddedTemplateAst.from(
           origin,
           childNodes: [
@@ -72,10 +108,19 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
           attributes: [
             new AttributeAst(directiveName),
           ],
-          properties: micro.properties,
-          references: micro.assignments,
+          properties: properties,
+          references: references,
         );
       } else {
+        ExpressionAst expression;
+        try {
+          expression = new ExpressionAst.parse(
+            starExpression,
+            sourceUrl: astNode.sourceUrl,
+          );
+        } catch (e) {
+          exceptionHandler.handle(e);
+        }
         newAst = new EmbeddedTemplateAst.from(
           origin,
           childNodes: [
@@ -84,10 +129,8 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
           properties: [
             new PropertyAst(
               directiveName,
-              new ExpressionAst.parse(
-                starExpression,
-                sourceUrl: astNode.sourceUrl,
-              ),
+              starExpression,
+              expression,
             ),
           ],
         );

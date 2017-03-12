@@ -10,6 +10,7 @@ export 'package:angular_ast/src/ast.dart'
     show
         AttributeAst,
         BananaAst,
+        CloseElementAst,
         CommentAst,
         ElementAst,
         EmbeddedContentAst,
@@ -19,6 +20,7 @@ export 'package:angular_ast/src/ast.dart'
         InterpolationAst,
         ParsedAttributeAst,
         ParsedBananaAst,
+        ParsedCloseElementAst,
         ParsedEventAst,
         ParsedElementAst,
         ParsedPropertyAst,
@@ -32,6 +34,8 @@ export 'package:angular_ast/src/ast.dart'
         TemplateAst,
         TextAst,
         WhitespaceAst;
+export 'package:angular_ast/src/exception_handler/exception_handler.dart'
+    show ExceptionHandler, RecoveringExceptionHandler, ThrowingExceptionHandler;
 export 'package:angular_ast/src/lexer.dart' show NgLexer;
 export 'package:angular_ast/src/parser.dart' show NgParser;
 export 'package:angular_ast/src/token/tokens.dart'

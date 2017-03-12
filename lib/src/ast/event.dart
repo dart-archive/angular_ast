@@ -16,6 +16,7 @@ abstract class EventAst implements TemplateAst {
   /// Create a new synthetic [EventAst] listening to [name].
   factory EventAst(
     String name,
+    String value,
     ExpressionAst expression, [
     String postfix,
   ]) = _SyntheticEventAst;
@@ -24,6 +25,7 @@ abstract class EventAst implements TemplateAst {
   factory EventAst.from(
     TemplateAst origin,
     String name,
+    String value,
     ExpressionAst expression, [
     String postfix,
   ]) = _SyntheticEventAst.from;
@@ -36,6 +38,7 @@ abstract class EventAst implements TemplateAst {
     NgToken elementDecoratorToken,
     NgToken suffixToken,
     NgAttributeValueToken valueToken,
+    ExpressionAst expression,
     NgToken equalSignToken,
   ) = ParsedEventAst;
 
@@ -59,6 +62,9 @@ abstract class EventAst implements TemplateAst {
 
   /// Name of the event being listened to.
   String get name;
+
+  /// Unquoted value being bound to event.
+  String get value;
 
   /// An optional postfix used to filter events that support it.
   ///
@@ -100,13 +106,10 @@ class ParsedEventAst extends TemplateAst
     this.nameToken,
     this.suffixToken,
     this.valueToken,
+    this.expression,
     this.equalSignToken,
   )
-      : this.expression = valueToken != null
-            ? new ExpressionAst.parse(valueToken.innerValue.lexeme,
-                sourceUrl: sourceFile.url.toString())
-            : null,
-        super.parsed(
+      : super.parsed(
           beginToken,
           valueToken == null ? suffixToken : valueToken.rightQuote,
           sourceFile,
@@ -133,6 +136,7 @@ class ParsedEventAst extends TemplateAst
   int get equalSignOffset => equalSignToken.offset;
 
   /// Expression value as [String] bound to event; may be `null` if no value.
+  @override
   String get value => valueToken?.innerValue?.lexeme;
 
   /// Offset of value; may be `null` to have no value.
@@ -164,16 +168,25 @@ class _SyntheticEventAst extends SyntheticTemplateAst with EventAst {
   final String name;
 
   @override
+  final String value;
+
+  @override
   final ExpressionAst expression;
 
   @override
   final String postfix;
 
-  _SyntheticEventAst(this.name, this.expression, [this.postfix]);
+  _SyntheticEventAst(
+    this.name,
+    this.value,
+    this.expression, [
+    this.postfix,
+  ]);
 
   _SyntheticEventAst.from(
     TemplateAst origin,
     this.name,
+    this.value,
     this.expression, [
     this.postfix,
   ])

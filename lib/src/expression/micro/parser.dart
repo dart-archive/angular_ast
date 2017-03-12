@@ -71,6 +71,7 @@ class _RecursiveMicroAstParser {
     final value = _tokens.current.lexeme;
     properties.add(new PropertyAst(
       '${_directive}${name[0].toUpperCase()}${name.substring(1)}',
+      value,
       new ExpressionAst.parse(
         value,
         sourceUrl: _sourceUrl,
@@ -110,6 +111,7 @@ class _RecursiveMicroAstParser {
       final expression = _tokens.current.lexeme;
       properties.add(new PropertyAst(
         '${_directive}${property[0].toUpperCase()}${property.substring(1)}',
+        expression,
         new ExpressionAst.parse(expression, sourceUrl: _sourceUrl),
       ));
     }

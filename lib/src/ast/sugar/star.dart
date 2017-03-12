@@ -18,14 +18,14 @@ abstract class StarAst implements TemplateAst {
   /// Create a new synthetic [StarAst] assigned to [name].
   factory StarAst(
     String name, [
-    ExpressionAst expression,
+    String value,
   ]) = _SyntheticStarAst;
 
   /// Create a new synthetic property AST that originated from another AST.
   factory StarAst.from(
     TemplateAst origin,
     String name, [
-    ExpressionAst expression,
+    String value,
   ]) = _SyntheticStarAst.from;
 
   /// Create a new property assignment parsed from tokens in [sourceFile].
@@ -46,27 +46,24 @@ abstract class StarAst implements TemplateAst {
   @override
   bool operator ==(Object o) {
     if (o is PropertyAst) {
-      return expression == o.expression && name == o.name;
+      return value == o.value && name == o.name;
     }
     return false;
   }
 
   @override
-  int get hashCode => hash2(expression, name);
-
-  /// Bound expression; optional for backwards compatibility.
-  ExpressionAst get expression;
+  int get hashCode => hash2(value, name);
 
   /// Name of the directive being created.
   String get name;
 
-  /// Name of expression string
+  /// Name of expression string. Can be null.
   String get value;
 
   @override
   String toString() {
-    if (expression != null) {
-      return '$StarAst {$name="$expression"}';
+    if (value != null) {
+      return '$StarAst {$name="$value"}';
     }
     return '$StarAst {$name}';
   }
@@ -99,16 +96,8 @@ class ParsedStarAst extends TemplateAst
     this.valueToken,
     this.equalSignToken,
   ])
-      : this.expression = valueToken != null
-            ? new ExpressionAst.parse(valueToken.innerValue.lexeme,
-                sourceUrl: sourceFile.url.toString())
-            : null,
-        super.parsed(beginToken,
+      : super.parsed(beginToken,
             valueToken != null ? valueToken.rightQuote : nameToken, sourceFile);
-
-  /// ExpressionAst of `"value"`; may be null to have no value.
-  @override
-  final ExpressionAst expression;
 
   /// Name `directive` in `*directive`.
   @override
@@ -146,22 +135,19 @@ class ParsedStarAst extends TemplateAst
 class _SyntheticStarAst extends SyntheticTemplateAst with StarAst {
   _SyntheticStarAst(
     this.name, [
-    this.expression,
+    this.value,
   ]);
 
   _SyntheticStarAst.from(
     TemplateAst origin,
     this.name, [
-    this.expression,
+    this.value,
   ])
       : super.from(origin);
-
-  @override
-  final ExpressionAst expression;
 
   @override
   final String name;
 
   @override
-  String get value => expression.expression.toString();
+  final String value;
 }
