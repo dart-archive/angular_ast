@@ -82,7 +82,7 @@ class HumanizingTemplateAstVisitor
       context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
     }
 
-    if (astNode.isSynthetic && astNode.isVoidElement) {
+    if (astNode.isSynthetic) {
       context.write(astNode.isVoidElement ? '/>' : '>');
     } else {
       context.write(astNode.endToken.lexeme);
