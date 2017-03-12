@@ -55,6 +55,9 @@ abstract class CloseElementAst implements TemplateAst {
   /// Name (tag) of the close element.
   String get name;
 
+  //TODO: Max: remove entirely
+  @deprecated
+
   /// Whitespaces at the end.
   List<WhitespaceAst> get whitespaces;
 
