@@ -64,7 +64,7 @@ void main() {
     expect(asts.length, 1);
 
     ElementAst element = asts[0];
-    expect(element, new ElementAst('hr', new CloseElementAst('hr')));
+    expect(element, new ElementAst('hr', null));
     expect(element.closeComplement, null);
   });
 
@@ -146,6 +146,42 @@ void main() {
 
     expect(
         astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
+  });
+
+  test('Should drop invalid attrs in ng-content', () {
+    var asts = parse(
+        '<ng-content bad = "badValue" select="*" [badProp] = "badPropValue"></ng-content>');
+    expect(asts.length, 1);
+
+    var ngcontent = asts[0] as EmbeddedContentAst;
+    expect(ngcontent.selector, '*');
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 2);
+
+    var e1 = exceptions[0];
+    var e2 = exceptions[1];
+
+    expect(e1.context, ' bad="badValue"');
+    expect(e1.offset, 11);
+    expect(e2.context, ' [badProp]="badPropValue"');
+    expect(e2.offset, 39);
+  });
+
+  test('Should drop duplicate select attrs in ng-content', () {
+    var asts =
+        parse('<ng-content select = "*" select = "badSelect"></ng-content>');
+    expect(asts.length, 1);
+
+    var ngcontent = asts[0] as EmbeddedContentAst;
+    expect(ngcontent.selector, '*');
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 1);
+
+    var e = exceptions[0];
+    expect(e.context, ' select="badSelect"');
+    expect(e.offset, 24);
   });
 
   test('Should parse property decorators with invalid dart value', () {
