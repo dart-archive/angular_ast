@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:angular_ast/src/exception_handler/angular_parser_exception.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/expression/micro/token.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -170,11 +170,10 @@ class NgMicroScanner {
   }
 
   AngularParserException _unexpected() {
-    var char = new String.fromCharCode(_scanner.peekChar());
     _state = _NgMicroScannerState.hasError;
     return new AngularParserException(
-      'Unexpected character: $char',
-      _scanner.string,
+      NgParserWarningCode.DART_PARSER_UNEXPECTED,
+      _scanner.string.length,
       _scanner.position,
     );
   }

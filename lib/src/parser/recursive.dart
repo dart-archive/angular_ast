@@ -5,7 +5,7 @@
 import 'dart:collection';
 
 import 'package:angular_ast/src/ast.dart';
-import 'package:angular_ast/src/exception_handler/angular_parser_exception.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/parser/reader.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:source_span/source_span.dart';
@@ -46,11 +46,11 @@ class RecursiveAstParser {
 
   /// Parses and returns a [CloseElementAst].
   CloseElementAst parseCloseElement(NgToken beginToken) {
-    var nameToken = _reader.expect(NgTokenType.elementIdentifier);
+    var nameToken = _reader.next();
     if (_voidElements.contains(nameToken.lexeme)) {
       exceptionHandler.handle(new AngularParserException(
-        '${nameToken.lexeme} is a void element and cannot be used in a close element tag',
-        nameToken.lexeme,
+        NgParserWarningCode.VOID_ELEMENT_IN_CLOSE_TAG,
+        nameToken.length,
         nameToken.offset,
       ));
     }
@@ -58,7 +58,7 @@ class RecursiveAstParser {
     while (_reader.peekType() == NgTokenType.whitespace) {
       _reader.next();
     }
-    var closeElementEnd = _reader.expect(NgTokenType.closeElementEnd);
+    var closeElementEnd = _reader.next();
     return new CloseElementAst.parsed(
       _source,
       beginToken,
@@ -69,8 +69,13 @@ class RecursiveAstParser {
 
   /// Parses and returns a comment beginning at the token provided.
   CommentAst parseComment(NgToken beginToken) {
-    var valueToken = _reader.expect(NgTokenType.commentValue);
-    var endToken = _reader.expect(NgTokenType.commentEnd);
+    NgToken valueToken;
+    if (_reader.peekType() == NgTokenType.commentEnd) {
+      valueToken = new NgToken.commentValue(_reader.peek().offset, '');
+    } else {
+      valueToken = _reader.next();
+    }
+    var endToken = _reader.next();
     return new CommentAst.parsed(
       _source,
       beginToken,
@@ -107,13 +112,10 @@ class RecursiveAstParser {
 
     if (_reader.peekTypeIgnoringType(NgTokenType.whitespace) ==
         NgTokenType.beforeElementDecoratorValue) {
-      while (_reader.peekType() == NgTokenType.whitespace) {
-        _reader.next();
-      }
+      _consumeWhitespaces();
       equalSignToken = _reader.next();
-      valueToken = _reader.expectTypeIgnoringType(
-              NgTokenType.elementDecoratorValue, NgTokenType.whitespace)
-          as NgAttributeValueToken;
+      _consumeWhitespaces();
+      valueToken = _reader.next() as NgAttributeValueToken;
     }
 
     if (prefixToken != null) {
@@ -188,7 +190,7 @@ class RecursiveAstParser {
   StandaloneTemplateAst parseElement(
       NgToken beginToken, Queue<String> tagStack) {
     // Parse the element identifier.
-    var nameToken = _reader.expect(NgTokenType.elementIdentifier);
+    var nameToken = _reader.next();
     if (nameToken.lexeme == 'ng-content') {
       return parseEmbeddedContent(beginToken, nameToken);
     } else if (nameToken.lexeme == 'template') {
@@ -216,9 +218,8 @@ class RecursiveAstParser {
         } else if (decoratorAst is StarAst) {
           if (stars.isNotEmpty) {
             exceptionHandler.handle(new AngularParserException(
-              'Already found an *-directive, limit 1 per element, but also '
-                  'found ${decoratorAst.sourceSpan.highlight()}',
-              decoratorAst.value,
+              NgParserWarningCode.DUPLICATE_STAR_DIRECTIVE,
+              decoratorAst.value.length,
               decoratorAst.beginToken.offset,
             ));
           }
@@ -239,6 +240,13 @@ class RecursiveAstParser {
         nextToken.type != NgTokenType.openElementEndVoid);
 
     var endToken = nextToken;
+    if (!isVoidElement && endToken.type == NgTokenType.openElementEndVoid) {
+      exceptionHandler.handle(new AngularParserException(
+        NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END,
+        endToken.length,
+        endToken.offset,
+      ));
+    }
     CloseElementAst closeElementAst;
 
     // If not a void element, look for closing tag OR child nodes.
@@ -251,9 +259,9 @@ class RecursiveAstParser {
 
         if (nextToken == null) {
           exceptionHandler.handle(new AngularParserException(
-            'Expected close element for "${nameToken.lexeme}"',
-            nameToken.lexeme,
-            nameToken.offset,
+            NgParserWarningCode.MISSING_CLOSE_TAG,
+            beginToken.offset,
+            beginToken.length + nameToken.length + endToken.length,
           ));
           closeElementAst = new CloseElementAst(nameToken.lexeme);
           closingTagFound = true;
@@ -263,8 +271,8 @@ class RecursiveAstParser {
           if (closeNameToken.lexeme != nameToken.lexeme) {
             // Found a closing tag, but not matching current [ElementAst].
             exceptionHandler.handle(new AngularParserException(
-              'Invalid closing tag: $closeNameToken (expected $nameToken)',
-              closeNameToken.lexeme,
+              NgParserWarningCode.UNMATCHING_CLOSE_TAG,
+              closeNameToken.length,
               closeNameToken.offset,
             ));
             if (tagStack.contains(closeNameToken.lexeme)) {
@@ -277,8 +285,8 @@ class RecursiveAstParser {
               // If the closing tag is not in the stack, create a synthetic
               // [ElementAst] to pair the dangling close and add as child.
               exceptionHandler.handle(new AngularParserException(
-                'Dangling closing tag: $closeNameToken',
-                closeNameToken.lexeme,
+                NgParserWarningCode.DANGLING_CLOSE_ELEMENT,
+                closeNameToken.length,
                 closeNameToken.offset,
               ));
               childNodes.add(_handleDanglingCloseElement(nextToken));
@@ -323,29 +331,25 @@ class RecursiveAstParser {
     // Ensure that ng-content has only 'select' attribute, if any. Also
     // catch for multiple 'select'; if multiple, accept the first one seen.
     while (_reader.peekType() == NgTokenType.beforeElementDecorator) {
-      var beforeElementDecorator = _reader.next();
+      var startOffset = _reader.next().offset;
       var nextToken = _reader.next();
 
       if (nextToken.type != NgTokenType.elementDecorator ||
           nextToken.lexeme != 'select') {
-        var errorString = _accumulateInvalidNgContentDecoratorValue(
-            beforeElementDecorator, nextToken);
+        var endOffset = _accumulateInvalidNgContentDecoratorValue(nextToken);
         var e = new AngularParserException(
-          'Only "select" is a valid attribute in <ng-content>, got '
-              '"${errorString}"',
-          errorString,
-          beforeElementDecorator.offset,
+          NgParserWarningCode.INVALID_DECORATOR_IN_NGCONTENT,
+          endOffset - startOffset,
+          startOffset,
         );
         exceptionHandler.handle(e);
       } else {
         if (selectAttributeFound) {
-          var errorString = _accumulateInvalidNgContentDecoratorValue(
-              beforeElementDecorator, nextToken);
+          var endOffset = _accumulateInvalidNgContentDecoratorValue(nextToken);
           var e = new AngularParserException(
-            'Only one "select" attribute can exist in <ng-content>, got '
-                'duplicate ${errorString}',
-            errorString,
-            beforeElementDecorator.offset,
+            NgParserWarningCode.DUPLICATE_SELECT_DECORATOR,
+            endOffset - startOffset,
+            startOffset,
           );
           exceptionHandler.handle(e);
         } else {
@@ -365,8 +369,8 @@ class RecursiveAstParser {
     endToken = _reader.next();
     if (endToken.type == NgTokenType.openElementEndVoid) {
       var e = new AngularParserException(
-        '"ng-content" is not a valid void element',
-        endToken.lexeme,
+        NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END,
+        endToken.length,
         endToken.offset,
       );
       exceptionHandler.handle(e);
@@ -379,9 +383,9 @@ class RecursiveAstParser {
     // Ensure closing </ng-content> exists.
     if (_reader.peekType() != NgTokenType.closeElementStart) {
       var e = new AngularParserException(
-        'Expected closing tag for "ng-content".',
-        _reader.peek().lexeme,
-        _reader.peek().offset,
+        NgParserWarningCode.MISSING_CLOSE_TAG,
+        endToken.end - beginToken.offset,
+        beginToken.offset,
       );
       exceptionHandler.handle(e);
       closeElementAst = new CloseElementAst('ng-content');
@@ -392,8 +396,8 @@ class RecursiveAstParser {
 
       if (closeElementName != 'ng-content') {
         var e = new AngularParserException(
-          'Expected closing tag to match "ng-content", instead got $closeElementName',
-          closeElementName,
+          NgParserWarningCode.UNMATCHING_CLOSE_TAG,
+          closeElementName.length,
           closeElementOffset,
         );
         exceptionHandler.handle(e);
@@ -416,34 +420,29 @@ class RecursiveAstParser {
   }
 
   /// Helper function that accumulates all parts of attribute-value variant
-  /// and returns it as a single string. Should be used to gather any
-  /// non-'select' decorator. Consumes all necessary erroneous tokens.
-  String _accumulateInvalidNgContentDecoratorValue(
-      NgToken beforeElementDecorator, NgToken nextToken) {
-    var sb = new StringBuffer();
-    sb.write(beforeElementDecorator.lexeme);
-    sb.write(nextToken.lexeme);
-
+  /// and returns the end offset at where it finishes. Should be used to gather
+  /// any non-'select' decorator. Consumes all necessary erroneous tokens.
+  int _accumulateInvalidNgContentDecoratorValue(NgToken nextToken) {
+    NgToken lastConsumedToken;
     if (nextToken.type == NgTokenType.bananaPrefix ||
         nextToken.type == NgTokenType.eventPrefix ||
         nextToken.type == NgTokenType.propertyPrefix) {
-      sb.write(_reader.next().lexeme); // Decorator
-      sb.write(_reader.next().lexeme); // Suffix
+      lastConsumedToken = _reader.next(); // Decorator
+      lastConsumedToken = _reader.next(); // Suffix
     } else if (nextToken.type == NgTokenType.templatePrefix ||
         nextToken.type == NgTokenType.referencePrefix) {
-      sb.write(_reader.next().lexeme); // Decorator
+      lastConsumedToken = _reader.next(); // Decorator
     }
     if (_reader.peekTypeIgnoringType(NgTokenType.whitespace) ==
         NgTokenType.beforeElementDecoratorValue) {
       _consumeWhitespaces();
       if (_reader.peekType() == NgTokenType.beforeElementDecoratorValue) {
-        sb.write(_reader.next().lexeme); // '=' sign
+        lastConsumedToken = _reader.next(); // '=' sign
       }
       _consumeWhitespaces();
-      sb.write(_reader.next().lexeme); //Attribute value
+      lastConsumedToken = _reader.next(); // Attribute value
     }
-
-    return sb.toString();
+    return lastConsumedToken.end;
   }
 
   /// Returns and parses an embedded `<template>`.
@@ -475,12 +474,16 @@ class RecursiveAstParser {
     }
 
     // Finally return the element.
-    var closeName = _reader.expect(NgTokenType.elementIdentifier);
+    var closeName = _reader.next();
     if (closeName.lexeme != 'template') {
-      _reader.error('Invalid closing tag: $closeName (expected "template")');
+      exceptionHandler.handle(new AngularParserException(
+        NgParserWarningCode.UNMATCHING_CLOSE_TAG,
+        closeName.length,
+        closeName.offset,
+      ));
     }
 
-    var endToken = _reader.expect(NgTokenType.closeElementEnd);
+    var endToken = _reader.next();
     return new EmbeddedTemplateAst.parsed(
       _source,
       beginToken,
@@ -493,8 +496,8 @@ class RecursiveAstParser {
 
   /// Returns and parses an interpolation AST.
   InterpolationAst parseInterpolation(NgToken beginToken) {
-    var valueToken = _reader.expect(NgTokenType.interpolationValue);
-    var endToken = _reader.expect(NgTokenType.interpolationEnd);
+    var valueToken = _reader.next();
+    var endToken = _reader.next();
     var expressionAst = parseExpression(valueToken?.lexeme);
     return new InterpolationAst.parsed(
       _source,
@@ -524,14 +527,26 @@ class RecursiveAstParser {
       // a synthetic open with the dangling close. If not enabled,
       // simply throws error.
       case NgTokenType.closeElementStart:
+        var synthOpenElement = _handleDanglingCloseElement(token) as ElementAst;
+        var closeComplement = synthOpenElement.closeComplement;
         exceptionHandler.handle(new AngularParserException(
-          'Close element cannot exist before matching open element',
-          token.lexeme,
+          NgParserWarningCode.DANGLING_CLOSE_ELEMENT,
+          closeComplement.endToken.end - closeComplement.beginToken.offset,
+          closeComplement.beginToken.offset,
+        ));
+        return synthOpenElement;
+      default:
+        // Simply throw error here; should never hit.
+        if (exceptionHandler is RecoveringExceptionHandler) {
+          // Throw an error here - this should never hit in recovery mode
+          // unless something went really wrong. If so, FIX IT ASAP!
+          throw new Exception('Non-standalone starting token found!');
+        }
+        exceptionHandler.handle(new AngularParserException(
+          NgParserWarningCode.EXPECTED_STANDALONE,
+          token.length,
           token.offset,
         ));
-        return _handleDanglingCloseElement(token);
-      default:
-        _reader.error('Expected standalone token, got ${token.type}');
         return null;
     }
   }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:angular_ast/src/exception_handler/angular_parser_exception.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -23,8 +23,8 @@ class _ThrowingListener implements AnalysisErrorListener {
   @override
   void onError(AnalysisError error) {
     throw new AngularParserException(
-      error.toString(),
-      error.source.contents.data,
+      new NgParserWarningCode.DART_PARSER(error.toString()),
+      error.source.contents.data.length,
       error.offset,
     );
   }
@@ -106,8 +106,8 @@ class _NgExpressionParser extends Parser {
     }
     if (expression.rightOperand is! Identifier) {
       throw new AngularParserException(
-        'Pipe name must be a valid identifier',
-        expression.toSource(),
+        NgParserWarningCode.PIPE_INVALID_IDENTIFIER,
+        expression.toSource().length,
         expression.rightOperand.offset,
       );
     }

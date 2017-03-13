@@ -120,8 +120,8 @@ class _RecursiveMicroAstParser {
   AngularParserException _unexpected([NgMicroToken token]) {
     token ??= _tokens.current;
     return new AngularParserException(
-      'Unexpected: ${token}',
-      _expression,
+      NgParserWarningCode.DART_PARSER_UNEXPECTED,
+      _expression.length,
       token.offset,
     );
   }

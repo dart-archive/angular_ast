@@ -113,7 +113,8 @@ void main() {
 
 void beforeInterpolation() {
   test('should resolve: dangling mustacheEnd at start', () {
-    var results = tokenize('}} some text');
+    var html = '}} some text';
+    var results = tokenize(html);
     expect(results, [
       new NgToken.interpolationStart(0), // Synthetic
       new NgToken.interpolationValue(0, ''), // Synthetic
@@ -122,14 +123,16 @@ void beforeInterpolation() {
     ]);
     expect(recoveringException.exceptions.length, 1);
     var e = recoveringException.exceptions[0];
-    expect(e.context, '}}');
+    var context = html.substring(e.offset, e.offset + e.length);
+    expect(context, '}}');
     expect(e.offset, 0);
 
     expect(untokenize(results), '{{}} some text');
   });
 
   test('should resolve: dangling mustacheEnd at end of text', () {
-    var results = tokenize('mustache text}}');
+    var html = 'mustache text}}';
+    var results = tokenize(html);
     expect(results, [
       new NgToken.interpolationStart(0), // Synthetic
       new NgToken.interpolationValue(0, 'mustache text'),
@@ -137,7 +140,8 @@ void beforeInterpolation() {
     ]);
     expect(recoveringException.exceptions.length, 1);
     var e = recoveringException.exceptions[0];
-    expect(e.context, '}}');
+    var context = html.substring(e.offset, e.offset + e.length);
+    expect(context, '}}');
     expect(e.offset, 13);
 
     expect(untokenize(results), '{{mustache text}}');
@@ -146,7 +150,8 @@ void beforeInterpolation() {
 
 void afterComment() {
   test('should resolve: unexpected EOF in afterComment', () {
-    var results = tokenize('<!-- some comment ');
+    var html = '<!-- some comment ';
+    var results = tokenize(html);
     expect(
       results,
       [
@@ -157,8 +162,9 @@ void afterComment() {
     );
     expect(recoveringException.exceptions.length, 1);
     var e = recoveringException.exceptions[0];
-    expect(e.context, '');
-    expect(e.offset, 18);
+    var context = html.substring(e.offset, e.offset + e.length);
+    expect(context, '<!--');
+    expect(e.offset, 0);
   });
 }
 
@@ -196,7 +202,8 @@ void afterInterpolation() {
 
 void comment() {
   test('should resolve: unexpected EOF in scanComment', () {
-    var results = tokenize('<!-- some comment ');
+    var html = '<!-- some comment ';
+    var results = tokenize(html);
     expect(
       results,
       [
@@ -207,8 +214,9 @@ void comment() {
     );
     expect(recoveringException.exceptions.length, 1);
     var e = recoveringException.exceptions[0];
-    expect(e.context, '');
-    expect(e.offset, 18);
+    var context = html.substring(e.offset, e.offset + e.length);
+    expect(context, '<!--');
+    expect(e.offset, 0);
   });
 }
 

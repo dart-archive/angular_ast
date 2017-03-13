@@ -44,7 +44,8 @@ void main() {
       }
       print('\n\nERRORS:');
       exceptionHandler.exceptions.forEach((e) {
-        print('${e.message} :: ${e.context} at ${e.offset}');
+        var context = input.substring(e.offset, e.offset + e.length);
+        print('${e.errorCode.message} :: $context at ${e.offset}');
       });
     }
   }

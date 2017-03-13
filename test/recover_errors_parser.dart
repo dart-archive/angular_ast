@@ -148,29 +148,54 @@ void main() {
         astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
   });
 
+  test('Should handle ng-content used with void end', () {
+    var html = '<ng-content/></ng-content>';
+    var asts = parse('<ng-content/></ng-content>');
+    expect(asts.length, 1);
+
+    var ngContent = asts[0];
+    expect(ngContent, new isInstanceOf<EmbeddedContentAst>()) ;
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 1);
+    var e = exceptions[0];
+    var context = html.substring(e.offset, e.offset + e.length);
+    expect(context, '/>');
+    expect(e.offset, 11);
+
+    expect(astsToString(asts), '<ng-content select="*"></ng-content>');
+  });
+
   test('Should drop invalid attrs in ng-content', () {
-    var asts = parse(
-        '<ng-content bad = "badValue" select="*" [badProp] = "badPropValue"></ng-content>');
+    var html =
+        '<ng-content bad = "badValue" select="*" [badProp] = "badPropValue" #badRef></ng-content>';
+    var asts = parse(html);
     expect(asts.length, 1);
 
     var ngcontent = asts[0] as EmbeddedContentAst;
     expect(ngcontent.selector, '*');
 
     var exceptions = recoveringExceptionHandler.exceptions;
-    expect(exceptions.length, 2);
+    expect(exceptions.length, 3);
 
     var e1 = exceptions[0];
     var e2 = exceptions[1];
+    var e3 = exceptions[2];
+    var context1 = html.substring(e1.offset, e1.offset + e1.length);
+    var context2 = html.substring(e2.offset, e2.offset + e2.length);
+    var context3 = html.substring(e3.offset, e3.offset + e3.length);
 
-    expect(e1.context, ' bad="badValue"');
+    expect(context1, ' bad = "badValue"');
     expect(e1.offset, 11);
-    expect(e2.context, ' [badProp]="badPropValue"');
+    expect(context2, ' [badProp] = "badPropValue"');
     expect(e2.offset, 39);
+    expect(context3, ' #badRef');
+    expect(e3.offset, 66);
   });
 
   test('Should drop duplicate select attrs in ng-content', () {
-    var asts =
-        parse('<ng-content select = "*" select = "badSelect"></ng-content>');
+    var html = '<ng-content select = "*" select = "badSelect"></ng-content>';
+    var asts = parse(html);
     expect(asts.length, 1);
 
     var ngcontent = asts[0] as EmbeddedContentAst;
@@ -180,7 +205,8 @@ void main() {
     expect(exceptions.length, 1);
 
     var e = exceptions[0];
-    expect(e.context, ' select="badSelect"');
+    var context = html.substring(e.offset, e.offset + e.length);
+    expect(context, ' select = "badSelect"');
     expect(e.offset, 24);
   });
 
