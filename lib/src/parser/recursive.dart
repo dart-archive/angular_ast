@@ -427,18 +427,22 @@ class RecursiveAstParser {
     if (nextToken.type == NgTokenType.bananaPrefix ||
         nextToken.type == NgTokenType.eventPrefix ||
         nextToken.type == NgTokenType.propertyPrefix) {
-      sb.write(_reader.next()); // Decorator
-      sb.write(_reader.next()); // Suffix
+      sb.write(_reader.next().lexeme); // Decorator
+      sb.write(_reader.next().lexeme); // Suffix
     } else if (nextToken.type == NgTokenType.templatePrefix ||
         nextToken.type == NgTokenType.referencePrefix) {
-      sb.write(_reader.next()); // Decorator
+      sb.write(_reader.next().lexeme); // Decorator
     }
-    _consumeWhitespaces();
-    if (_reader.peekType() == NgTokenType.beforeElementDecoratorValue) {
-      sb.write(_reader.next()); // '=' sign
+    if (_reader.peekTypeIgnoringType(NgTokenType.whitespace) ==
+        NgTokenType.beforeElementDecoratorValue) {
+      _consumeWhitespaces();
+      if (_reader.peekType() == NgTokenType.beforeElementDecoratorValue) {
+        sb.write(_reader.next().lexeme); // '=' sign
+      }
+      _consumeWhitespaces();
+      sb.write(_reader.next().lexeme); //Attribute value
     }
-    _consumeWhitespaces();
-    sb.write(_reader.next()); //Attribute value
+
     return sb.toString();
   }
 
@@ -550,7 +554,7 @@ class RecursiveAstParser {
 
   void _consumeWhitespaces() {
     while (_reader.peekType() != null &&
-        _reader.peekType == NgSimpleTokenType.whitespace) {
+        _reader.peekType() == NgTokenType.whitespace) {
       _reader.next();
     }
   }
