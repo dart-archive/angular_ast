@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 void main() {
   // Returns the html parsed as a series of tokens.
-  const ExceptionHandler exceptionHandler = const ThrowingExceptionHandler();
+  var exceptionHandler = const ThrowingExceptionHandler();
   Iterable<NgToken> tokenize(String html) =>
       const NgLexer().tokenize(html, exceptionHandler);
 

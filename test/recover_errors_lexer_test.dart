@@ -38,11 +38,11 @@ void testRecoverySolution(
   NgScannerState expectedNextState, {
   String syntheticLexeme: "",
 }) {
-  int recoveryOffset = baseHtml.length;
+  var recoveryOffset = baseHtml.length;
 
   for (NgSimpleTokenType type in encounteredTokens) {
-    NgTokenReversibleReader reader = new NgTokenReversibleReader(null, []);
-    NgSimpleToken token = new NgSimpleToken(type, recoveryOffset);
+    var reader = new NgTokenReversibleReader(null, []);
+    var token = new NgSimpleToken(type, recoveryOffset);
 
     String errorString;
     if (type == NgSimpleTokenType.doubleQuote) {
@@ -52,26 +52,25 @@ void testRecoverySolution(
     } else {
       errorString = NgSimpleToken.lexemeMap[type];
     }
-    String errorHtml = baseHtml + errorString;
+    var errorHtml = baseHtml + errorString;
 
     test("should resolve: unexpected $type in $startState", () async {
-      Iterator<NgToken> it = tokenizeThrow(errorHtml);
+      var it = tokenizeThrow(errorHtml);
       expect(() {
         while (it.moveNext() != null) {}
       }, throwsA(new isInstanceOf<AngularParserException>()));
 
-      RecoverySolution solution =
-          recoveryProtocol.recover(startState, token, reader);
+      var solution = recoveryProtocol.recover(startState, token, reader);
 
       NgToken expectedSynthetic;
       if (expectedSyntheticType == null) {
         expectedSynthetic = null;
       } else if (expectedSyntheticType == NgTokenType.doubleQuote) {
-        NgToken left = new NgToken.generateErrorSynthetic(
+        var left = new NgToken.generateErrorSynthetic(
             recoveryOffset, NgTokenType.doubleQuote);
-        NgToken value = new NgToken.generateErrorSynthetic(
+        var value = new NgToken.generateErrorSynthetic(
             recoveryOffset, NgTokenType.elementDecoratorValue);
-        NgToken right = new NgToken.generateErrorSynthetic(
+        var right = new NgToken.generateErrorSynthetic(
             recoveryOffset, NgTokenType.doubleQuote);
         expectedSynthetic =
             new NgAttributeValueToken.generate(left, value, right);
@@ -147,7 +146,7 @@ void beforeInterpolation() {
 
 void afterComment() {
   test('should resolve: unexpected EOF in afterComment', () {
-    Iterable<NgToken> results = tokenize('<!-- some comment ');
+    var results = tokenize('<!-- some comment ');
     expect(
       results,
       [
@@ -197,7 +196,7 @@ void afterInterpolation() {
 
 void comment() {
   test('should resolve: unexpected EOF in scanComment', () {
-    Iterable<NgToken> results = tokenize('<!-- some comment ');
+    var results = tokenize('<!-- some comment ');
     expect(
       results,
       [
@@ -214,10 +213,10 @@ void comment() {
 }
 
 void elementIdentifierClose() {
-  String baseHtml = "</";
-  NgScannerState startState = NgScannerState.scanElementIdentifierClose;
+  var baseHtml = "</";
+  var startState = NgScannerState.scanElementIdentifierClose;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.closeTagStart,
     NgSimpleTokenType.openTagStart,
     NgSimpleTokenType.tagEnd,
@@ -225,7 +224,7 @@ void elementIdentifierClose() {
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.whitespace,
   ];
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
@@ -284,10 +283,10 @@ void elementIdentifierClose() {
 }
 
 void elementIdentifierOpen() {
-  String baseHtml = "<";
-  NgScannerState startState = NgScannerState.scanElementIdentifierOpen;
+  var baseHtml = "<";
+  var startState = NgScannerState.scanElementIdentifierOpen;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
     NgSimpleTokenType.openBracket,
@@ -344,10 +343,10 @@ void elementIdentifierOpen() {
 }
 
 void afterElementIdentifierClose() {
-  String baseHtml = "</div";
-  NgScannerState startState = NgScannerState.scanAfterElementIdentifierClose;
+  var baseHtml = "</div";
+  var startState = NgScannerState.scanAfterElementIdentifierClose;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.commentBegin,
     NgSimpleTokenType.openTagStart,
     NgSimpleTokenType.closeTagStart,
@@ -355,7 +354,7 @@ void afterElementIdentifierClose() {
     NgSimpleTokenType.voidCloseTag,
   ];
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
@@ -410,10 +409,10 @@ void afterElementIdentifierClose() {
 }
 
 void afterElementIdentifierOpen() {
-  String baseHtml = "<div";
-  NgScannerState startState = NgScannerState.scanAfterElementIdentifierOpen;
+  var baseHtml = "<div";
+  var startState = NgScannerState.scanAfterElementIdentifierOpen;
 
-  List<NgSimpleTokenType> resolveTokens1 = <NgSimpleTokenType>[
+  var resolveTokens1 = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
@@ -426,14 +425,14 @@ void afterElementIdentifierOpen() {
     NgSimpleTokenType.doubleQuote,
   ];
 
-  List<NgSimpleTokenType> resolveTokens2 = <NgSimpleTokenType>[
+  var resolveTokens2 = <NgSimpleTokenType>[
     NgSimpleTokenType.commentBegin,
     NgSimpleTokenType.openTagStart,
     NgSimpleTokenType.closeTagStart,
     NgSimpleTokenType.EOF,
   ];
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.forwardSlash,
     NgSimpleTokenType.period,
@@ -488,10 +487,10 @@ void afterElementIdentifierOpen() {
 }
 
 void afterElementDecorator() {
-  String baseHtml = "<div attr";
-  NgScannerState startState = NgScannerState.scanAfterElementDecorator;
+  var baseHtml = "<div attr";
+  var startState = NgScannerState.scanAfterElementDecorator;
 
-  List<NgSimpleTokenType> resolveTokens1 = <NgSimpleTokenType>[
+  var resolveTokens1 = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
@@ -511,7 +510,7 @@ void afterElementDecorator() {
     syntheticLexeme: ' ',
   );
 
-  List<NgSimpleTokenType> resolveTokens2 = <NgSimpleTokenType>[
+  var resolveTokens2 = <NgSimpleTokenType>[
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.commentBegin,
     NgSimpleTokenType.openTagStart,
@@ -526,7 +525,7 @@ void afterElementDecorator() {
     NgScannerState.scanStart,
   );
 
-  List<NgSimpleTokenType> resolveTokens3 = <NgSimpleTokenType>[
+  var resolveTokens3 = <NgSimpleTokenType>[
     NgSimpleTokenType.doubleQuote,
   ];
 
@@ -538,7 +537,7 @@ void afterElementDecorator() {
     NgScannerState.scanElementDecoratorValue,
   );
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.forwardSlash,
     NgSimpleTokenType.unexpectedChar,
@@ -580,10 +579,10 @@ void afterElementDecorator() {
 }
 
 void afterElementDecoratorValue() {
-  String baseHtml = '<div someName="someValue"';
-  NgScannerState startState = NgScannerState.scanAfterElementDecoratorValue;
+  var baseHtml = '<div someName="someValue"';
+  var startState = NgScannerState.scanAfterElementDecoratorValue;
 
-  List<NgSimpleTokenType> resolveTokens1 = <NgSimpleTokenType>[
+  var resolveTokens1 = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
@@ -605,7 +604,7 @@ void afterElementDecoratorValue() {
     syntheticLexeme: ' ',
   );
 
-  List<NgSimpleTokenType> resolveTokens2 = <NgSimpleTokenType>[
+  var resolveTokens2 = <NgSimpleTokenType>[
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.commentBegin,
     NgSimpleTokenType.openTagStart,
@@ -620,7 +619,7 @@ void afterElementDecoratorValue() {
     NgScannerState.scanStart,
   );
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.dash,
     NgSimpleTokenType.forwardSlash,
@@ -679,10 +678,10 @@ void afterElementDecoratorValue() {
 }
 
 void elementDecorator() {
-  String baseHtml = "<div ";
-  NgScannerState startState = NgScannerState.scanElementDecorator;
+  var baseHtml = "<div ";
+  var startState = NgScannerState.scanElementDecorator;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.commentBegin,
     NgSimpleTokenType.openTagStart,
@@ -703,7 +702,7 @@ void elementDecorator() {
     syntheticLexeme: '',
   );
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.forwardSlash,
   ];
@@ -716,7 +715,7 @@ void elementDecorator() {
     null,
   );
 
-  List<NgSimpleTokenType> beginPropertyTokens = <NgSimpleTokenType>[
+  var beginPropertyTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.closeBracket,
   ];
 
@@ -728,7 +727,7 @@ void elementDecorator() {
     NgScannerState.scanSpecialPropertyDecorator,
   );
 
-  List<NgSimpleTokenType> beginEventTokens = <NgSimpleTokenType>[
+  var beginEventTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.closeParen,
   ];
 
@@ -740,7 +739,7 @@ void elementDecorator() {
     NgScannerState.scanSpecialEventDecorator,
   );
 
-  List<NgSimpleTokenType> beginBananaTokens = <NgSimpleTokenType>[
+  var beginBananaTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.closeBanana,
   ];
 
@@ -770,10 +769,10 @@ void elementDecorator() {
 }
 
 void elementDecoratorValue() {
-  String baseHtml = "<div attr=";
-  NgScannerState startState = NgScannerState.scanElementDecoratorValue;
+  var baseHtml = "<div attr=";
+  var startState = NgScannerState.scanElementDecoratorValue;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
@@ -800,7 +799,7 @@ void elementDecoratorValue() {
     NgScannerState.scanAfterElementDecoratorValue,
   );
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.dash,
     NgSimpleTokenType.forwardSlash,
@@ -847,10 +846,10 @@ void elementDecoratorValue() {
 }
 
 void elementEndClose() {
-  String baseHtml = "</div";
-  NgScannerState startState = NgScannerState.scanElementEndClose;
+  var baseHtml = "</div";
+  var startState = NgScannerState.scanElementEndClose;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.commentBegin,
     NgSimpleTokenType.openTagStart,
     NgSimpleTokenType.closeTagStart,
@@ -866,7 +865,7 @@ void elementEndClose() {
     NgScannerState.scanStart,
   );
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
@@ -950,10 +949,10 @@ void interpolation() {
 }
 
 void simpleElementDecorator() {
-  String baseHtml = "<div #";
-  NgScannerState startState = NgScannerState.scanSimpleElementDecorator;
+  var baseHtml = "<div #";
+  var startState = NgScannerState.scanSimpleElementDecorator;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
@@ -980,7 +979,7 @@ void simpleElementDecorator() {
     NgScannerState.scanAfterElementDecorator,
   );
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.dash,
     NgSimpleTokenType.forwardSlash,
@@ -1023,10 +1022,10 @@ void simpleElementDecorator() {
 }
 
 void specialBananaDecorator() {
-  String baseHtml = "<div [(";
-  NgScannerState startState = NgScannerState.scanSpecialBananaDecorator;
+  var baseHtml = "<div [(";
+  var startState = NgScannerState.scanSpecialBananaDecorator;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
@@ -1053,7 +1052,7 @@ void specialBananaDecorator() {
     NgScannerState.scanSuffixBanana,
   );
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.dash,
     NgSimpleTokenType.forwardSlash,
@@ -1095,10 +1094,10 @@ void specialBananaDecorator() {
 }
 
 void specialEventDecorator() {
-  String baseHtml = "<div (";
-  NgScannerState startState = NgScannerState.scanSpecialEventDecorator;
+  var baseHtml = "<div (";
+  var startState = NgScannerState.scanSpecialEventDecorator;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
@@ -1125,7 +1124,7 @@ void specialEventDecorator() {
     NgScannerState.scanSuffixEvent,
   );
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.dash,
     NgSimpleTokenType.forwardSlash,
@@ -1167,10 +1166,10 @@ void specialEventDecorator() {
 }
 
 void specialPropertyDecorator() {
-  String baseHtml = "<div [";
-  NgScannerState startState = NgScannerState.scanSpecialPropertyDecorator;
+  var baseHtml = "<div [";
+  var startState = NgScannerState.scanSpecialPropertyDecorator;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openBanana,
     NgSimpleTokenType.closeBracket,
@@ -1196,7 +1195,7 @@ void specialPropertyDecorator() {
     NgScannerState.scanSuffixProperty,
   );
 
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.dash,
     NgSimpleTokenType.forwardSlash,
@@ -1237,10 +1236,10 @@ void specialPropertyDecorator() {
 }
 
 void suffixBanana() {
-  String baseHtml = "<div [(bnna";
-  NgScannerState startState = NgScannerState.scanSuffixBanana;
+  var baseHtml = "<div [(bnna";
+  var startState = NgScannerState.scanSuffixBanana;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
@@ -1258,7 +1257,8 @@ void suffixBanana() {
     NgSimpleTokenType.doubleQuote,
     NgSimpleTokenType.whitespace,
   ];
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.forwardSlash,
     NgSimpleTokenType.unexpectedChar,
@@ -1307,10 +1307,10 @@ void suffixBanana() {
 }
 
 void suffixEvent() {
-  String baseHtml = "<div (evnt";
-  NgScannerState startState = NgScannerState.scanSuffixEvent;
+  var baseHtml = "<div (evnt";
+  var startState = NgScannerState.scanSuffixEvent;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
@@ -1328,7 +1328,7 @@ void suffixEvent() {
     NgSimpleTokenType.doubleQuote,
     NgSimpleTokenType.whitespace,
   ];
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.forwardSlash,
     NgSimpleTokenType.unexpectedChar,
@@ -1375,10 +1375,10 @@ void suffixEvent() {
 }
 
 void suffixProperty() {
-  String baseHtml = "<div [prop";
-  NgScannerState startState = NgScannerState.scanSuffixProperty;
+  var baseHtml = "<div [prop";
+  var startState = NgScannerState.scanSuffixProperty;
 
-  List<NgSimpleTokenType> resolveTokens = <NgSimpleTokenType>[
+  var resolveTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.openBracket,
     NgSimpleTokenType.openParen,
     NgSimpleTokenType.openBanana,
@@ -1396,7 +1396,7 @@ void suffixProperty() {
     NgSimpleTokenType.doubleQuote,
     NgSimpleTokenType.whitespace,
   ];
-  List<NgSimpleTokenType> dropTokens = <NgSimpleTokenType>[
+  var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.forwardSlash,
     NgSimpleTokenType.unexpectedChar,

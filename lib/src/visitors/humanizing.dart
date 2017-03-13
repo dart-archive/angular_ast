@@ -20,7 +20,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitBanana(BananaAst astNode, [_]) {
-    String name = '[(${astNode.name})]';
+    var name = '[(${astNode.name})]';
     if (astNode.value != null) {
       return '$name="${astNode.value}"';
     } else {
@@ -137,7 +137,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitEvent(EventAst astNode, [_]) {
-    String name = '(${astNode.name})';
+    var name = '(${astNode.name})';
     if (astNode.value != null) {
       return '$name="${astNode.value}"';
     } else {
@@ -157,7 +157,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitProperty(PropertyAst astNode, [_]) {
-    String name = '[${astNode.name}]';
+    var name = '[${astNode.name}]';
     if (astNode.value != null) {
       return '$name="${astNode.value}"';
     } else {
@@ -167,7 +167,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitReference(ReferenceAst astNode, [_]) {
-    String identifier = '#${astNode.identifier}';
+    var identifier = '#${astNode.identifier}';
     if (astNode.variable != null) {
       return '$identifier="${astNode.variable}"';
     } else {
@@ -177,7 +177,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitStar(StarAst astNode, [_]) {
-    String name = '${astNode.name}';
+    var name = '${astNode.name}';
     if (astNode.value != null) {
       return 'name="${astNode.value}"';
     } else {

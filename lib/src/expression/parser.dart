@@ -99,7 +99,7 @@ class _NgExpressionParser extends Parser {
   ///
   /// With the expectation the compiler will optimize further.
   Expression parseAndTransformPipeExpression(BinaryExpression expression) {
-    final pipeArgs = <Expression>[];
+    var pipeArgs = <Expression>[];
     while (currentToken.lexeme == ':') {
       currentToken = currentToken.next;
       pipeArgs.add(this.parseExpression2());

@@ -35,7 +35,7 @@ class NgTokenReader<TokenType> {
   ///
   /// Otherwise throws a [AngularParserException].
   NgBaseToken expect(TokenType type) {
-    final next = this.next();
+    var next = this.next();
     if (when(type)) {
       return next;
     }
@@ -51,7 +51,7 @@ class NgTokenReader<TokenType> {
     TokenType expect,
     TokenType ignore,
   ) {
-    NgBaseToken next = this.next();
+    var next = this.next();
     while (when(ignore)) {
       next = this.next();
     }
@@ -66,7 +66,7 @@ class NgTokenReader<TokenType> {
   /// Returns the next token, if any, otherwise `null`.
   NgBaseToken next() {
     if (_peek != null) {
-      final token = _peek;
+      var token = _peek;
       _peek = null;
       return token;
     }
@@ -127,11 +127,11 @@ class NgTokenReversibleReader<TokenType> extends NgTokenReader<TokenType> {
   /// Do not use where errorRecovery is potentially enabled.
   @override
   NgBaseToken expect(TokenType type) {
-    final next = this.next();
+    var next = this.next();
     if (next.type == type) {
       return next;
     }
-    String message = 'Expected a token of $type but got ${next.type}';
+    var message = 'Expected a token of $type but got ${next.type}';
     error(message);
     return null;
   }
@@ -142,7 +142,7 @@ class NgTokenReversibleReader<TokenType> extends NgTokenReader<TokenType> {
   /// Returns `null` if there are no further types aside from ignoreType
   /// or iterator is empty.
   TokenType peekTypeIgnoringType(TokenType ignoreType) {
-    Queue<NgBaseToken> buffer = new Queue<NgBaseToken>();
+    var buffer = new Queue<NgBaseToken>();
 
     peek();
     while (_peek != null && _peek.type == ignoreType) {
@@ -151,7 +151,7 @@ class NgTokenReversibleReader<TokenType> extends NgTokenReader<TokenType> {
       peek();
     }
 
-    TokenType returnType = (_peek == null) ? null : _peek.type;
+    var returnType = (_peek == null) ? null : _peek.type;
     if (_peek != null) {
       buffer.add(_peek);
       _peek = null;
@@ -164,7 +164,7 @@ class NgTokenReversibleReader<TokenType> extends NgTokenReader<TokenType> {
   @override
   NgBaseToken next() {
     if (_peek != null) {
-      final token = _peek;
+      var token = _peek;
       _peek = null;
       return token;
     } else if (_seen.isNotEmpty) {

@@ -67,7 +67,7 @@ List<TemplateAst> parse(
   bool desugar: true,
   ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
 }) {
-  final parser = toolFriendlyAst
+  var parser = toolFriendlyAst
       ? const NgParser(toolFriendlyAstOrigin: true)
       : const NgParser();
   if (desugar) {

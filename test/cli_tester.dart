@@ -24,8 +24,8 @@ void main() {
       break;
     }
     try {
-      Iterable<NgToken> tokens = tokenize(input);
-      String fixed = untokenize(tokens);
+      var tokens = tokenize(input);
+      var fixed = untokenize(tokens);
       if (input == fixed) {
         print("CORRECT(UNCHANGED): $input");
       } else {

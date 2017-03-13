@@ -34,10 +34,10 @@ class NgScanner {
     ExceptionHandler exceptionHandler, {
     sourceUrl,
   }) {
-    NgTokenReader reader = new NgTokenReversibleReader<NgSimpleTokenType>(
+    var reader = new NgTokenReversibleReader<NgSimpleTokenType>(
         new SourceFile(html, url: sourceUrl),
         new NgSimpleTokenizer().tokenize(html));
-    bool recoverError = exceptionHandler is RecoveringExceptionHandler;
+    var recoverError = exceptionHandler is RecoveringExceptionHandler;
 
     return new NgScanner._(reader, recoverError, exceptionHandler);
   }
@@ -172,7 +172,7 @@ class NgScanner {
         _current.type == NgSimpleTokenType.voidCloseTag) {
       return scanElementEndOpen();
     } else if (_current.type == NgSimpleTokenType.whitespace) {
-      NgSimpleTokenType nextType = _reader.peekType();
+      var nextType = _reader.peekType();
       // Trailing whitespace check.
       if (nextType == NgSimpleTokenType.equalSign ||
           nextType == NgSimpleTokenType.voidCloseTag ||
@@ -190,7 +190,7 @@ class NgScanner {
         _current.type == NgSimpleTokenType.voidCloseTag) {
       return scanElementEndOpen();
     } else if (_current.type == NgSimpleTokenType.whitespace) {
-      NgSimpleTokenType nextType = _reader.peekType();
+      var nextType = _reader.peekType();
       if (nextType == NgSimpleTokenType.voidCloseTag ||
           nextType == NgSimpleTokenType.tagEnd) {
         return new NgToken.whitespace(_current.offset, _current.lexeme);
@@ -293,8 +293,8 @@ class NgScanner {
 
   // Doesn't switch states or check validity of current token.
   NgToken _scanCompoundDecorator() {
-    int offset = _current.offset;
-    StringBuffer sb = new StringBuffer();
+    var offset = _current.offset;
+    var sb = new StringBuffer();
     sb.write(_current.lexeme);
     while (_reader.peekType() == NgSimpleTokenType.period ||
         _reader.peekType() == NgSimpleTokenType.identifier) {
@@ -306,8 +306,8 @@ class NgScanner {
 
   @protected
   NgToken scanElementDecorator() {
-    NgSimpleTokenType type = _current.type;
-    int offset = _current.offset;
+    var type = _current.type;
+    var offset = _current.offset;
     if (type == NgSimpleTokenType.identifier ||
         type == NgSimpleTokenType.period) {
       _state = NgScannerState.scanAfterElementDecorator;
@@ -339,8 +339,8 @@ class NgScanner {
   @protected
   NgToken scanElementDecoratorValue() {
     if (_current is NgSimpleQuoteToken) {
-      NgSimpleQuoteToken current = _current as NgSimpleQuoteToken;
-      bool isDouble = current.type == NgSimpleTokenType.doubleQuote;
+      var current = _current as NgSimpleQuoteToken;
+      var isDouble = current.type == NgSimpleTokenType.doubleQuote;
 
       NgToken leftQuoteToken;
       NgToken innerValueToken;
@@ -348,7 +348,7 @@ class NgScanner {
       int leftQuoteOffset;
       int rightQuoteOffset;
 
-      String innerValue = current.contentLexeme;
+      var innerValue = current.contentLexeme;
       leftQuoteOffset = current.offset;
 
       if (current.quoteEndOffset == null) {
@@ -519,7 +519,7 @@ class NgScanner {
     String overrideMessage,
     NgSimpleToken overrideToken,
   }) {
-    NgScannerState currentState = _state;
+    var currentState = _state;
     _state = NgScannerState.hasError;
     var e = _generateException(
         overrideMessage: overrideMessage, overrideToken: overrideToken);
@@ -528,7 +528,7 @@ class NgScanner {
     }
 
     if (_recoverErrors) {
-      RecoverySolution solution = _rp.recover(currentState, _current, _reader);
+      var solution = _rp.recover(currentState, _current, _reader);
       _state = solution.nextState ?? currentState;
       if (solution.tokenToReturn == null) {
         _moveNext();

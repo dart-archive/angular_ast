@@ -10,8 +10,8 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 main() {
-  final parse = const NgParser().parse;
-  final templatesDir = p.join('test', 'e2e', 'templates');
+  var parse = const NgParser().parse;
+  var templatesDir = p.join('test', 'e2e', 'templates');
 
   // Just assert that we can parse all of these templates without failing.
   new Directory(templatesDir).listSync().forEach((file) {

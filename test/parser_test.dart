@@ -374,12 +374,12 @@ void main() {
   });
 
   test('should parse and preserve strict offset within elements', () {
-    String templateString = '''
+    var templateString = '''
 <tab-button *ngFor="let tabLabel of tabLabels; let idx = index"  (trigger)="switchTo(idx)" [id]="tabId(idx)" class="tab-button"  ></tab-button>''';
-    List<StandaloneTemplateAst> asts = parsePreserve(
+    var asts = parsePreserve(
       templateString,
     );
-    ParsedElementAst element = asts[0] as ParsedElementAst;
+    var element = asts[0] as ParsedElementAst;
     expect(element.beginToken.offset, 0);
 
     expect(element.stars[0].beginToken.offset, 11);
@@ -400,11 +400,11 @@ void main() {
   });
 
   test('should parse and preserve strict offsets within interpolations', () {
-    String templateString = '''
+    var templateString = '''
 <div>{{ 1 + 2 + 3 + 4 }}</div>''';
-    List<StandaloneTemplateAst> asts = parse(templateString);
-    ElementAst element = asts[0] as ElementAst;
-    InterpolationAst interpolation = element.childNodes[0] as InterpolationAst;
+    var asts = parse(templateString);
+    var element = asts[0] as ElementAst;
+    var interpolation = element.childNodes[0] as InterpolationAst;
 
     expect(interpolation.beginToken.offset, 5);
     expect(interpolation.value.length, 15);

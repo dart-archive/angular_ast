@@ -114,7 +114,7 @@ void main() {
   });
 
   test('should tokenize a complex micro expression', () {
-    const expression = 'let item of items; trackBy: byId; let i = index';
+    var expression = 'let item of items; trackBy: byId; let i = index';
     expect(untokenize(tokenize(expression)), expression);
   });
 }

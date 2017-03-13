@@ -110,7 +110,7 @@ class _SyntheticEmbeddedContentAst extends SyntheticTemplateAst
 
   _SyntheticEmbeddedContentAst.from(
     TemplateAst origin, [
-    this.selector = ' *',
+    this.selector = '*',
     this.closeComplement,
   ])
       : super.from(origin) {

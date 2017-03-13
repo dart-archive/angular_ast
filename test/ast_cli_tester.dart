@@ -6,7 +6,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:angular_ast/angular_ast.dart';
 
-final exceptionHandler = new RecoveringExceptionHandler();
+RecoveringExceptionHandler exceptionHandler = new RecoveringExceptionHandler();
 
 List<StandaloneTemplateAst> parse(String template) =>
     const NgParser().parsePreserve(
@@ -25,21 +25,20 @@ void main() {
     if (input == 'QUIT') {
       break;
     }
-    List<StandaloneTemplateAst> ast = parse(input);
+    var ast = parse(input);
     print("----------------------------------------------");
     if (exceptionHandler is ThrowingExceptionHandler) {
       print('CORRECT!');
       print(ast);
     }
     if (exceptionHandler is RecoveringExceptionHandler) {
-      final exceptionsList = exceptionHandler.exceptions;
+      var exceptionsList = exceptionHandler.exceptions;
       if (exceptionsList.isEmpty) {
         print('CORRECT!');
         print(ast);
       } else {
-        HumanizingTemplateAstVisitor visitor =
-            const HumanizingTemplateAstVisitor();
-        String fixed = ast.map((t) => t.accept(visitor)).join('');
+        var visitor = const HumanizingTemplateAstVisitor();
+        var fixed = ast.map((t) => t.accept(visitor)).join('');
         print('ORGNL: $input');
         print('FIXED: $fixed');
       }
