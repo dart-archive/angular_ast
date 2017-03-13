@@ -20,18 +20,18 @@ void main() {
   String input;
   while (true) {
     input = stdin.readLineSync(encoding: UTF8);
-    if (input == "QUIT") {
+    if (input == 'QUIT') {
       break;
     }
     try {
       var tokens = tokenize(input);
       var fixed = untokenize(tokens);
       if (input == fixed) {
-        print("CORRECT(UNCHANGED): $input");
+        print('CORRECT(UNCHANGED): $input');
       } else {
-        print("ORGNL: $input");
-        print("FIXED: $fixed");
-        print("ERRORS:");
+        print('ORGNL: $input');
+        print('FIXED: $fixed');
+        print('ERRORS:');
         exceptionHandler.exceptions.forEach((e) {
           print('${e.message} :: ${e.context} at ${e.offset}');
         });

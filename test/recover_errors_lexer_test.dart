@@ -36,7 +36,7 @@ void testRecoverySolution(
   List<NgSimpleTokenType> encounteredTokens,
   NgTokenType expectedSyntheticType,
   NgScannerState expectedNextState, {
-  String syntheticLexeme: "",
+  String syntheticLexeme: '',
 }) {
   var recoveryOffset = baseHtml.length;
 
@@ -48,13 +48,13 @@ void testRecoverySolution(
     if (type == NgSimpleTokenType.doubleQuote) {
       errorString = '""';
     } else if (type == NgSimpleTokenType.identifier) {
-      errorString = "some-identifier";
+      errorString = 'some-identifier';
     } else {
       errorString = NgSimpleToken.lexemeMap[type];
     }
     var errorHtml = baseHtml + errorString;
 
-    test("should resolve: unexpected $type in $startState", () async {
+    test('should resolve: unexpected $type in $startState', () async {
       var it = tokenizeThrow(errorHtml);
       expect(() {
         while (it.moveNext() != null) {}
@@ -163,7 +163,7 @@ void afterComment() {
 }
 
 void afterInterpolation() {
-  var baseHtml = "{{ 1 + 2 ";
+  var baseHtml = '{{ 1 + 2 ';
   var startState = NgScannerState.scanAfterInterpolation;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -181,7 +181,7 @@ void afterInterpolation() {
     NgTokenType.interpolationEnd,
     NgScannerState.scanStart,
   );
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('{{ 1 + 2 <!--comment-->')),
         '{{ 1 + 2 }}<!--comment-->');
     expect(
@@ -213,7 +213,7 @@ void comment() {
 }
 
 void elementIdentifierClose() {
-  var baseHtml = "</";
+  var baseHtml = '</';
   var startState = NgScannerState.scanElementIdentifierClose;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -257,7 +257,7 @@ void elementIdentifierClose() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('</<div>')), '</><div>');
     expect(untokenize(tokenize('</<!--comment-->')), '</><!--comment-->');
     expect(untokenize(tokenize('</</div>')), '</></div>');
@@ -283,7 +283,7 @@ void elementIdentifierClose() {
 }
 
 void elementIdentifierOpen() {
-  var baseHtml = "<";
+  var baseHtml = '<';
   var startState = NgScannerState.scanElementIdentifierOpen;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -318,7 +318,7 @@ void elementIdentifierOpen() {
     NgScannerState.scanAfterElementIdentifierOpen,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<!>')), '<>');
     expect(untokenize(tokenize('<->')), '<>');
     expect(untokenize(tokenize('<.>')), '<>');
@@ -343,7 +343,7 @@ void elementIdentifierOpen() {
 }
 
 void afterElementIdentifierClose() {
-  var baseHtml = "</div";
+  var baseHtml = '</div';
   var startState = NgScannerState.scanAfterElementIdentifierClose;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -386,7 +386,7 @@ void afterElementIdentifierClose() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('</div<div>')), '</div><div>');
     expect(untokenize(tokenize('</div<!--comment-->')), '</div><!--comment-->');
     expect(untokenize(tokenize('</div</div>')), '</div></div>');
@@ -409,7 +409,7 @@ void afterElementIdentifierClose() {
 }
 
 void afterElementIdentifierOpen() {
-  var baseHtml = "<div";
+  var baseHtml = '<div';
   var startState = NgScannerState.scanAfterElementIdentifierOpen;
 
   var resolveTokens1 = <NgSimpleTokenType>[
@@ -464,7 +464,7 @@ void afterElementIdentifierOpen() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<div!>')), '<div>');
     expect(untokenize(tokenize('<div.>')), '<div>');
     expect(untokenize(tokenize('<div[someProp]>')), '<div [someProp]>');
@@ -487,7 +487,7 @@ void afterElementIdentifierOpen() {
 }
 
 void afterElementDecorator() {
-  var baseHtml = "<div attr";
+  var baseHtml = '<div attr';
   var startState = NgScannerState.scanAfterElementDecorator;
 
   var resolveTokens1 = <NgSimpleTokenType>[
@@ -551,7 +551,7 @@ void afterElementDecorator() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<div blah!></div>')), '<div blah></div>');
     expect(untokenize(tokenize('<div blah[someProp]="x"></div>')),
         '<div blah [someProp]="x"></div>');
@@ -635,7 +635,7 @@ void afterElementDecoratorValue() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<div someName="someValue"!>')),
         '<div someName="someValue">');
     expect(untokenize(tokenize('<div someName="someValue"[someProp]>')),
@@ -678,7 +678,7 @@ void afterElementDecoratorValue() {
 }
 
 void elementDecorator() {
-  var baseHtml = "<div ";
+  var baseHtml = '<div ';
   var startState = NgScannerState.scanElementDecorator;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -751,7 +751,7 @@ void elementDecorator() {
     NgScannerState.scanSpecialBananaDecorator,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<div ]>')), '<div []>');
     expect(untokenize(tokenize('<div )>')), '<div ()>');
     expect(untokenize(tokenize('<div )]>')), '<div [()]>');
@@ -769,7 +769,7 @@ void elementDecorator() {
 }
 
 void elementDecoratorValue() {
-  var baseHtml = "<div attr=";
+  var baseHtml = '<div attr=';
   var startState = NgScannerState.scanElementDecoratorValue;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -815,7 +815,7 @@ void elementDecoratorValue() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<div attr=!>')), '<div attr="">');
     expect(untokenize(tokenize('<div attr=->')), '<div attr="">');
     expect(untokenize(tokenize('<div attr=@>')), '<div attr="">');
@@ -846,7 +846,7 @@ void elementDecoratorValue() {
 }
 
 void elementEndClose() {
-  var baseHtml = "</div";
+  var baseHtml = '</div';
   var startState = NgScannerState.scanElementEndClose;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -891,7 +891,7 @@ void elementEndClose() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('</div <div>')), '</div ><div>');
     expect(
         untokenize(tokenize('</div <!--comment-->')), '</div ><!--comment-->');
@@ -937,7 +937,7 @@ void interpolation() {
     NgScannerState.scanAfterInterpolation,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('{{<!--comment-->')), '{{}}<!--comment-->');
     expect(untokenize(tokenize('{{<div></div>')), '{{}}<div></div>');
     expect(untokenize(tokenize('<div>{{</div>')), '<div>{{}}</div>');
@@ -949,7 +949,7 @@ void interpolation() {
 }
 
 void simpleElementDecorator() {
-  var baseHtml = "<div #";
+  var baseHtml = '<div #';
   var startState = NgScannerState.scanSimpleElementDecorator;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -995,7 +995,7 @@ void simpleElementDecorator() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<div #[prop]>')), '<div # [prop]>');
     expect(untokenize(tokenize('<div #(evnt)>')), '<div # (evnt)>');
     expect(untokenize(tokenize('<div #[(bnna)]>')), '<div # [(bnna)]>');
@@ -1022,7 +1022,7 @@ void simpleElementDecorator() {
 }
 
 void specialBananaDecorator() {
-  var baseHtml = "<div [(";
+  var baseHtml = '<div [(';
   var startState = NgScannerState.scanSpecialBananaDecorator;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -1067,7 +1067,7 @@ void specialBananaDecorator() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<div [([myProp]>')), '<div [()] [myProp]>');
     expect(untokenize(tokenize('<div [((myEvnt)>')), '<div [()] (myEvnt)>');
     expect(untokenize(tokenize('<div [([(myBnna)]>')), '<div [()] [(myBnna)]>');
@@ -1094,7 +1094,7 @@ void specialBananaDecorator() {
 }
 
 void specialEventDecorator() {
-  var baseHtml = "<div (";
+  var baseHtml = '<div (';
   var startState = NgScannerState.scanSpecialEventDecorator;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -1139,7 +1139,7 @@ void specialEventDecorator() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<div ([myProp]>')), '<div () [myProp]>');
     expect(untokenize(tokenize('<div ((myEvnt)>')), '<div () (myEvnt)>');
     expect(untokenize(tokenize('<div ([(myBnna)]>')), '<div () [(myBnna)]>');
@@ -1166,7 +1166,7 @@ void specialEventDecorator() {
 }
 
 void specialPropertyDecorator() {
-  var baseHtml = "<div [";
+  var baseHtml = '<div [';
   var startState = NgScannerState.scanSpecialPropertyDecorator;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -1210,7 +1210,7 @@ void specialPropertyDecorator() {
     null,
   );
 
-  test("Testing resolved strings of $startState", () {
+  test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<div [[myProp]>')), '<div [] [myProp]>');
     expect(untokenize(tokenize('<div [[(myBnna)]>')), '<div [] [(myBnna)]>');
     expect(untokenize(tokenize('<div []>')), '<div []>');
@@ -1236,7 +1236,7 @@ void specialPropertyDecorator() {
 }
 
 void suffixBanana() {
-  var baseHtml = "<div [(bnna";
+  var baseHtml = '<div [(bnna';
   var startState = NgScannerState.scanSuffixBanana;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -1307,7 +1307,7 @@ void suffixBanana() {
 }
 
 void suffixEvent() {
-  var baseHtml = "<div (evnt";
+  var baseHtml = '<div (evnt';
   var startState = NgScannerState.scanSuffixEvent;
 
   var resolveTokens = <NgSimpleTokenType>[
@@ -1375,7 +1375,7 @@ void suffixEvent() {
 }
 
 void suffixProperty() {
-  var baseHtml = "<div [prop";
+  var baseHtml = '<div [prop';
   var startState = NgScannerState.scanSuffixProperty;
 
   var resolveTokens = <NgSimpleTokenType>[

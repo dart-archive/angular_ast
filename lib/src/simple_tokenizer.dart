@@ -41,11 +41,11 @@ class NgSimpleScanner {
       r'([a-zA-Z]([\w\_\-])*[a-zA-Z0-9]?)|' //10 any alphanumeric + '-' + '_'
       r'("([^"\\]|\\.)*"?)|' //12 closed double quote (includes group 13)
       r"('([^'\\]|\\.)*'?)|" //14 closed single quote (includes group 15)
-      r"(<)|" //16 <
-      r"(=)|" //17 =
-      r"(\*)|" //18 *
-      r"(\#)|" //19 #
-      r"(\.)"); //20 .
+      r'(<)|' //16 <
+      r'(=)|' //17 =
+      r'(\*)|' //18 *
+      r'(\#)|' //19 #
+      r'(\.)'); //20 .
   static final _commentEnd = new RegExp('-->');
   static final _mustaches = new RegExp(r'({{)|(}})');
 

@@ -54,7 +54,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       returnState = NgScannerState.scanElementDecorator;
       returnToken = new NgToken.generateErrorSynthetic(
           offset, NgTokenType.beforeElementDecorator,
-          lexeme: " ");
+          lexeme: ' ');
     } else if (type == NgSimpleTokenType.EOF ||
         type == NgSimpleTokenType.commentBegin ||
         type == NgSimpleTokenType.openTagStart ||
@@ -157,7 +157,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       reader.putBack(current);
       returnToken = new NgToken.generateErrorSynthetic(
           current.offset, NgTokenType.beforeElementDecorator,
-          lexeme: " ");
+          lexeme: ' ');
       returnState = NgScannerState.scanElementDecorator;
     } else if (type == NgSimpleTokenType.commentBegin ||
         type == NgSimpleTokenType.openTagStart ||

@@ -181,7 +181,7 @@ void main() {
         new NgToken.whitespace(15, '  '),
         new NgAttributeValueToken.generate(
             new NgToken.doubleQuote(17),
-            new NgToken.elementDecoratorValue(18, "Submit"),
+            new NgToken.elementDecoratorValue(18, 'Submit'),
             new NgToken.doubleQuote(24)),
         new NgToken.whitespace(25, '  '),
         new NgToken.openElementEnd(27),

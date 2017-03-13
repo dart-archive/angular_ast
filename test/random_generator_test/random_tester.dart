@@ -14,9 +14,9 @@ final int generationCount = 10000;
 final int iterationCount = 50;
 
 final String dir = p.join('test', 'random_generator_test');
-String incorrectFilename = "incorrect.html";
-String lexerFixedFilename = "lexer_fixed.html";
-String fullyFixedFilename = "ast_fixed.html";
+String incorrectFilename = 'incorrect.html';
+String lexerFixedFilename = 'lexer_fixed.html';
+String fullyFixedFilename = 'ast_fixed.html';
 
 String untokenize(Iterable<NgToken> tokens) => tokens
     .fold(new StringBuffer(), (buffer, token) => buffer..write(token.lexeme))
@@ -29,7 +29,7 @@ enum State {
   text,
 }
 
-String genericExpression = " + 1 + 2";
+String genericExpression = ' + 1 + 2';
 
 List<NgSimpleTokenType> elementMap = <NgSimpleTokenType>[
   NgSimpleTokenType.bang,
@@ -99,7 +99,7 @@ String generateHtmlString() {
           state = State.text;
           sb.write(NgSimpleToken.lexemeMap[type]);
         } else {
-          sb.write(" some comment");
+          sb.write(' some comment');
         }
         break;
       case State.element:
@@ -111,7 +111,7 @@ String generateHtmlString() {
         } else if (type == NgSimpleTokenType.singleQuote) {
           sb.write("'someSingleQuoteValue'");
         } else if (type == NgSimpleTokenType.identifier) {
-          sb.write("ident" + identifierCount.toString());
+          sb.write('ident${identifierCount.toString()}');
           identifierCount++;
         } else if (type == NgSimpleTokenType.whitespace) {
           sb.write(' ');
@@ -141,9 +141,9 @@ String generateHtmlString() {
           sb.write(NgSimpleToken.lexemeMap[type]);
         } else if (type == NgSimpleTokenType.mustacheBegin) {
           state = State.interpolation;
-          sb.write(NgSimpleToken.lexemeMap[type] + '0');
+          sb.write('${NgSimpleToken.lexemeMap[type]}0');
         } else {
-          sb.write("lorem ipsum");
+          sb.write('lorem ipsum');
         }
         break;
       default:
@@ -161,7 +161,7 @@ main() async {
   var totalParserTime = 0;
 
   for (int i = 0; i < iterationCount; i++) {
-    print("Iteration $i of $iterationCount ...");
+    print('Iteration $i of $iterationCount ...');
     var stopwatch = new Stopwatch();
 
     var incorrectHtml = generateHtmlString();
@@ -193,7 +193,7 @@ main() async {
     exceptionHandler.exceptions.clear();
   }
 
-  print("Total lines scanned/parsed: $totalIncorrectLength");
-  print("Total time for lexer: $totalLexerTime microseconds");
-  print("Total time for parser: $totalParserTime ms");
+  print('Total lines scanned/parsed: $totalIncorrectLength');
+  print('Total time for lexer: $totalLexerTime microseconds');
+  print('Total time for parser: $totalParserTime ms');
 }

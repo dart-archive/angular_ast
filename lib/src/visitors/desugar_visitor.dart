@@ -38,7 +38,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
       } catch (e) {
         exceptionHandler.handle(e);
       }
-      if (flag == "event") {
+      if (flag == 'event') {
         return new EventAst.from(
           origin,
           astNode.name + 'Changed',
@@ -46,7 +46,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
           expressionAst,
         );
       }
-      if (flag == "property") {
+      if (flag == 'property') {
         return new PropertyAst.from(
           origin,
           astNode.name,
@@ -69,10 +69,10 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
   TemplateAst visitElement(ElementAst astNode, [_]) {
     if (astNode.bananas.isNotEmpty) {
       for (BananaAst bananaAst in astNode.bananas) {
-        var toAddEvent = visitBanana(bananaAst, "event");
+        var toAddEvent = visitBanana(bananaAst, 'event');
         astNode.events.add(toAddEvent);
 
-        var toAddProperty = visitBanana(bananaAst, "property");
+        var toAddProperty = visitBanana(bananaAst, 'property');
         astNode.properties.add(toAddProperty);
       }
       astNode.bananas.clear();

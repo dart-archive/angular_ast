@@ -21,32 +21,32 @@ abstract class NgBaseToken<TokenType> {
 /// Clients should not extend, implement, or mix-in this class.
 class NgSimpleToken implements NgBaseToken<NgSimpleTokenType> {
   static final Map<NgSimpleTokenType, String> lexemeMap = const {
-    NgSimpleTokenType.bang: "!",
-    NgSimpleTokenType.closeBanana: ")]",
-    NgSimpleTokenType.closeBracket: "]",
-    NgSimpleTokenType.closeParen: ")",
-    NgSimpleTokenType.closeTagStart: "</",
-    NgSimpleTokenType.commentBegin: "<!--",
-    NgSimpleTokenType.commentEnd: "-->",
-    NgSimpleTokenType.dash: "-",
-    NgSimpleTokenType.openTagStart: "<",
-    NgSimpleTokenType.tagEnd: ">",
-    NgSimpleTokenType.EOF: "",
-    NgSimpleTokenType.equalSign: "=",
-    NgSimpleTokenType.forwardSlash: "/",
-    NgSimpleTokenType.hash: "#",
-    NgSimpleTokenType.identifier: "",
-    NgSimpleTokenType.mustacheBegin: "{{",
-    NgSimpleTokenType.mustacheEnd: "}}",
-    NgSimpleTokenType.openBanana: "[(",
-    NgSimpleTokenType.openBracket: "[",
-    NgSimpleTokenType.openParen: "(",
-    NgSimpleTokenType.period: ".",
-    NgSimpleTokenType.star: "*",
-    NgSimpleTokenType.text: "",
-    NgSimpleTokenType.unexpectedChar: "@",
-    NgSimpleTokenType.voidCloseTag: "/>",
-    NgSimpleTokenType.whitespace: " ",
+    NgSimpleTokenType.bang: '!',
+    NgSimpleTokenType.closeBanana: ')]',
+    NgSimpleTokenType.closeBracket: ']',
+    NgSimpleTokenType.closeParen: ')',
+    NgSimpleTokenType.closeTagStart: '</',
+    NgSimpleTokenType.commentBegin: '<!--',
+    NgSimpleTokenType.commentEnd: '-->',
+    NgSimpleTokenType.dash: '-',
+    NgSimpleTokenType.openTagStart: '<',
+    NgSimpleTokenType.tagEnd: '>',
+    NgSimpleTokenType.EOF: '',
+    NgSimpleTokenType.equalSign: '=',
+    NgSimpleTokenType.forwardSlash: '/',
+    NgSimpleTokenType.hash: '#',
+    NgSimpleTokenType.identifier: '',
+    NgSimpleTokenType.mustacheBegin: '{{',
+    NgSimpleTokenType.mustacheEnd: '}}',
+    NgSimpleTokenType.openBanana: '[(',
+    NgSimpleTokenType.openBracket: '[',
+    NgSimpleTokenType.openParen: '(',
+    NgSimpleTokenType.period: '.',
+    NgSimpleTokenType.star: '*',
+    NgSimpleTokenType.text: '',
+    NgSimpleTokenType.unexpectedChar: '@',
+    NgSimpleTokenType.voidCloseTag: '/>',
+    NgSimpleTokenType.whitespace: ' ',
   };
 
   factory NgSimpleToken.bang(int offset) {
@@ -289,7 +289,7 @@ class NgToken implements NgBaseToken<NgTokenType> {
   };
 
   factory NgToken.generateErrorSynthetic(int offset, NgTokenType type,
-      {String lexeme: ""}) {
+      {String lexeme: ''}) {
     if (type == NgTokenType.beforeElementDecorator ||
         type == NgTokenType.elementDecoratorValue ||
         type == NgTokenType.elementDecorator ||

@@ -26,7 +26,7 @@ void main() {
       break;
     }
     var ast = parse(input);
-    print("----------------------------------------------");
+    print('----------------------------------------------');
     if (exceptionHandler is ThrowingExceptionHandler) {
       print('CORRECT!');
       print(ast);

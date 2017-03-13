@@ -49,7 +49,7 @@ class RecursiveAstParser {
     var nameToken = _reader.expect(NgTokenType.elementIdentifier);
     if (_voidElements.contains(nameToken.lexeme)) {
       exceptionHandler.handle(new AngularParserException(
-        "${nameToken.lexeme} is a void element and cannot be used in a close element tag",
+        '${nameToken.lexeme} is a void element and cannot be used in a close element tag',
         nameToken.lexeme,
         nameToken.offset,
       ));
@@ -251,7 +251,7 @@ class RecursiveAstParser {
 
         if (nextToken == null) {
           exceptionHandler.handle(new AngularParserException(
-            "Expected close element for '${nameToken.lexeme}'",
+            'Expected close element for "${nameToken.lexeme}"',
             nameToken.lexeme,
             nameToken.offset,
           ));
@@ -525,7 +525,7 @@ class RecursiveAstParser {
       // simply throws error.
       case NgTokenType.closeElementStart:
         exceptionHandler.handle(new AngularParserException(
-          "Close element cannot exist before matching open element",
+          'Close element cannot exist before matching open element',
           token.lexeme,
           token.offset,
         ));

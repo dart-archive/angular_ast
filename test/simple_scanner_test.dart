@@ -14,21 +14,21 @@ void main() {
   //Text node
   test('text node: should tokenize text', () {
     expect(
-      tokenize("some random text <div></div>"),
-      new NgSimpleToken.text(0, "some random text "),
+      tokenize('some random text <div></div>'),
+      new NgSimpleToken.text(0, 'some random text '),
     );
   });
 
   test('text node: should tokenize elementStart tag', () {
-    expect(tokenize("<div></div>"), new NgSimpleToken.openTagStart(0));
+    expect(tokenize('<div></div>'), new NgSimpleToken.openTagStart(0));
   });
 
   test('text node: should tokenize EOF', () {
-    expect(new NgSimpleScanner("").scan(), new NgSimpleToken.EOF(0));
+    expect(new NgSimpleScanner('').scan(), new NgSimpleToken.EOF(0));
   });
 
   test('text node: should tokenize commentStart', () {
-    expect(new NgSimpleScanner("<!--Hello World-->").scan(),
+    expect(new NgSimpleScanner('<!--Hello World-->').scan(),
         new NgSimpleToken.commentBegin(0));
   });
 
@@ -38,11 +38,11 @@ void main() {
   });
 
   test('element: should tokenize single bang', () {
-    expect(tokenizeTag("!-- some comment tag -->"), new NgSimpleToken.bang(0));
+    expect(tokenizeTag('!-- some comment tag -->'), new NgSimpleToken.bang(0));
   });
 
   test('element: should tokenize single dash', () {
-    expect(tokenizeTag("-- some comment tag -->"), new NgSimpleToken.dash(0));
+    expect(tokenizeTag('-- some comment tag -->'), new NgSimpleToken.dash(0));
   });
 
   test('element: should tokenize closeParen', () {
@@ -50,11 +50,11 @@ void main() {
   });
 
   test('element: should tokenze elementEnd', () {
-    expect(tokenizeTag("> some text </div>"), new NgSimpleToken.tagEnd(0));
+    expect(tokenizeTag('> some text </div>'), new NgSimpleToken.tagEnd(0));
   });
 
   test('element: should tokenize voidCloseTag', () {
-    expect(tokenizeTag("/><div></div>"), new NgSimpleToken.voidCloseTag(0));
+    expect(tokenizeTag('/><div></div>'), new NgSimpleToken.voidCloseTag(0));
   });
 
   test('element: should tokenize openBracket', () {
@@ -77,7 +77,7 @@ void main() {
   });
 
   test('element: should tokenize single letter text', () {
-    expect(tokenizeTag("a href='blah>"), new NgSimpleToken.identifier(0, 'a'));
+    expect(tokenizeTag("a href='blah'>"), new NgSimpleToken.identifier(0, 'a'));
   });
 
   test('element: should tokenize doubleQuoted text', () {
@@ -105,7 +105,7 @@ void main() {
   });
 
   test('element: should tokenize elementStart tag', () {
-    expect(tokenizeTag("<div></div>"), new NgSimpleToken.openTagStart(0));
+    expect(tokenizeTag('<div></div>'), new NgSimpleToken.openTagStart(0));
   });
 
   test('element: should tokenize equalSign', () {
