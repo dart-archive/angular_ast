@@ -10,10 +10,10 @@ import 'package:path/path.dart' as p;
 import 'package:angular_ast/angular_ast.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 
-int generationCount = 10000;
-int iterationCount = 50;
+final int generationCount = 10000;
+final int iterationCount = 50;
 
-String dir = p.join('test', 'random_generator_test');
+final String dir = p.join('test', 'random_generator_test');
 String incorrectFilename = "incorrect.html";
 String lexerFixedFilename = "lexer_fixed.html";
 String fullyFixedFilename = "ast_fixed.html";
