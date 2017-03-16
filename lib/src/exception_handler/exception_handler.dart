@@ -21,7 +21,7 @@ class ThrowingExceptionHandler implements ExceptionHandler {
 }
 
 class RecoveringExceptionHandler implements ExceptionHandler {
-  final List<AngularParserException> exceptions = <AngularParserException>[];
+  final exceptions = <AngularParserException>[];
 
   @override
   void handle(AngularParserException e) {

@@ -64,7 +64,7 @@ void main() {
     expect(asts.length, 1);
 
     ElementAst element = asts[0];
-    expect(element, new ElementAst('hr', new CloseElementAst('hr')));
+    expect(element, new ElementAst('hr', null));
     expect(element.closeComplement, null);
   });
 

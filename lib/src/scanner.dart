@@ -37,7 +37,7 @@ class NgScanner {
   factory NgScanner(
     String html,
     ExceptionHandler exceptionHandler, {
-    sourceUrl,
+    Uri sourceUrl,
   }) {
     NgTokenReader reader = new NgTokenReversibleReader(
         new SourceFile(html, url: sourceUrl),
