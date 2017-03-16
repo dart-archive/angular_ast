@@ -26,7 +26,7 @@ void main() {
     try {
       var tokens = tokenize(input);
       var fixed = untokenize(tokens);
-      if (input == fixed) {
+      if (exceptionHandler.exceptions.isEmpty) {
         print('CORRECT(UNCHANGED): $input');
       } else {
         print('ORGNL: $input');

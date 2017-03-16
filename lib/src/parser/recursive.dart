@@ -8,6 +8,7 @@ import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/parser/reader.dart';
 import 'package:angular_ast/src/token/tokens.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:source_span/source_span.dart';
 
 /// A recursive descent AST parser from a series of tokens.
@@ -50,8 +51,8 @@ class RecursiveAstParser {
     if (_voidElements.contains(nameToken.lexeme)) {
       exceptionHandler.handle(new AngularParserException(
         NgParserWarningCode.VOID_ELEMENT_IN_CLOSE_TAG,
-        nameToken.length,
         nameToken.offset,
+        nameToken.length,
       ));
     }
 
@@ -219,8 +220,8 @@ class RecursiveAstParser {
           if (stars.isNotEmpty) {
             exceptionHandler.handle(new AngularParserException(
               NgParserWarningCode.DUPLICATE_STAR_DIRECTIVE,
-              decoratorAst.value.length,
               decoratorAst.beginToken.offset,
+              decoratorAst.value.length,
             ));
           }
           stars.add(decoratorAst);
@@ -243,8 +244,8 @@ class RecursiveAstParser {
     if (!isVoidElement && endToken.type == NgTokenType.openElementEndVoid) {
       exceptionHandler.handle(new AngularParserException(
         NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END,
-        endToken.length,
         endToken.offset,
+        endToken.length,
       ));
     }
     CloseElementAst closeElementAst;
@@ -272,8 +273,8 @@ class RecursiveAstParser {
             // Found a closing tag, but not matching current [ElementAst].
             exceptionHandler.handle(new AngularParserException(
               NgParserWarningCode.UNMATCHING_CLOSE_TAG,
-              closeNameToken.length,
               closeNameToken.offset,
+              closeNameToken.length,
             ));
             if (tagStack.contains(closeNameToken.lexeme)) {
               // If the closing tag is in the seen [ElementAst] stack,
@@ -286,8 +287,8 @@ class RecursiveAstParser {
               // [ElementAst] to pair the dangling close and add as child.
               exceptionHandler.handle(new AngularParserException(
                 NgParserWarningCode.DANGLING_CLOSE_ELEMENT,
-                closeNameToken.length,
                 closeNameToken.offset,
+                closeNameToken.length,
               ));
               childNodes.add(_handleDanglingCloseElement(nextToken));
             }
@@ -339,8 +340,8 @@ class RecursiveAstParser {
         var endOffset = _accumulateInvalidNgContentDecoratorValue(nextToken);
         var e = new AngularParserException(
           NgParserWarningCode.INVALID_DECORATOR_IN_NGCONTENT,
-          endOffset - startOffset,
           startOffset,
+          endOffset - startOffset,
         );
         exceptionHandler.handle(e);
       } else {
@@ -348,8 +349,8 @@ class RecursiveAstParser {
           var endOffset = _accumulateInvalidNgContentDecoratorValue(nextToken);
           var e = new AngularParserException(
             NgParserWarningCode.DUPLICATE_SELECT_DECORATOR,
-            endOffset - startOffset,
             startOffset,
+            endOffset - startOffset,
           );
           exceptionHandler.handle(e);
         } else {
@@ -370,8 +371,8 @@ class RecursiveAstParser {
     if (endToken.type == NgTokenType.openElementEndVoid) {
       var e = new AngularParserException(
         NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END,
-        endToken.length,
         endToken.offset,
+        endToken.length,
       );
       exceptionHandler.handle(e);
       endToken = new NgToken.generateErrorSynthetic(
@@ -384,8 +385,8 @@ class RecursiveAstParser {
     if (_reader.peekType() != NgTokenType.closeElementStart) {
       var e = new AngularParserException(
         NgParserWarningCode.MISSING_CLOSE_TAG,
-        endToken.end - beginToken.offset,
         beginToken.offset,
+        endToken.end - beginToken.offset,
       );
       exceptionHandler.handle(e);
       closeElementAst = new CloseElementAst('ng-content');
@@ -397,8 +398,8 @@ class RecursiveAstParser {
       if (closeElementName != 'ng-content') {
         var e = new AngularParserException(
           NgParserWarningCode.UNMATCHING_CLOSE_TAG,
-          closeElementName.length,
           closeElementOffset,
+          closeElementName.length,
         );
         exceptionHandler.handle(e);
         _reader.putBack(closeElementStart);
@@ -478,8 +479,8 @@ class RecursiveAstParser {
     if (closeName.lexeme != 'template') {
       exceptionHandler.handle(new AngularParserException(
         NgParserWarningCode.UNMATCHING_CLOSE_TAG,
-        closeName.length,
         closeName.offset,
+        closeName.length,
       ));
     }
 
@@ -531,8 +532,8 @@ class RecursiveAstParser {
         var closeComplement = synthOpenElement.closeComplement;
         exceptionHandler.handle(new AngularParserException(
           NgParserWarningCode.DANGLING_CLOSE_ELEMENT,
-          closeComplement.endToken.end - closeComplement.beginToken.offset,
           closeComplement.beginToken.offset,
+          closeComplement.endToken.end - closeComplement.beginToken.offset,
         ));
         return synthOpenElement;
       default:
@@ -544,8 +545,8 @@ class RecursiveAstParser {
         }
         exceptionHandler.handle(new AngularParserException(
           NgParserWarningCode.EXPECTED_STANDALONE,
-          token.length,
           token.offset,
+          token.length,
         ));
         return null;
     }
@@ -585,7 +586,13 @@ class RecursiveAstParser {
       }
       return new ExpressionAst.parse(expression,
           sourceUrl: _source.url.toString());
-    } catch (e) {
+    } on AnalysisError catch (e) {
+      exceptionHandler.handle(new AngularParserException(
+        e.errorCode,
+        e.offset,
+        e.length,
+      ));
+    } on AngularParserException catch (e) {
       exceptionHandler.handle(e);
     }
     return null;

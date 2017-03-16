@@ -172,9 +172,9 @@ class NgMicroScanner {
   AngularParserException _unexpected() {
     _state = _NgMicroScannerState.hasError;
     return new AngularParserException(
-      NgParserWarningCode.DART_PARSER_UNEXPECTED,
-      _scanner.string.length,
+      NgParserWarningCode.EXPRESSION_UNEXPECTED,
       _scanner.position,
+      _scanner.string.length,
     );
   }
 }

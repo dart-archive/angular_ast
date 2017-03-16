@@ -23,9 +23,9 @@ class _ThrowingListener implements AnalysisErrorListener {
   @override
   void onError(AnalysisError error) {
     throw new AngularParserException(
-      new NgParserWarningCode.DART_PARSER(error.toString()),
-      error.source.contents.data.length,
+      error.errorCode,
       error.offset,
+      error.source.contents.data.length,
     );
   }
 }
@@ -107,8 +107,8 @@ class _NgExpressionParser extends Parser {
     if (expression.rightOperand is! Identifier) {
       throw new AngularParserException(
         NgParserWarningCode.PIPE_INVALID_IDENTIFIER,
-        expression.toSource().length,
         expression.rightOperand.offset,
+        expression.toSource().length,
       );
     }
     return new PipeExpression(

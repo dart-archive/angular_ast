@@ -22,47 +22,6 @@ class NgTokenReader<TokenType> {
 
   NgTokenReader._(SourceFile source, this._iterator);
 
-//  /// Throws a [AngularParserException] at the current token.
-//  void error() {
-//    throw new AngularParserException(
-//      message,
-//      _iterator.current.lexeme,
-//      _iterator.current.offset,
-//    );
-//  }
-//
-//  /// Returns the next token if it is of [type].
-//  ///
-//  /// Otherwise throws a [AngularParserException].
-//  NgBaseToken expect(TokenType type) {
-//    var next = this.next();
-//    if (when(type)) {
-//      return next;
-//    }
-//    error('Expected a token of $type but got ${next.type}');
-//    return null;
-//  }
-
-  /// Returns the next token if it is the expect type. If it is the ignore type,
-  /// it continuously scans until expect type is found or neither is found (error)
-  ///
-  /// Not compatible with errorRecovery.
-//  NgBaseToken expectTypeIgnoringType(
-//    TokenType expect,
-//    TokenType ignore,
-//  ) {
-//    var next = this.next();
-//    while (when(ignore)) {
-//      next = this.next();
-//    }
-//    if (when(expect)) {
-//      return next;
-//    }
-//    error(
-//        'Expected a token of $expect (while ignoring $ignore) but got ${next.type}');
-//    return null;
-//  }
-
   /// Returns the next token, if any, otherwise `null`.
   NgBaseToken next() {
     if (_peek != null) {
@@ -121,20 +80,6 @@ class NgTokenReversibleReader<TokenType> extends NgTokenReader<TokenType> {
     Iterator<NgBaseToken> iterator,
   )
       : super._(source, iterator);
-
-  /// Returns the next token if it is of [type].
-  /// Otherwise throws a [AngularParserException].
-  /// Do not use where errorRecovery is potentially enabled.
-//  @override
-//  NgBaseToken expect(TokenType type) {
-//    var next = this.next();
-//    if (next.type == type) {
-//      return next;
-//    }
-//    var message = 'Expected a token of $type but got ${next.type}';
-//    error(message);
-//    return null;
-//  }
 
   /// Scans forward for the next peek type that isn't ignoreType
   /// For example, `peekTypeIgnoringType(whitespace)` will peek

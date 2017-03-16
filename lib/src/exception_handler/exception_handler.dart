@@ -5,6 +5,7 @@ library angular_ast.src.exceptions;
 
 import 'package:meta/meta.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:quiver/core.dart';
 
 part 'exceptions.dart';
 part 'angular_parser_exception.dart';

@@ -154,7 +154,7 @@ void main() {
     expect(asts.length, 1);
 
     var ngContent = asts[0];
-    expect(ngContent, new isInstanceOf<EmbeddedContentAst>()) ;
+    expect(ngContent, new isInstanceOf<EmbeddedContentAst>());
 
     var exceptions = recoveringExceptionHandler.exceptions;
     expect(exceptions.length, 1);

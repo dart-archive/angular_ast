@@ -48,6 +48,7 @@ class NgSimpleScanner {
       r'(\.)'); //20 .
   static final _commentEnd = new RegExp('-->');
   static final _mustaches = new RegExp(r'({{)|(}})');
+  static final _newline = new RegExp('\n');
 
   final StringScanner _scanner;
   _NgSimpleScannerState _state = _NgSimpleScannerState.text;
@@ -72,6 +73,8 @@ class NgSimpleScanner {
         return scanElement();
       case _NgSimpleScannerState.text:
         return scanText();
+      case _NgSimpleScannerState.interpolation:
+        return scanInterpolation();
     }
     return null;
   }
@@ -223,10 +226,11 @@ class NgSimpleScanner {
 
           // Mustache exists and text doesn't precede it - return mustache.
           _scanner.position = offset + mustacheMatch.end;
-          if (mustacheMatch.group(1) != null) {
+          if (matchesGroup(mustacheMatch, 1)) {
+            _state = _NgSimpleScannerState.interpolation;
             return new NgSimpleToken.mustacheBegin(mustacheStart);
           }
-          if (mustacheMatch.group(2) != null) {
+          if (matchesGroup(mustacheMatch, 2)) {
             return new NgSimpleToken.mustacheEnd(mustacheStart);
           }
         }
@@ -250,6 +254,64 @@ class NgSimpleScanner {
     return new NgSimpleToken.unexpectedChar(
         offset, new String.fromCharCode(_scanner.readChar()));
   }
+
+  NgSimpleToken scanInterpolation() {
+    // Need a separate scan state to ensure that '<' isn't
+    // automatically mistaken as a element start. It can be a less than sign
+    // used in interpolation expression.
+    var offset = _scanner.position;
+    if (_scanner.peekChar() == null) {
+      return new NgSimpleToken.EOF(offset);
+    }
+    var text = _scanner.string.substring(offset);
+    var match = _mustaches.firstMatch(text);
+
+    // No matches found, meaning that mustache continues until EOF,
+    // or until first newline found.
+    if (match == null) {
+      var newlineMatch = _newline.firstMatch(text);
+
+      // New line encountered before EOF.
+      if (newlineMatch != null) {
+        var newlineStart = offset + newlineMatch.start;
+        var newlineEnd = offset + newlineMatch.end;
+
+        // If text precedes it, return text.
+        if (newlineStart != offset) {
+          _scanner.position = newlineStart;
+          return new NgSimpleToken.text(offset, _scanner.substring(offset));
+        }
+        // Otherwise, return the newline and switch state back to text.
+        _state = _NgSimpleScannerState.text;
+        _scanner.position = newlineEnd;
+        return new NgSimpleToken.whitespace(offset, _scanner.substring(offset));
+      }
+
+      // Simply scan text until EOF hit.
+      _scanner.position = offset + text.length;
+      _state = _NgSimpleScannerState.text;
+      return new NgSimpleToken.text(offset, _scanner.substring(offset));
+    }
+
+    var matchStartOffset = offset + match.start;
+
+    // Match exists, but text precedes it - return the text first.
+    if (matchStartOffset != offset) {
+      _scanner.position = matchStartOffset;
+      return new NgSimpleToken.text(offset, _scanner.substring(offset));
+    }
+
+    _scanner.position = offset + match.end;
+    if (matchesGroup(match, 1)) {
+      return new NgSimpleToken.mustacheBegin(matchStartOffset);
+    }
+    if (matchesGroup(match, 2)) {
+      _state = _NgSimpleScannerState.text;
+      return new NgSimpleToken.mustacheEnd(matchStartOffset);
+    }
+    return new NgSimpleToken.unexpectedChar(
+        offset, new String.fromCharCode(_scanner.readChar()));
+  }
 }
 
-enum _NgSimpleScannerState { text, element, comment, commentEnd }
+enum _NgSimpleScannerState { text, element, comment, commentEnd, interpolation }
