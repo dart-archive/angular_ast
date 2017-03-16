@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/ast.dart';
+import 'package:angular_ast/src/exception_handler/angular_parser_exception.dart';
 import 'package:angular_ast/src/parser/reader.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:source_span/source_span.dart';
@@ -44,9 +45,9 @@ class RecursiveAstParser {
   CloseElementAst parseCloseElement(NgToken beginToken) {
     var nameToken = _reader.expect(NgTokenType.elementIdentifier);
     if (_voidElements.contains(nameToken.lexeme)) {
-      exceptionHandler.handle(new FormatException(
+      exceptionHandler.handle(new AngularParserException(
         "${nameToken.lexeme} is a void element and cannot be used in a close element tag",
-        _source.getText(0),
+        nameToken.lexeme,
         nameToken.offset,
       ));
     }
@@ -218,10 +219,10 @@ class RecursiveAstParser {
           attributes.add(decoratorAst);
         } else if (decoratorAst is StarAst) {
           if (stars.isNotEmpty) {
-            exceptionHandler.handle(new FormatException(
+            exceptionHandler.handle(new AngularParserException(
               'Already found an *-directive, limit 1 per element, but also '
                   'found ${decoratorAst.sourceSpan.highlight()}',
-              _source.getText(0),
+              decoratorAst.value,
               decoratorAst.beginToken.offset,
             ));
           }
@@ -246,7 +247,6 @@ class RecursiveAstParser {
 
     NgToken endToken = nextToken;
     CloseElementAst closeElementAst;
-    int scopeEnd = endToken.end;
 
     // TODO: Potentially check if openElementEndVoid is being used on a
     // TODO: non-valid element name
@@ -260,33 +260,28 @@ class RecursiveAstParser {
       while (nextToken != null &&
           nextToken.type != NgTokenType.closeElementStart) {
         TemplateAst childAst = parseStandalone(nextToken);
-        if (childAst is ElementAst &&
-            childAst.closeComplement != null &&
-            !childAst.closeComplement.isSynthetic) {
-          scopeEnd = childAst.closeComplement.endToken.end;
-        } else {
-          scopeEnd = childAst.endToken.end;
-        }
         childNodes.add(childAst);
         nextToken = _reader.next();
       }
       if (nextToken == null) {
-        exceptionHandler.handle(new FormatException(
+        exceptionHandler.handle(new AngularParserException(
           "Expected close element for '${nameToken.lexeme}'",
-          _source.getText(0), // TODO: Inefficient - remove later
-          scopeEnd,
+          nameToken.lexeme,
+          nameToken.offset,
         ));
         closeElementAst = new CloseElementAst(nameToken.lexeme);
       } else {
         final closeNameToken = _reader.peek();
+        // Found a close tag, but unmatching identifier.
         if (closeNameToken.lexeme != nameToken.lexeme) {
-          exceptionHandler.handle(new FormatException(
+          exceptionHandler.handle(new AngularParserException(
             'Invalid closing tag: $closeNameToken (expected $nameToken)',
-            _source.getText(0),
+            closeNameToken.lexeme,
             closeNameToken.offset,
           ));
           childNodes.add(_handleDanglingCloseElement(nextToken));
           closeElementAst = new CloseElementAst(nameToken.lexeme);
+          // Correct path
         } else {
           closeElementAst = parseCloseElement(nextToken);
         }
@@ -421,9 +416,9 @@ class RecursiveAstParser {
       // a synthetic open with the dangling close. If not enabled,
       // simply throws error.
       case NgTokenType.closeElementStart:
-        exceptionHandler.handle(new FormatException(
+        exceptionHandler.handle(new AngularParserException(
           "Close element cannot exist before matching open element",
-          _source.getText(0),
+          token.lexeme,
           token.offset,
         ));
         return _handleDanglingCloseElement(token);

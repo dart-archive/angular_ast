@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:angular_ast/src/exception_handler/angular_parser_exception.dart';
 import 'package:meta/meta.dart';
 
 abstract class ExceptionHandler {
-  void handle(Exception e);
+  void handle(AngularParserException e);
 }
 
 class ThrowingExceptionHandler implements ExceptionHandler {
   @override
-  void handle(Exception e) {
+  void handle(AngularParserException e) {
     throw e;
   }
 
@@ -20,10 +21,10 @@ class ThrowingExceptionHandler implements ExceptionHandler {
 }
 
 class RecoveringExceptionHandler implements ExceptionHandler {
-  final List<Exception> exceptions = new List<Exception>();
+  final exceptions = <AngularParserException>[];
 
   @override
-  void handle(Exception e) {
+  void handle(AngularParserException e) {
     exceptions.add(e);
   }
 }

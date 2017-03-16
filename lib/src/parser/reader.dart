@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:collection';
 
+import 'package:angular_ast/src/exception_handler/angular_parser_exception.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:source_span/source_span.dart';
 
@@ -12,7 +13,6 @@ import 'package:source_span/source_span.dart';
 /// Not compatible with error recovery.
 class NgTokenReader {
   final Iterator<NgBaseToken> _iterator;
-  final String _sourceString;
 
   NgBaseToken _peek;
 
@@ -20,21 +20,20 @@ class NgTokenReader {
     return new NgTokenReader._(source, tokens.iterator);
   }
 
-  NgTokenReader._(SourceFile source, this._iterator)
-      : _sourceString = source != null ? source.getText(0) : "";
+  NgTokenReader._(SourceFile source, this._iterator);
 
-  /// Throws a [FormatException] at the current token.
+  /// Throws a [AngularParserException] at the current token.
   void error(String message) {
-    throw new FormatException(
+    throw new AngularParserException(
       message,
-      _sourceString,
+      _iterator.current.lexeme,
       _iterator.current.offset,
     );
   }
 
   /// Returns the next token if it is of [type].
   ///
-  /// Otherwise throws a [FormatException].
+  /// Otherwise throws a [AngularParserException].
   NgBaseToken expect(NgBaseTokenType type) {
     final next = this.next();
     if (when(type)) {
@@ -124,7 +123,7 @@ class NgTokenReversibleReader extends NgTokenReader {
       : super._(source, iterator);
 
   /// Returns the next token if it is of [type].
-  /// Otherwise throws a [FormatException].
+  /// Otherwise throws a [AngularParserException].
   /// Do not use where errorRecovery is potentially enabled.
   @override
   NgBaseToken expect(NgBaseTokenType type) {

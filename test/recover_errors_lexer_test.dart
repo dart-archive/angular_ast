@@ -58,7 +58,7 @@ void testRecoverySolution(
       Iterator<NgToken> it = tokenizeThrow(errorHtml);
       expect(() {
         while (it.moveNext() != null) {}
-      }, throwsFormatException);
+      }, throwsA(new isInstanceOf<AngularParserException>()));
 
       RecoverySolution solution =
           recoveryProtocol.recover(startState, token, reader);
@@ -122,8 +122,8 @@ void afterComment() {
       ],
     );
     expect(recoveringException.exceptions.length, 1);
-    FormatException e = recoveringException.exceptions[0];
-    expect(e.source, '');
+    var e = recoveringException.exceptions[0];
+    expect(e.context, '');
     expect(e.offset, 18);
   });
 }
@@ -140,8 +140,8 @@ void afterInterpolation() {
       ],
     );
     expect(recoveringException.exceptions.length, 1);
-    FormatException e = recoveringException.exceptions[0];
-    expect(e.source, '');
+    var e = recoveringException.exceptions[0];
+    expect(e.context, '');
     expect(e.offset, 11);
 
     expect(untokenize(results), '{{1 + 2 + 3}}');
@@ -160,8 +160,8 @@ void comment() {
       ],
     );
     expect(recoveringException.exceptions.length, 1);
-    FormatException e = recoveringException.exceptions[0];
-    expect(e.source, '');
+    var e = recoveringException.exceptions[0];
+    expect(e.context, '');
     expect(e.offset, 18);
   });
 }
