@@ -32,9 +32,14 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
     var appendedValue = (flag == 'event') ? ' = \$event' : '';
     ExpressionAst expressionAst;
     if (astNode.value != null) {
+      var expressionOffset =
+          (astNode as ParsedBananaAst).valueToken.innerValue.offset;
       try {
-        expressionAst = new ExpressionAst.parse(astNode.value + appendedValue,
-            sourceUrl: astNode.sourceUrl);
+        expressionAst = new ExpressionAst.parse(
+          astNode.value + appendedValue,
+          expressionOffset,
+          sourceUrl: astNode.sourceUrl,
+        );
       } catch (e) {
         exceptionHandler.handle(e);
       }
@@ -82,6 +87,8 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
       var starAst = astNode.stars[0];
       var origin = _toolFriendlyAstOrigin ? starAst : null;
       var starExpression = starAst.value;
+      var expressionOffset =
+          (starAst as ParsedStarAst).valueToken.innerValue.offset;
       var directiveName = starAst.name;
       TemplateAst newAst;
 
@@ -91,6 +98,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
           micro = parseMicroExpression(
             directiveName,
             starExpression,
+            expressionOffset,
             sourceUrl: astNode.sourceUrl,
           );
         } catch (e) {
@@ -114,6 +122,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
         try {
           expression = new ExpressionAst.parse(
             starExpression,
+            expressionOffset,
             sourceUrl: astNode.sourceUrl,
           );
         } catch (e) {

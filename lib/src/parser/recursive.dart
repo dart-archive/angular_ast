@@ -133,7 +133,7 @@ class RecursiveAstParser {
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.eventPrefix) {
-        var expressionAst = parseExpression(valueToken?.innerValue?.lexeme);
+        var expressionAst = parseExpression(valueToken?.innerValue);
         return new EventAst.parsed(
           _source,
           beginToken,
@@ -145,7 +145,7 @@ class RecursiveAstParser {
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.propertyPrefix) {
-        var expressionAst = parseExpression(valueToken?.innerValue?.lexeme);
+        var expressionAst = parseExpression(valueToken?.innerValue);
         return new PropertyAst.parsed(
           _source,
           beginToken,
@@ -510,7 +510,7 @@ class RecursiveAstParser {
   InterpolationAst parseInterpolation(NgToken beginToken) {
     var valueToken = _reader.next();
     var endToken = _reader.next();
-    var expressionAst = parseExpression(valueToken?.lexeme);
+    var expressionAst = parseExpression(valueToken);
     return new InterpolationAst.parsed(
       _source,
       beginToken,
@@ -583,13 +583,16 @@ class RecursiveAstParser {
   TextAst parseText(NgToken token) => new TextAst.parsed(_source, token);
 
   /// Parse expression
-  ExpressionAst parseExpression(String expression) {
+  ExpressionAst parseExpression(NgToken valueToken) {
     try {
-      if (expression == null) {
+      if (valueToken == null) {
         return null;
       }
-      return new ExpressionAst.parse(expression,
-          sourceUrl: _source.url.toString());
+      return new ExpressionAst.parse(
+        valueToken.lexeme,
+        valueToken.offset,
+        sourceUrl: _source.url.toString(),
+      );
     } on AnalysisError catch (e) {
       exceptionHandler.handle(new AngularParserException(
         e.errorCode,

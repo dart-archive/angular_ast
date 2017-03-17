@@ -8,17 +8,18 @@ import 'package:angular_ast/src/expression/micro/parser.dart';
 import 'package:test/test.dart';
 
 void main() {
-  NgMicroAst parse(String directive, String expression) {
+  NgMicroAst parse(String directive, String expression, int offset) {
     return const NgMicroParser().parse(
       directive,
       expression,
+      offset,
       sourceUrl: '/test/expression/micro/parser_test.dart#inline',
     );
   }
 
   test('should parse a simple let', () {
     expect(
-      parse('ngThing', 'let foo'),
+      parse('ngThing', 'let foo', 0),
       new NgMicroAst(
         assignments: [
           new ReferenceAst('foo'),
@@ -30,7 +31,7 @@ void main() {
 
   test('should parse a let assignment', () {
     expect(
-      parse('ngThing', 'let foo = bar;let baz'),
+      parse('ngThing', 'let foo = bar;let baz', 0),
       new NgMicroAst(
         assignments: [
           new ReferenceAst('foo', 'bar'),
@@ -43,7 +44,7 @@ void main() {
 
   test('should parse a let with a full Dart expression', () {
     expect(
-      parse('ngFor', 'let x of items.where(filter)'),
+      parse('ngFor', 'let x of items.where(filter)', 0),
       new NgMicroAst(
         assignments: [
           new ReferenceAst('x'),
@@ -54,6 +55,7 @@ void main() {
             'items.where(filter)',
             new ExpressionAst.parse(
               'items.where(filter)',
+              9,
               sourceUrl: '/test/expression/micro/parser_test.dart#inline',
             ),
           ),
@@ -64,7 +66,7 @@ void main() {
 
   test('should parse a let/bind pair', () {
     expect(
-      parse('ngFor', 'let item of items; trackBy: byId'),
+      parse('ngFor', 'let item of items; trackBy: byId', 0),
       new NgMicroAst(
         assignments: [
           new ReferenceAst('item'),
@@ -75,6 +77,7 @@ void main() {
             'items',
             new ExpressionAst.parse(
               'items',
+              12,
               sourceUrl: '/test/expression/micro/parser_test.dart#inline',
             ),
           ),
@@ -83,6 +86,7 @@ void main() {
             'byId',
             new ExpressionAst.parse(
               'byId',
+              28,
               sourceUrl: '/test/expression/micro/parser_test.dart#inline',
             ),
           ),

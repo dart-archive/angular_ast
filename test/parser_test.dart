@@ -70,6 +70,7 @@ void main() {
       [
         new InterpolationAst(new ExpressionAst.parse(
           'name',
+          3,
           sourceUrl: '/test/expression/parser_test.dart#inline',
         )),
       ],
@@ -85,6 +86,7 @@ void main() {
         new CommentAst('Goodbye'),
         new InterpolationAst(new ExpressionAst.parse(
           'name',
+          32,
           sourceUrl: '/test/expression/parser_test.dart#inline',
         )),
       ],
@@ -153,6 +155,7 @@ void main() {
               'onClick()',
               new ExpressionAst.parse(
                 'onClick()',
+                19,
                 sourceUrl: '/test/expression/parser_test.dart#inline',
               )),
         ]),
@@ -181,6 +184,7 @@ void main() {
               'btnValue',
               new ExpressionAst.parse(
                 'btnValue',
+                17,
                 sourceUrl: '/test/expression/parser_test.dart#inline',
               )),
         ]),
@@ -249,6 +253,7 @@ void main() {
                 'someValue',
                 new ExpressionAst.parse(
                   'someValue',
+                  18,
                   sourceUrl: '/test/expression/parser_test.dart#inline',
                 )),
           ],
@@ -313,6 +318,7 @@ void main() {
                 'myName = \$event',
                 new ExpressionAst.parse(
                   'myName = \$event',
+                  19,
                   sourceUrl: '/test/expression/parser_test.dart#inline',
                 )),
           ],
@@ -322,6 +328,7 @@ void main() {
                 'myName',
                 new ExpressionAst.parse(
                   'myName',
+                  19,
                   sourceUrl: '/test/expression/parser_test.dart#inline',
                 )),
           ],
@@ -347,6 +354,7 @@ void main() {
               'items',
               new ExpressionAst.parse(
                 'items',
+                23,
                 sourceUrl: '/test/expression/parser_test.dart#inline',
               ),
             ),
@@ -355,6 +363,7 @@ void main() {
               'byId',
               new ExpressionAst.parse(
                 'byId',
+                39,
                 sourceUrl: '/test/expression/parser_test.dart#inline',
               ),
             ),

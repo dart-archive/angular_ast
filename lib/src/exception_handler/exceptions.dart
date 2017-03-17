@@ -135,12 +135,6 @@ class NgParserWarningCode extends ErrorCode {
     'Expected standalone token',
   );
 
-  static const NgParserWarningCode EXPRESSION_UNEXPECTED =
-      const NgParserWarningCode(
-    'EXPRESSION_UNEXPECTED',
-    'Unexpected token in expression',
-  );
-
   static const NgParserWarningCode INTERPOLATION = const NgParserWarningCode(
     'INTERPOLATION',
     "Expected expression after mustache '{{'",
@@ -150,6 +144,13 @@ class NgParserWarningCode extends ErrorCode {
       const NgParserWarningCode(
     'INVALID_DECORATOR_IN_NGCONTENT',
     "Only 'select' is a valid attribute/decorate in <ng-content>",
+  );
+
+  // TODO: Max: Split this error into more smaller, detailed messages.
+  static const NgParserWarningCode INVALID_MICRO_EXPRESSION =
+      const NgParserWarningCode(
+    'INVALID_MICRO_EXPRESSION',
+    'Failed parsing micro expression',
   );
 
   static const NgParserWarningCode NONVOID_ELEMENT_USING_VOID_END =

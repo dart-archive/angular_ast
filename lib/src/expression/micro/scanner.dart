@@ -17,6 +17,8 @@ class NgMicroScanner {
   static final _findWhitespace = new RegExp(r'\s+');
 
   final StringScanner _scanner;
+  int _expressionOffset;
+  int _expressionLength;
 
   _NgMicroScannerState _state = _NgMicroScannerState.scanInitial;
 
@@ -24,7 +26,12 @@ class NgMicroScanner {
     return new NgMicroScanner._(new StringScanner(html, sourceUrl: sourceUrl));
   }
 
-  NgMicroScanner._(this._scanner);
+  NgMicroScanner._(this._scanner) {
+    // Use padded whitespace to find real offset.
+    _scanner.scan(_findWhitespace);
+    _expressionOffset = _scanner.position;
+    _expressionLength = _scanner.string.length - _expressionOffset;
+  }
 
   NgMicroToken scan() {
     switch (_state) {
@@ -172,9 +179,9 @@ class NgMicroScanner {
   AngularParserException _unexpected() {
     _state = _NgMicroScannerState.hasError;
     return new AngularParserException(
-      NgParserWarningCode.EXPRESSION_UNEXPECTED,
-      _scanner.position,
-      _scanner.string.length,
+      NgParserWarningCode.INVALID_MICRO_EXPRESSION,
+      _expressionOffset,
+      _expressionLength,
     );
   }
 }

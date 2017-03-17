@@ -25,7 +25,7 @@ class _ThrowingListener implements AnalysisErrorListener {
     throw new AngularParserException(
       error.errorCode,
       error.offset,
-      error.source.contents.data.length,
+      error.length,
     );
   }
 }

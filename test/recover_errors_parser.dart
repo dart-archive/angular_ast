@@ -245,8 +245,6 @@ void main() {
     checkException(NgParserWarningCode.DUPLICATE_SELECT_DECORATOR, 24, 21);
   });
 
-  //TODO: Max: set parsing expression as a flag
-  //TODO: Big issue: offset is not lined up properly and no easy way to implement it.
   test('Should parse property decorators with invalid dart value', () {
     var asts = parse('<div [myProp]="["></div>');
     expect(asts.length, 1);
@@ -257,7 +255,7 @@ void main() {
     expect(property.expression, null);
     expect(property.value, '[');
 
-    checkException(ParserErrorCode.MISSING_IDENTIFIER, 0, 1);
+    checkException(ParserErrorCode.MISSING_IDENTIFIER, 15, 1);
   });
 
   test('Should parse event decorators with invalid dart value', () {
@@ -270,7 +268,7 @@ void main() {
     expect(event.expression, null);
     expect(event.value, '[');
 
-    checkException(ParserErrorCode.MISSING_IDENTIFIER, 0, 1);
+    checkException(ParserErrorCode.MISSING_IDENTIFIER, 15, 1);
   });
 
   test('Should parse banana decorator with invalid dart value', () {
@@ -288,10 +286,15 @@ void main() {
     expect(element.properties[0].expression, null);
 
     expect(recoveringExceptionHandler.exceptions.length, 2);
-    var exception1 = recoveringExceptionHandler.exceptions[0];
-    var exception2 = recoveringExceptionHandler.exceptions[1];
-    expect(exception1.offset, 2);
-    expect(exception2.offset, 0);
+    var e1 = recoveringExceptionHandler.exceptions[0];
+    expect(e1.errorCode, ParserErrorCode.MISSING_IDENTIFIER);
+    expect(e1.offset, 19);
+    expect(e1.length, 1);
+
+    var e2 = recoveringExceptionHandler.exceptions[1];
+    expect(e2.errorCode, ParserErrorCode.MISSING_IDENTIFIER);
+    expect(e2.offset, 17);
+    expect(e2.length, 1);
   });
 
   test('Should parse star(non micro) decorator with invalid dart value', () {
@@ -308,7 +311,9 @@ void main() {
 
     expect(recoveringExceptionHandler.exceptions.length, 1);
     var exception = recoveringExceptionHandler.exceptions[0];
-    expect(exception.offset, 0);
+    expect(exception.errorCode, ParserErrorCode.MISSING_IDENTIFIER);
+    expect(exception.offset, 13);
+    expect(exception.length, 1);
   });
 
   test('Should parse star(micro) decorator with invalid dart value', () {
@@ -323,6 +328,6 @@ void main() {
     expect(template.properties.length, 0);
     expect(template.references.length, 0);
 
-    checkException(NgParserWarningCode.EXPRESSION_UNEXPECTED, 4, 4);
+    checkException(NgParserWarningCode.INVALID_MICRO_EXPRESSION, 13, 4);
   });
 }
