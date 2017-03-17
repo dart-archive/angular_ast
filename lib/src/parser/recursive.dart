@@ -260,37 +260,49 @@ class RecursiveAstParser {
 
         if (nextToken == null) {
           exceptionHandler.handle(new AngularParserException(
-            NgParserWarningCode.MISSING_CLOSE_TAG,
+            NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE,
             beginToken.offset,
-            beginToken.length + nameToken.length + endToken.length,
+            endToken.end - beginToken.offset,
           ));
           closeElementAst = new CloseElementAst(nameToken.lexeme);
           closingTagFound = true;
         } else if (nextToken.type == NgTokenType.closeElementStart) {
           var closeNameToken = _reader.peek();
+          var closeIdentifier = closeNameToken.lexeme;
 
-          if (closeNameToken.lexeme != nameToken.lexeme) {
+          if (closeIdentifier != nameToken.lexeme) {
             // Found a closing tag, but not matching current [ElementAst].
-            exceptionHandler.handle(new AngularParserException(
-              NgParserWarningCode.UNMATCHING_CLOSE_TAG,
-              closeNameToken.offset,
-              closeNameToken.length,
-            ));
-            if (tagStack.contains(closeNameToken.lexeme)) {
+            // Generate initial error code; could be dangling or unmatching.
+            if (tagStack.contains(closeIdentifier)) {
               // If the closing tag is in the seen [ElementAst] stack,
               // leave it alone. Instead create a synthetic close.
               _reader.putBack(nextToken);
               closeElementAst = new CloseElementAst(nameToken.lexeme);
               closingTagFound = true;
+              exceptionHandler.handle(new AngularParserException(
+                NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE,
+                beginToken.offset,
+                endToken.end - beginToken.offset,
+              ));
             } else {
               // If the closing tag is not in the stack, create a synthetic
               // [ElementAst] to pair the dangling close and add as child.
+              var closeComplement = parseCloseElement(nextToken);
               exceptionHandler.handle(new AngularParserException(
                 NgParserWarningCode.DANGLING_CLOSE_ELEMENT,
-                closeNameToken.offset,
-                closeNameToken.length,
+                closeComplement.beginToken.offset,
+                closeComplement.endToken.end -
+                    closeComplement.beginToken.offset,
               ));
-              childNodes.add(_handleDanglingCloseElement(nextToken));
+              if (closeIdentifier == 'ng-content') {
+                var synthContent = new EmbeddedContentAst();
+                synthContent.closeComplement = closeComplement;
+                childNodes.add(synthContent);
+              } else {
+                var synthOpenElement =
+                    new ElementAst(closeNameToken.lexeme, closeComplement);
+                childNodes.add(synthOpenElement);
+              }
             }
           } else {
             closeElementAst = parseCloseElement(nextToken);
@@ -384,7 +396,7 @@ class RecursiveAstParser {
     // Ensure closing </ng-content> exists.
     if (_reader.peekType() != NgTokenType.closeElementStart) {
       var e = new AngularParserException(
-        NgParserWarningCode.MISSING_CLOSE_TAG,
+        NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE,
         beginToken.offset,
         endToken.end - beginToken.offset,
       );
@@ -393,13 +405,12 @@ class RecursiveAstParser {
     } else {
       var closeElementStart = _reader.next();
       var closeElementName = _reader.peek().lexeme;
-      var closeElementOffset = _reader.peek().offset;
 
       if (closeElementName != 'ng-content') {
         var e = new AngularParserException(
-          NgParserWarningCode.UNMATCHING_CLOSE_TAG,
-          closeElementOffset,
-          closeElementName.length,
+          NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE,
+          beginToken.offset,
+          endToken.end - beginToken.offset,
         );
         exceptionHandler.handle(e);
         _reader.putBack(closeElementStart);
@@ -447,6 +458,7 @@ class RecursiveAstParser {
   }
 
   /// Returns and parses an embedded `<template>`.
+  /// TODO: Max: error recovery in templates
   EmbeddedTemplateAst parseEmbeddedTemplate(NgToken beginToken) {
     // Start collecting decorators.
     var childNodes = <StandaloneTemplateAst>[];
@@ -476,15 +488,14 @@ class RecursiveAstParser {
 
     // Finally return the element.
     var closeName = _reader.next();
+    var endToken = _reader.next();
     if (closeName.lexeme != 'template') {
       exceptionHandler.handle(new AngularParserException(
-        NgParserWarningCode.UNMATCHING_CLOSE_TAG,
-        closeName.offset,
-        closeName.length,
+        NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE,
+        beginToken.offset,
+        endToken.end - beginToken.offset,
       ));
     }
-
-    var endToken = _reader.next();
     return new EmbeddedTemplateAst.parsed(
       _source,
       beginToken,
@@ -528,14 +539,23 @@ class RecursiveAstParser {
       // a synthetic open with the dangling close. If not enabled,
       // simply throws error.
       case NgTokenType.closeElementStart:
-        var synthOpenElement = _handleDanglingCloseElement(token) as ElementAst;
-        var closeComplement = synthOpenElement.closeComplement;
+        var danglingCloseIdentifier = _reader.peek().lexeme;
+        var closeComplement = parseCloseElement(token);
         exceptionHandler.handle(new AngularParserException(
           NgParserWarningCode.DANGLING_CLOSE_ELEMENT,
           closeComplement.beginToken.offset,
           closeComplement.endToken.end - closeComplement.beginToken.offset,
         ));
-        return synthOpenElement;
+        if (danglingCloseIdentifier == 'ng-content') {
+          var synthOpenElement = new EmbeddedContentAst();
+          synthOpenElement.closeComplement = closeComplement;
+          return synthOpenElement;
+        } else {
+          var synthOpenElement =
+              new ElementAst(danglingCloseIdentifier, closeComplement);
+          return synthOpenElement;
+        }
+        break;
       default:
         // Simply throw error here; should never hit.
         if (exceptionHandler is RecoveringExceptionHandler) {
@@ -550,22 +570,6 @@ class RecursiveAstParser {
         ));
         return null;
     }
-  }
-
-  /// Given a dangling [CloseElementAst], creates a synthetic [ElementAst]
-  /// and links the dangling [CloseElementAst] to it, and returns the
-  /// synthetic [ElementAst].
-  StandaloneTemplateAst _handleDanglingCloseElement(NgToken closeStart) {
-    var closeElementAst = parseCloseElement(closeStart);
-    var elementName = closeElementAst.name;
-
-    if (elementName == 'ng-content') {
-      var synthContentAst = new EmbeddedContentAst();
-      synthContentAst.closeComplement = closeElementAst;
-      return synthContentAst;
-    }
-    var synthElementAst = new ElementAst(closeElementAst.name, closeElementAst);
-    return synthElementAst;
   }
 
   void _consumeWhitespaces() {

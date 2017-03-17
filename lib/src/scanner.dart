@@ -1062,10 +1062,8 @@ class NgScanner {
     );
   }
 
-  /// Handles the exception provided by [errorToken] and [errorCode].
-  /// Optional [offset] and [length] can be provided to flag the
-  /// error at an optional location and length instead of that provided
-  /// by [errorToken].
+  /// Handles the exception provided by [NgParserWarningCode] and
+  /// positional information.
   NgToken handleError(
     NgParserWarningCode errorCode,
     int offset,
@@ -1096,9 +1094,7 @@ class NgScanner {
   }
 
   /// Generates an [AngularParserException] using the provided
-  /// [errorToken] and [errorCode]. If optional [offset] and
-  /// [length] is provided, those are used instead of being extracted
-  /// from [errorToken].
+  /// [NgParserWarningCode] and positional information.
   AngularParserException _generateException(
     NgParserWarningCode errorCode,
     int offset,

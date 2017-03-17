@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:collection';
 
-import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:source_span/source_span.dart';
 

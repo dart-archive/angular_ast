@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:angular_ast/angular_ast.dart';
 import 'package:test/test.dart';
 
@@ -34,6 +36,14 @@ String astsToString(List<StandaloneTemplateAst> asts) {
   return asts.map((t) => t.accept(visitor)).join('');
 }
 
+void checkException(ErrorCode errorCode, int offset, int length) {
+  expect(recoveringExceptionHandler.exceptions.length, 1);
+  var e = recoveringExceptionHandler.exceptions[0];
+  expect(e.errorCode, errorCode);
+  expect(e.offset, offset);
+  expect(e.length, length);
+}
+
 void main() {
   test('Should close unclosed element tag', () {
     var asts = parse('<div>');
@@ -45,6 +55,8 @@ void main() {
     expect(element.isSynthetic, false);
     expect(element.closeComplement.isSynthetic, true);
     expect(astsToString(asts), '<div></div>');
+
+    checkException(NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE, 0, 5);
   });
 
   test('Should add open element tag to dangling close tag', () {
@@ -57,6 +69,8 @@ void main() {
     expect(element.isSynthetic, true);
     expect(element.closeComplement.isSynthetic, false);
     expect(astsToString(asts), '<div></div>');
+
+    checkException(NgParserWarningCode.DANGLING_CLOSE_ELEMENT, 0, 6);
   });
 
   test('Should not close a void tag', () {
@@ -77,6 +91,8 @@ void main() {
     expect(element.childNodes[0].childNodes.length, 2);
     expect(element.closeComplement.isSynthetic, true);
     expect(astsToString(asts), '<div><div><div>text1</div>text2</div></div>');
+
+    checkException(NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE, 0, 5);
   });
 
   test('Should add synthetic open to dangling close within nested', () {
@@ -86,6 +102,13 @@ void main() {
     var element = asts[2] as ElementAst;
     expect(element.isSynthetic, true);
     expect(element.closeComplement.isSynthetic, false);
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 1);
+    var e = exceptions[0];
+    expect(e.errorCode, NgParserWarningCode.DANGLING_CLOSE_ELEMENT);
+    expect(e.offset, 32);
+    expect(e.length, 6);
   });
 
   test('Should resolve complicated nested danglings', () {
@@ -113,6 +136,27 @@ void main() {
     expect((elementOuterB as ElementAst).closeComplement.isSynthetic, false);
 
     expect(astsToString(asts), '<a><b><c></c></b></a><b></b>');
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 3);
+
+    // Dangling '</c>'
+    var e1 = exceptions[0];
+    expect(e1.errorCode, NgParserWarningCode.DANGLING_CLOSE_ELEMENT);
+    expect(e1.offset, 6);
+    expect(e1.length, 4);
+
+    // Unmatching '</a>'; error at <b>
+    var e2 = exceptions[1];
+    expect(e2.errorCode, NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE);
+    expect(e2.offset, 3);
+    expect(e2.length, 3);
+
+    // Dangling '</b>'
+    var e3 = exceptions[2];
+    expect(e3.errorCode, NgParserWarningCode.DANGLING_CLOSE_ELEMENT);
+    expect(e3.offset, 14);
+    expect(e3.length, 4);
   });
 
   test('Should resolve dangling open ng-content', () {
@@ -129,6 +173,8 @@ void main() {
 
     expect(
         astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
+
+    checkException(NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE, 5, 12);
   });
 
   test('Should resolve dangling close ng-content', () {
@@ -143,27 +189,21 @@ void main() {
     expect(ngContent.isSynthetic, true);
     expect(
         (ngContent as EmbeddedContentAst).closeComplement.isSynthetic, false);
-
     expect(
         astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
+
+    checkException(NgParserWarningCode.DANGLING_CLOSE_ELEMENT, 5, 13);
   });
 
   test('Should handle ng-content used with void end', () {
-    var html = '<ng-content/></ng-content>';
     var asts = parse('<ng-content/></ng-content>');
     expect(asts.length, 1);
 
     var ngContent = asts[0];
     expect(ngContent, new isInstanceOf<EmbeddedContentAst>());
-
-    var exceptions = recoveringExceptionHandler.exceptions;
-    expect(exceptions.length, 1);
-    var e = exceptions[0];
-    var context = html.substring(e.offset, e.offset + e.length);
-    expect(context, '/>');
-    expect(e.offset, 11);
-
     expect(astsToString(asts), '<ng-content select="*"></ng-content>');
+
+    checkException(NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END, 11, 2);
   });
 
   test('Should drop invalid attrs in ng-content', () {
@@ -179,18 +219,19 @@ void main() {
     expect(exceptions.length, 3);
 
     var e1 = exceptions[0];
-    var e2 = exceptions[1];
-    var e3 = exceptions[2];
-    var context1 = html.substring(e1.offset, e1.offset + e1.length);
-    var context2 = html.substring(e2.offset, e2.offset + e2.length);
-    var context3 = html.substring(e3.offset, e3.offset + e3.length);
-
-    expect(context1, ' bad = "badValue"');
+    expect(e1.errorCode, NgParserWarningCode.INVALID_DECORATOR_IN_NGCONTENT);
     expect(e1.offset, 11);
-    expect(context2, ' [badProp] = "badPropValue"');
+    expect(e1.length, 17);
+
+    var e2 = exceptions[1];
+    expect(e2.errorCode, NgParserWarningCode.INVALID_DECORATOR_IN_NGCONTENT);
     expect(e2.offset, 39);
-    expect(context3, ' #badRef');
+    expect(e2.length, 27);
+
+    var e3 = exceptions[2];
+    expect(e3.errorCode, NgParserWarningCode.INVALID_DECORATOR_IN_NGCONTENT);
     expect(e3.offset, 66);
+    expect(e3.length, 8);
   });
 
   test('Should drop duplicate select attrs in ng-content', () {
@@ -201,15 +242,11 @@ void main() {
     var ngcontent = asts[0] as EmbeddedContentAst;
     expect(ngcontent.selector, '*');
 
-    var exceptions = recoveringExceptionHandler.exceptions;
-    expect(exceptions.length, 1);
-
-    var e = exceptions[0];
-    var context = html.substring(e.offset, e.offset + e.length);
-    expect(context, ' select = "badSelect"');
-    expect(e.offset, 24);
+    checkException(NgParserWarningCode.DUPLICATE_SELECT_DECORATOR, 24, 21);
   });
 
+  //TODO: Max: set parsing expression as a flag
+  //TODO: Big issue: offset is not lined up properly and no easy way to implement it.
   test('Should parse property decorators with invalid dart value', () {
     var asts = parse('<div [myProp]="["></div>');
     expect(asts.length, 1);
@@ -220,9 +257,7 @@ void main() {
     expect(property.expression, null);
     expect(property.value, '[');
 
-    expect(recoveringExceptionHandler.exceptions.length, 1);
-    var exception = recoveringExceptionHandler.exceptions[0];
-    expect(exception.offset, 0); // 0 offset is relative to value offset
+    checkException(ParserErrorCode.MISSING_IDENTIFIER, 0, 1);
   });
 
   test('Should parse event decorators with invalid dart value', () {
@@ -235,9 +270,7 @@ void main() {
     expect(event.expression, null);
     expect(event.value, '[');
 
-    expect(recoveringExceptionHandler.exceptions.length, 1);
-    var exception = recoveringExceptionHandler.exceptions[0];
-    expect(exception.offset, 0); // 0 offset is relative to value offset
+    checkException(ParserErrorCode.MISSING_IDENTIFIER, 0, 1);
   });
 
   test('Should parse banana decorator with invalid dart value', () {
@@ -290,6 +323,6 @@ void main() {
     expect(template.properties.length, 0);
     expect(template.references.length, 0);
 
-    expect(recoveringExceptionHandler.exceptions.length, 1);
+    checkException(NgParserWarningCode.EXPRESSION_UNEXPECTED, 4, 4);
   });
 }

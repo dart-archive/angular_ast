@@ -66,6 +66,12 @@ class NgParserWarningCode extends ErrorCode {
     'Unopened mustache',
   );
 
+  static const NgParserWarningCode CANNOT_FIND_MATCHING_CLOSE =
+      const NgParserWarningCode(
+    'CANNOT_FIND_MATCHING_CLOSE',
+    'Cannot find matching close element to this',
+  );
+
   static const NgParserWarningCode DANGLING_CLOSE_ELEMENT =
       const NgParserWarningCode(
     'DANGLING_CLOSE_ELEMENT',
@@ -146,12 +152,6 @@ class NgParserWarningCode extends ErrorCode {
     "Only 'select' is a valid attribute/decorate in <ng-content>",
   );
 
-  static const NgParserWarningCode MISSING_CLOSE_TAG =
-      const NgParserWarningCode(
-    'MISSING_CLOSE_TAG',
-    'Expected close element tag',
-  );
-
   static const NgParserWarningCode NONVOID_ELEMENT_USING_VOID_END =
       const NgParserWarningCode(
           'NONVOID_ELEMENT_USING_VOID_END', 'Element is not a void-element');
@@ -186,12 +186,6 @@ class NgParserWarningCode extends ErrorCode {
   static const NgParserWarningCode UNEXPECTED_TOKEN = const NgParserWarningCode(
     'UNEXPECTED_TOKEN',
     'Unexpected token',
-  );
-
-  static const NgParserWarningCode UNMATCHING_CLOSE_TAG =
-      const NgParserWarningCode(
-    'UNMATCHING_CLOSE_TAG',
-    'Unmatching close tag identfier',
   );
 
   static const NgParserWarningCode VOID_ELEMENT_IN_CLOSE_TAG =
