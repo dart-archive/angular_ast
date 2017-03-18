@@ -135,9 +135,10 @@ class NgParserWarningCode extends ErrorCode {
     'Expected standalone token',
   );
 
-  static const NgParserWarningCode INTERPOLATION = const NgParserWarningCode(
-    'INTERPOLATION',
-    "Expected expression after mustache '{{'",
+  static const NgParserWarningCode EMPTY_INTERPOLATION =
+      const NgParserWarningCode(
+    'EMPTY_INTERPOLATION',
+    "Interpolation expression cannot be empty",
   );
 
   static const NgParserWarningCode INVALID_DECORATOR_IN_NGCONTENT =

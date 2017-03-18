@@ -27,7 +27,7 @@ class NgScanner {
   // Storing last notable offsets to better generate exception offsets.
   // Due to the linear parsing nature of Angular, these values are recyclable.
   int _lastElementStartOffset;
-  NgSimpleToken _lastDecoratorPrefix; // Need to hold token for length.
+  NgSimpleToken _lastDecoratorPrefix;
   int _lastOpenMustacheOffset;
   int _lastCommentStartOffset;
   int _lastEqualSignOffset;
@@ -69,6 +69,7 @@ class NgScanner {
           break;
         case NgScannerState.scanAfterElementDecorator:
           returnToken = scanAfterElementDecorator();
+          _lastDecoratorPrefix = null;
           break;
         case NgScannerState.scanAfterElementDecoratorValue:
           returnToken = scanAfterElementDecoratorValue();
@@ -81,6 +82,7 @@ class NgScanner {
           break;
         case NgScannerState.scanAfterInterpolation:
           returnToken = scanAfterInterpolation();
+          _lastOpenMustacheOffset = null;
           break;
         case NgScannerState.scanBeforeElementDecorator:
           returnToken = scanBeforeElementDecorator();
@@ -182,7 +184,6 @@ class NgScanner {
   @protected
   NgToken scanAfterElementDecorator() {
     var type = _current.type;
-    _lastDecoratorPrefix = null; // Reset
 
     if (type == NgSimpleTokenType.equalSign) {
       _state = NgScannerState.scanElementDecoratorValue;
@@ -791,13 +792,27 @@ class NgScanner {
       return new NgToken.interpolationValue(_current.offset, _current.lexeme);
     }
 
-    if (type == NgSimpleTokenType.EOF ||
-        type == NgSimpleTokenType.mustacheBegin ||
-        type == NgSimpleTokenType.mustacheEnd) {
+    if (_current == _lastErrorToken) {
       return handleError(
-        NgParserWarningCode.INTERPOLATION,
+        null,
+        null,
+        null,
+      );
+    }
+
+    if (type == NgSimpleTokenType.EOF ||
+        type == NgSimpleTokenType.mustacheBegin) {
+      return handleError(
+        NgParserWarningCode.AFTER_INTERPOLATION,
         _lastOpenMustacheOffset,
         '{{'.length,
+      );
+    }
+    if (type == NgSimpleTokenType.mustacheEnd) {
+      return handleError(
+        NgParserWarningCode.EMPTY_INTERPOLATION,
+        _lastOpenMustacheOffset,
+        _current.end - _lastOpenMustacheOffset,
       );
     }
     return handleError(
@@ -843,6 +858,10 @@ class NgScanner {
       return _scanCompoundDecorator();
     }
 
+    if (_current == _lastErrorToken) {
+      return handleError(null, null, null);
+    }
+
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
         type == NgSimpleTokenType.forwardSlash ||
@@ -854,17 +873,10 @@ class NgScanner {
       );
     }
 
-    var offset = _lastDecoratorPrefix == null
-        ? _current.offset
-        : _lastDecoratorPrefix.offset;
-    var length = _lastDecoratorPrefix == null
-        ? _current.length
-        : _lastDecoratorPrefix.length;
-
     return handleError(
       NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX,
-      offset,
-      length,
+      _lastDecoratorPrefix.offset,
+      _lastDecoratorPrefix.length,
     );
   }
 
@@ -877,6 +889,10 @@ class NgScanner {
       return _scanCompoundDecorator();
     }
 
+    if (_current == _lastErrorToken) {
+      return handleError(null, null, null);
+    }
+
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
         type == NgSimpleTokenType.forwardSlash ||
@@ -888,17 +904,10 @@ class NgScanner {
       );
     }
 
-    var offset = _lastDecoratorPrefix == null
-        ? _current.offset
-        : _lastDecoratorPrefix.offset;
-    var length = _lastDecoratorPrefix == null
-        ? _current.length
-        : _lastDecoratorPrefix.length;
-
     return handleError(
       NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX,
-      offset,
-      length,
+      _lastDecoratorPrefix.offset,
+      _lastDecoratorPrefix.length,
     );
   }
 
@@ -911,6 +920,10 @@ class NgScanner {
       return _scanCompoundDecorator();
     }
 
+    if (_current == _lastErrorToken) {
+      return handleError(null, null, null);
+    }
+
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
         type == NgSimpleTokenType.forwardSlash ||
@@ -922,17 +935,10 @@ class NgScanner {
       );
     }
 
-    var offset = _lastDecoratorPrefix == null
-        ? _current.offset
-        : _lastDecoratorPrefix.offset;
-    var length = _lastDecoratorPrefix == null
-        ? _current.length
-        : _lastDecoratorPrefix.length;
-
     return handleError(
       NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX,
-      offset,
-      length,
+      _lastDecoratorPrefix.offset,
+      _lastDecoratorPrefix.length,
     );
   }
 
@@ -944,6 +950,10 @@ class NgScanner {
       return new NgToken.bananaSuffix(_current.offset);
     }
 
+    if (_current == _lastErrorToken) {
+      return handleError(null, null, null);
+    }
+
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.forwardSlash ||
         type == NgSimpleTokenType.dash ||
@@ -955,18 +965,10 @@ class NgScanner {
       );
     }
 
-    var offset = _lastDecoratorPrefix == null
-        ? _current.offset
-        : _lastDecoratorPrefix.offset;
-    var length = _lastDecoratorPrefix == null
-        ? _current.length
-        : _current.offset - _lastDecoratorPrefix.offset;
-
     return handleError(
-      NgParserWarningCode.SUFFIX_BANANA,
-      offset,
-      length,
-    );
+        NgParserWarningCode.SUFFIX_BANANA,
+        _lastDecoratorPrefix.offset,
+        _current.offset - _lastDecoratorPrefix.offset);
   }
 
   @protected
@@ -977,6 +979,10 @@ class NgScanner {
       return new NgToken.eventSuffix(_current.offset);
     }
 
+    if (_current == _lastErrorToken) {
+      return handleError(null, null, null);
+    }
+
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.forwardSlash ||
         type == NgSimpleTokenType.dash ||
@@ -988,17 +994,10 @@ class NgScanner {
       );
     }
 
-    var offset = _lastDecoratorPrefix == null
-        ? _current.offset
-        : _lastDecoratorPrefix.offset;
-    var length = _lastDecoratorPrefix == null
-        ? _current.length
-        : _current.offset - _lastDecoratorPrefix.offset;
-
     return handleError(
       NgParserWarningCode.SUFFIX_EVENT,
-      offset,
-      length,
+      _lastDecoratorPrefix.offset,
+      _current.offset - _lastDecoratorPrefix.offset,
     );
   }
 
@@ -1010,6 +1009,10 @@ class NgScanner {
       return new NgToken.propertySuffix(_current.offset);
     }
 
+    if (_current == _lastErrorToken) {
+      return handleError(null, null, null);
+    }
+
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.forwardSlash ||
         type == NgSimpleTokenType.dash ||
@@ -1021,18 +1024,10 @@ class NgScanner {
       );
     }
 
-    var offset = _lastDecoratorPrefix == null
-        ? _current.offset
-        : _lastDecoratorPrefix.offset;
-    var length = _lastDecoratorPrefix == null
-        ? _current.length
-        : _current.offset - _lastDecoratorPrefix.offset;
-
     return handleError(
-      NgParserWarningCode.SUFFIX_PROPERTY,
-      offset,
-      length,
-    );
+        NgParserWarningCode.SUFFIX_PROPERTY,
+        _lastDecoratorPrefix.offset,
+        _current.offset - _lastDecoratorPrefix.offset);
   }
 
   @protected
@@ -1063,7 +1058,8 @@ class NgScanner {
   }
 
   /// Handles the exception provided by [NgParserWarningCode] and
-  /// positional information.
+  /// positional information. If this value is null, no exception will
+  /// be generated, but synthetic token will still be generated.
   NgToken handleError(
     NgParserWarningCode errorCode,
     int offset,
@@ -1071,13 +1067,15 @@ class NgScanner {
   ) {
     var currentState = _state;
     _state = NgScannerState.hasError;
-    var e = _generateException(
-      errorCode,
-      offset,
-      length,
-    );
-    if (e != null) {
-      exceptionHandler.handle(e);
+    if (errorCode != null) {
+      var e = _generateException(
+        errorCode,
+        offset,
+        length,
+      );
+      if (e != null) {
+        exceptionHandler.handle(e);
+      }
     }
 
     if (_recoverErrors) {

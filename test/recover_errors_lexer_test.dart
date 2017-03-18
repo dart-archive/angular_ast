@@ -1212,11 +1212,11 @@ void interpolation() {
   test('Testing resolved strings of $startState', () {
     // Resolve1 types
     expect(untokenize(tokenize('{{')), '{{}}');
-    checkException(NgParserWarningCode.INTERPOLATION, 0, 2);
+    checkException(NgParserWarningCode.AFTER_INTERPOLATION, 0, 2);
     expect(untokenize(tokenize('{{{{mustache}}')), '{{}}{{mustache}}');
-    checkException(NgParserWarningCode.INTERPOLATION, 0, 2);
+    checkException(NgParserWarningCode.AFTER_INTERPOLATION, 0, 2);
     expect(untokenize(tokenize('{{}}')), '{{}}');
-    checkException(NgParserWarningCode.INTERPOLATION, 0, 2);
+    checkException(NgParserWarningCode.EMPTY_INTERPOLATION, 0, 4);
     // All other tokens will be engrained as part of mustache expression.
   });
 }
