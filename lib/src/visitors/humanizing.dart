@@ -177,9 +177,9 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitStar(StarAst astNode, [_]) {
-    var name = '${astNode.name}';
+    var name = '*${astNode.name}';
     if (astNode.value != null) {
-      return 'name="${astNode.value}"';
+      return '$name="${astNode.value}"';
     } else {
       return name;
     }

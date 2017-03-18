@@ -221,7 +221,7 @@ class RecursiveAstParser {
             exceptionHandler.handle(new AngularParserException(
               NgParserWarningCode.DUPLICATE_STAR_DIRECTIVE,
               decoratorAst.beginToken.offset,
-              decoratorAst.value.length,
+              decoratorAst.endToken.end - decoratorAst.beginToken.offset,
             ));
           }
           stars.add(decoratorAst);
