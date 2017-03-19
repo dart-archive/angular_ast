@@ -138,7 +138,13 @@ class NgParserWarningCode extends ErrorCode {
   static const NgParserWarningCode EMPTY_INTERPOLATION =
       const NgParserWarningCode(
     'EMPTY_INTERPOLATION',
-    "Interpolation expression cannot be empty",
+    'Interpolation expression cannot be empty',
+  );
+
+  static const NgParserWarningCode EVENT_NAME_TOO_MANY_FIXES =
+      const NgParserWarningCode(
+    'EVENT_NAME_TOO_MANY_FIXES',
+    "Event name can only be in format: 'name[.postfix]",
   );
 
   static const NgParserWarningCode INVALID_DECORATOR_IN_NGCONTENT =
@@ -162,6 +168,12 @@ class NgParserWarningCode extends ErrorCode {
       const NgParserWarningCode(
     'PIPE_INVALID_IDENTIFIER',
     'Pipe must be a valid identifier',
+  );
+
+  static const NgParserWarningCode PROPERTY_NAME_TOO_MANY_FIXES =
+      const NgParserWarningCode(
+    'PROPERTY_NAME_TOO_MANY_FIXES',
+    "Property name can only be in format: 'name[.postfix[.unit]]",
   );
 
   static const NgParserWarningCode SUFFIX_BANANA = const NgParserWarningCode(

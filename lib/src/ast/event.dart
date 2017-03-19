@@ -74,9 +74,9 @@ abstract class EventAst implements TemplateAst {
   @override
   String toString() {
     if (postfix != null) {
-      return '$EventAst {$name.$postfix="$expression"}';
+      return '$EventAst {$name.$postfix="$value"}';
     }
-    return '$EventAst {$name="$expression"}';
+    return '$EventAst {$name=$value}';
   }
 }
 
@@ -159,7 +159,7 @@ class ParsedEventAst extends TemplateAst
   @override
   String get postfix {
     final split = _nameWithoutParentheses.split('.');
-    return split.length > 1 ? split.last : null;
+    return split.length > 1 ? split[1] : null;
   }
 }
 

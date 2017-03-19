@@ -136,13 +136,17 @@ class HumanizingTemplateAstVisitor
   }
 
   @override
-  String visitEvent(EventAst astNode, [_]) {
-    var name = '(${astNode.name})';
-    if (astNode.value != null) {
-      return '$name="${astNode.value}"';
-    } else {
-      return name;
+  String visitEvent(EventAst astNode, [StringBuffer context]) {
+    context ??= new StringBuffer();
+    context.write('(${astNode.name}');
+    if (astNode.postfix != null) {
+      context.write('.${astNode.postfix}');
     }
+    context.write(')');
+    if (astNode.value != null) {
+      context.write('="${astNode.value}"');
+    }
+    return context.toString();
   }
 
   @override
@@ -156,13 +160,19 @@ class HumanizingTemplateAstVisitor
   }
 
   @override
-  String visitProperty(PropertyAst astNode, [_]) {
-    var name = '[${astNode.name}]';
-    if (astNode.value != null) {
-      return '$name="${astNode.value}"';
-    } else {
-      return name;
+  String visitProperty(PropertyAst astNode, [StringBuffer context]) {
+    context ??= new StringBuffer();
+    context.write('[${astNode.name}');
+    if (astNode.postfix != null) {
+      context.write('.${astNode.postfix}');
     }
+    if (astNode.unit != null) {
+      context.write('.${astNode.unit}');
+    }
+    if (astNode.value != null) {
+      return '="${astNode.value}"';
+    }
+    return context.toString();
   }
 
   @override

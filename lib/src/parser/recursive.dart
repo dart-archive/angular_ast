@@ -134,6 +134,14 @@ class RecursiveAstParser {
         );
       } else if (prefixType == NgTokenType.eventPrefix) {
         var expressionAst = parseExpression(valueToken?.innerValue);
+        if (decoratorToken.lexeme.split('.').length > 2) {
+          exceptionHandler.handle(new AngularParserException(
+            NgParserWarningCode.EVENT_NAME_TOO_MANY_FIXES,
+            decoratorToken.offset,
+            decoratorToken.length,
+          ));
+        }
+
         return new EventAst.parsed(
           _source,
           beginToken,
@@ -146,6 +154,14 @@ class RecursiveAstParser {
         );
       } else if (prefixType == NgTokenType.propertyPrefix) {
         var expressionAst = parseExpression(valueToken?.innerValue);
+        if (decoratorToken.lexeme.split('.').length > 3) {
+          exceptionHandler.handle(new AngularParserException(
+            NgParserWarningCode.PROPERTY_NAME_TOO_MANY_FIXES,
+            decoratorToken.offset,
+            decoratorToken.length,
+          ));
+        }
+
         return new PropertyAst.parsed(
           _source,
           beginToken,

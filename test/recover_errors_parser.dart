@@ -330,4 +330,31 @@ void main() {
 
     checkException(NgParserWarningCode.INVALID_MICRO_EXPRESSION, 13, 4);
   });
+
+  test('Should resolve event name with too many fixes', () {
+    var asts = parsePreserve('<div (event.postfix.illegal)="blah"></div>');
+    expect(asts.length, 1);
+
+    var element = asts[0] as ElementAst;
+    expect(element.events.length, 1);
+    var event = element.events[0];
+    expect(event.name, 'event');
+    expect(event.postfix, 'postfix');
+
+    checkException(NgParserWarningCode.EVENT_NAME_TOO_MANY_FIXES, 6, 21);
+  });
+
+  test('Should resolve property name with too many fixes', () {
+    var asts = parsePreserve('<div [prop.postfix.unit.illegal]="blah"></div>');
+    expect(asts.length, 1);
+
+    var element = asts[0] as ElementAst;
+    expect(element.properties.length, 1);
+    var property = element.properties[0];
+    expect(property.name, 'prop');
+    expect(property.postfix, 'postfix');
+    expect(property.unit, 'unit');
+
+    checkException(NgParserWarningCode.PROPERTY_NAME_TOO_MANY_FIXES, 6, 25);
+  });
 }
