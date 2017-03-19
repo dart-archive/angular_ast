@@ -704,23 +704,23 @@ void afterElementDecorator() {
   test('Testing resolved strings of $startState', () {
     // Resolve1 types
     expect(untokenize(tokenize('<div blah[prop]>')), '<div blah [prop]>');
-    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 5, 5);
+    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 9, 1);
     expect(untokenize(tokenize('<div blah(evnt)>')), '<div blah (evnt)>');
-    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 5, 5);
+    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 9, 1);
     expect(untokenize(tokenize('<div blah[(bnna)]>')), '<div blah [(bnna)]>');
-    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 5, 6);
+    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 9, 2);
     expect(untokenize(tokenize('<div blah]>')), '<div blah []>');
-    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 5, 5);
+    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 9, 1);
     expect(untokenize(tokenize('<div blah)>')), '<div blah ()>');
-    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 5, 5);
+    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 9, 1);
     expect(untokenize(tokenize('<div blah)]>')), '<div blah [()]>');
-    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 5, 6);
+    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 9, 2);
     expect(untokenize(tokenize('<div blah#ref>')), '<div blah #ref>');
-    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 5, 5);
+    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 9, 1);
     expect(untokenize(tokenize('<div blah*temp>')), '<div blah *temp>');
-    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 5, 5);
+    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 9, 1);
     expect(untokenize(tokenize('<div [blah]blah2>')), '<div [blah] blah2>');
-    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 10, 6);
+    checkException(NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE, 11, 5);
 
     // Resolve2 types
     expect(untokenize(tokenize('<div blah')), '<div blah>');

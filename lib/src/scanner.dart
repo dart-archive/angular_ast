@@ -214,8 +214,8 @@ class NgScanner {
         type == NgSimpleTokenType.identifier) {
       return handleError(
         NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE,
-        _lastToken.offset,
-        _current.end - _lastToken.offset,
+        _current.offset,
+        _current.length,
       );
     }
 
