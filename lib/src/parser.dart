@@ -59,6 +59,7 @@ class NgParser {
       template,
       sourceUrl: sourceUrl,
       exceptionHandler: exceptionHandler,
+      deSugarPipes: true,
     );
     var visitor =
         new DesugarVisitor(toolFriendlyAstOrigin: _toolFriendlyAstOrigin);
@@ -72,6 +73,7 @@ class NgParser {
     String template, {
     @required String sourceUrl,
     ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
+    bool deSugarPipes: false,
   }) {
     var tokens = const NgLexer().tokenize(template, exceptionHandler);
     var parser = new RecursiveAstParser(
@@ -82,6 +84,7 @@ class NgParser {
       tokens,
       _voidElements,
       exceptionHandler,
+      deSugarPipes,
     );
     return parser.parse();
   }

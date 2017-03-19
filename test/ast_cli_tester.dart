@@ -15,6 +15,7 @@ List<StandaloneTemplateAst> parse(String template) =>
       exceptionHandler: exceptionHandler,
     );
 
+
 void main() {
   String input;
   while (true) {
@@ -41,12 +42,13 @@ void main() {
         var fixed = ast.map((t) => t.accept(visitor)).join('');
         print('ORGNL: $input');
         print('FIXED: $fixed');
+
+        print('\n\nERRORS:');
+        exceptionHandler.exceptions.forEach((e) {
+          var context = input.substring(e.offset, e.offset + e.length);
+          print('${e.errorCode.message} :: $context at ${e.offset}');
+        });
       }
-      print('\n\nERRORS:');
-      exceptionHandler.exceptions.forEach((e) {
-        var context = input.substring(e.offset, e.offset + e.length);
-        print('${e.errorCode.message} :: $context at ${e.offset}');
-      });
     }
   }
 }

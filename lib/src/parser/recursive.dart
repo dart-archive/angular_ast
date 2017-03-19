@@ -17,12 +17,14 @@ class RecursiveAstParser {
   final SourceFile _source;
   final List<String> _voidElements;
   final exceptionHandler;
+  final _deSugarPipes;
 
   RecursiveAstParser(
     SourceFile sourceFile,
     Iterable<NgToken> tokens,
     this._voidElements,
     this.exceptionHandler,
+    this._deSugarPipes,
   )
       : _reader = new NgTokenReversibleReader<NgTokenType>(sourceFile, tokens),
         _source = sourceFile;
@@ -608,6 +610,7 @@ class RecursiveAstParser {
         valueToken.lexeme,
         valueToken.offset,
         sourceUrl: _source.url.toString(),
+        deSugarPipes: _deSugarPipes,
       );
     } on AnalysisError catch (e) {
       exceptionHandler.handle(new AngularParserException(

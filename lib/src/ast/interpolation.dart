@@ -50,7 +50,7 @@ abstract class InterpolationAst implements StandaloneTemplateAst {
   int get hashCode => expression.hashCode;
 
   @override
-  String toString() => '$InterpolationAst {$expression}';
+  String toString() => '$InterpolationAst {$value}';
 }
 
 class _ParsedInterpolationAst extends TemplateAst with InterpolationAst {
