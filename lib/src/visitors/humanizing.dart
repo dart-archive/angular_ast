@@ -169,8 +169,9 @@ class HumanizingTemplateAstVisitor
     if (astNode.unit != null) {
       context.write('.${astNode.unit}');
     }
+    context.write(']');
     if (astNode.value != null) {
-      return '="${astNode.value}"';
+      context.write('="${astNode.value}"');
     }
     return context.toString();
   }
