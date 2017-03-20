@@ -208,12 +208,14 @@ class RecursiveAstParser {
   /// It's possible the element will end up not being an [ElementAst].
   StandaloneTemplateAst parseElement(
       NgToken beginToken, Queue<String> tagStack) {
+    var isTemplateElement = false;
+
     // Parse the element identifier.
     var nameToken = _reader.next();
     if (nameToken.lexeme == 'ng-content') {
       return parseEmbeddedContent(beginToken, nameToken);
     } else if (nameToken.lexeme == 'template') {
-      return parseEmbeddedTemplate(beginToken);
+      isTemplateElement = true;
     }
     var isVoidElement = _voidElements.contains(nameToken.lexeme);
 
@@ -235,20 +237,45 @@ class RecursiveAstParser {
         if (decoratorAst is AttributeAst) {
           attributes.add(decoratorAst);
         } else if (decoratorAst is StarAst) {
-          if (stars.isNotEmpty) {
+          if (isTemplateElement) {
             exceptionHandler.handle(new AngularParserException(
-              NgParserWarningCode.DUPLICATE_STAR_DIRECTIVE,
+              NgParserWarningCode.INVALID_DECORATOR_IN_TEMPLATE,
               decoratorAst.beginToken.offset,
               decoratorAst.endToken.end - decoratorAst.beginToken.offset,
             ));
+          } else {
+            if (stars.isNotEmpty) {
+              exceptionHandler.handle(new AngularParserException(
+                NgParserWarningCode.DUPLICATE_STAR_DIRECTIVE,
+                decoratorAst.beginToken.offset,
+                decoratorAst.endToken.end - decoratorAst.beginToken.offset,
+              ));
+            } else {
+              stars.add(decoratorAst);
+            }
           }
-          stars.add(decoratorAst);
         } else if (decoratorAst is EventAst) {
-          events.add(decoratorAst);
+          if (isTemplateElement) {
+            exceptionHandler.handle(new AngularParserException(
+              NgParserWarningCode.INVALID_DECORATOR_IN_TEMPLATE,
+              decoratorAst.beginToken.offset,
+              decoratorAst.endToken.end - decoratorAst.beginToken.offset,
+            ));
+          } else {
+            events.add(decoratorAst);
+          }
         } else if (decoratorAst is PropertyAst) {
           properties.add(decoratorAst);
         } else if (decoratorAst is BananaAst) {
-          bananas.add(decoratorAst);
+          if (isTemplateElement) {
+            exceptionHandler.handle(new AngularParserException(
+              NgParserWarningCode.INVALID_DECORATOR_IN_TEMPLATE,
+              decoratorAst.beginToken.offset,
+              decoratorAst.endToken.end - decoratorAst.beginToken.offset,
+            ));
+          } else {
+            bananas.add(decoratorAst);
+          }
         } else if (decoratorAst is ReferenceAst) {
           references.add(decoratorAst);
         } else {
@@ -258,14 +285,18 @@ class RecursiveAstParser {
     } while (nextToken.type != NgTokenType.openElementEnd &&
         nextToken.type != NgTokenType.openElementEndVoid);
 
-    var endToken = nextToken;
-    if (!isVoidElement && endToken.type == NgTokenType.openElementEndVoid) {
+    if (!isVoidElement && nextToken.type == NgTokenType.openElementEndVoid) {
       exceptionHandler.handle(new AngularParserException(
         NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END,
-        endToken.offset,
-        endToken.length,
+        nextToken.offset,
+        nextToken.length,
       ));
+      nextToken = new NgToken.generateErrorSynthetic(
+        nextToken.offset,
+        NgTokenType.openElementEnd,
+      );
     }
+    var endToken = nextToken;
     CloseElementAst closeElementAst;
 
     // If not a void element, look for closing tag OR child nodes.
@@ -275,7 +306,6 @@ class RecursiveAstParser {
 
       while (!closingTagFound) {
         nextToken = _reader.next();
-
         if (nextToken == null) {
           exceptionHandler.handle(new AngularParserException(
             NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE,
@@ -287,7 +317,6 @@ class RecursiveAstParser {
         } else if (nextToken.type == NgTokenType.closeElementStart) {
           var closeNameToken = _reader.peek();
           var closeIdentifier = closeNameToken.lexeme;
-
           if (closeIdentifier != nameToken.lexeme) {
             // Found a closing tag, but not matching current [ElementAst].
             // Generate initial error code; could be dangling or unmatching.
@@ -316,6 +345,10 @@ class RecursiveAstParser {
                 var synthContent = new EmbeddedContentAst();
                 synthContent.closeComplement = closeComplement;
                 childNodes.add(synthContent);
+              } else if (closeIdentifier == 'template') {
+                var synthTemplate = new EmbeddedTemplateAst();
+                synthTemplate.closeComplement = closeComplement;
+                childNodes.add(synthTemplate);
               } else {
                 var synthOpenElement =
                     new ElementAst(closeNameToken.lexeme, closeComplement);
@@ -334,21 +367,33 @@ class RecursiveAstParser {
       tagStack.removeFirst();
     }
 
-    final element = new ElementAst.parsed(
-      _source,
-      beginToken,
-      nameToken,
-      endToken,
-      attributes: attributes,
-      childNodes: childNodes,
-      events: events,
-      properties: properties,
-      references: references,
-      bananas: bananas,
-      stars: stars,
-      closeComplement: closeElementAst,
-    );
-    return element;
+    if (isTemplateElement) {
+      return new EmbeddedTemplateAst.parsed(
+        _source,
+        beginToken,
+        endToken,
+        closeComplement: closeElementAst,
+        attributes: attributes,
+        childNodes: childNodes,
+        properties: properties,
+        references: references,
+      );
+    } else {
+      return new ElementAst.parsed(
+        _source,
+        beginToken,
+        nameToken,
+        endToken,
+        attributes: attributes,
+        childNodes: childNodes,
+        events: events,
+        properties: properties,
+        references: references,
+        bananas: bananas,
+        stars: stars,
+        closeComplement: closeElementAst,
+      );
+    }
   }
 
   /// Returns and parses an embedded content directive/transclusions.
@@ -473,64 +518,6 @@ class RecursiveAstParser {
       lastConsumedToken = _reader.next(); // Attribute value
     }
     return lastConsumedToken.end;
-  }
-
-  /// Returns and parses an embedded `<template>`.
-  /// TODO: Max: error recovery in templates
-  EmbeddedTemplateAst parseEmbeddedTemplate(NgToken beginToken) {
-    // Start collecting decorators.
-    var attributes = <AttributeAst>[];
-    var childNodes = <StandaloneTemplateAst>[];
-    var properties = <PropertyAst>[];
-    var references = <ReferenceAst>[];
-    NgToken nextToken;
-
-    // Start looping and get all of the decorators within the element.
-    do {
-      nextToken = _reader.next();
-      if (nextToken.type == NgTokenType.beforeElementDecorator) {
-        var decoratorAst = parseDecorator(nextToken);
-        if (decoratorAst is PropertyAst) {
-          properties.add(decoratorAst);
-        } else if (decoratorAst is ReferenceAst) {
-          references.add(decoratorAst);
-        } else if (decoratorAst is AttributeAst) {
-          attributes.add(decoratorAst);
-        } else {
-          exceptionHandler.handle(new AngularParserException(
-            NgParserWarningCode.INVALID_DECORATOR_IN_TEMPLATE,
-            decoratorAst.beginToken.offset,
-            decoratorAst.endToken.end - decoratorAst.beginToken.offset,
-          ));
-          throw new StateError('Invalid decorator AST: $decoratorAst');
-        }
-      }
-    } while (nextToken.type != NgTokenType.openElementEnd);
-
-    // Collect child nodes.
-    while ((nextToken = _reader.next()).type != NgTokenType.closeElementStart) {
-      childNodes.add(parseStandalone(nextToken));
-    }
-
-    // Finally return the element.
-    var closeName = _reader.next();
-    var endToken = _reader.next();
-    if (closeName.lexeme != 'template') {
-      exceptionHandler.handle(new AngularParserException(
-        NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE,
-        beginToken.offset,
-        endToken.end - beginToken.offset,
-      ));
-    }
-    return new EmbeddedTemplateAst.parsed(
-      _source,
-      beginToken,
-      endToken,
-      attributes: attributes,
-      childNodes: childNodes,
-      properties: properties,
-      references: references,
-    );
   }
 
   /// Returns and parses an interpolation AST.

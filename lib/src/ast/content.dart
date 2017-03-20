@@ -5,6 +5,7 @@
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
+import 'package:quiver/core.dart';
 import 'package:source_span/source_span.dart';
 
 /// Represents an `<ng-content>` element AST.
@@ -50,11 +51,13 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
 
   @override
   bool operator ==(Object o) {
-    return o is EmbeddedContentAst && o.selector == selector;
+    return o is EmbeddedContentAst &&
+        o.selector == selector &&
+        o.closeComplement == closeComplement;
   }
 
   @override
-  int get hashCode => selector.hashCode;
+  int get hashCode => hash2(selector.hashCode, closeComplement);
 
   @override
   String toString() => '$EmbeddedContentAst {$selector}';
@@ -111,7 +114,6 @@ class _SyntheticEmbeddedContentAst extends SyntheticTemplateAst
   _SyntheticEmbeddedContentAst.from(
     TemplateAst origin, [
     this.selector = '*',
-    this.closeComplement,
   ])
       : super.from(origin) {
     this.closeComplement = new CloseElementAst('ng-content');

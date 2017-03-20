@@ -206,6 +206,60 @@ void main() {
     checkException(NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END, 11, 2);
   });
 
+  //TODO: Max: add attrs into these
+  test('Should resolve dangling open template', () {
+    var asts = parse('<div><template ngFor let-item [ngForOf]="items" '
+        'let-i="index"></div>');
+    expect(asts.length, 1);
+
+    var div = asts[0];
+    expect(div.childNodes.length, 1);
+
+    var template = div.childNodes[0];
+    expect(template, new isInstanceOf<EmbeddedTemplateAst>());
+    expect(template.isSynthetic, false);
+    expect((template as EmbeddedTemplateAst).closeComplement.isSynthetic, true);
+
+    expect(
+        astsToString(asts),
+        '<div><template ngFor let-item let-i="index"'
+        ' [ngForOf]="items"></template></div>');
+
+    checkException(NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE, 5, 57);
+  });
+
+  test('Should resolve dangling close template', () {
+    var asts = parse('<div></template></div>');
+    expect(asts.length, 1);
+
+    var div = asts[0];
+    expect(div.childNodes.length, 1);
+
+    var template = div.childNodes[0];
+    expect(template, new isInstanceOf<EmbeddedTemplateAst>());
+    expect(template.isSynthetic, true);
+    expect(
+        (template as EmbeddedTemplateAst).closeComplement.isSynthetic, false);
+    expect(astsToString(asts), '<div><template></template></div>');
+
+    checkException(NgParserWarningCode.DANGLING_CLOSE_ELEMENT, 5, 11);
+  });
+
+  test('Should handle template used with void end', () {
+    var asts = parse('<template ngFor let-item [ngForOf]="items" '
+        'let-i="index"/></template>');
+    expect(asts.length, 1);
+
+    var ngContent = asts[0];
+    expect(ngContent, new isInstanceOf<EmbeddedTemplateAst>());
+    expect(
+        astsToString(asts),
+        '<template ngFor let-item let-i="index"'
+        ' [ngForOf]="items"></template>');
+
+    checkException(NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END, 56, 2);
+  });
+
   test('Should drop invalid attrs in ng-content', () {
     var html =
         '<ng-content bad = "badValue" select="*" [badProp] = "badPropValue" #badRef></ng-content>';
