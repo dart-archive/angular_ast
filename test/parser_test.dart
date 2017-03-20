@@ -242,6 +242,21 @@ void main() {
     );
   });
 
+  test('should parse a <template> directive with a attributes', () {
+    expect(
+      parse('<template ngFor let-item let-i="index"></template>'),
+      [
+        new EmbeddedTemplateAst(
+          attributes: [
+            new AttributeAst('ngFor'),
+            new AttributeAst('let-item'),
+            new AttributeAst('let-i', 'index'),
+          ],
+        ),
+      ],
+    );
+  });
+
   test('should parse a <template> directive with a property', () {
     expect(
       parse('<template [ngIf]="someValue"></template>'),

@@ -15,7 +15,6 @@ List<StandaloneTemplateAst> parse(String template) =>
       exceptionHandler: exceptionHandler,
     );
 
-
 void main() {
   String input;
   while (true) {

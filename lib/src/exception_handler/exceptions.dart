@@ -153,6 +153,10 @@ class NgParserWarningCode extends ErrorCode {
     "Only 'select' is a valid attribute/decorate in <ng-content>",
   );
 
+  static const NgParserWarningCode INVALID_DECORATOR_IN_TEMPLATE =
+      const NgParserWarningCode('INVALID_DECORATOR_IN_TEMPLATE',
+          "Invalid decorator in 'template' element");
+
   // TODO: Max: Split this error into more smaller, detailed messages.
   static const NgParserWarningCode INVALID_MICRO_EXPRESSION =
       const NgParserWarningCode(

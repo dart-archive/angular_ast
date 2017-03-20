@@ -479,6 +479,7 @@ class RecursiveAstParser {
   /// TODO: Max: error recovery in templates
   EmbeddedTemplateAst parseEmbeddedTemplate(NgToken beginToken) {
     // Start collecting decorators.
+    var attributes = <AttributeAst>[];
     var childNodes = <StandaloneTemplateAst>[];
     var properties = <PropertyAst>[];
     var references = <ReferenceAst>[];
@@ -493,7 +494,14 @@ class RecursiveAstParser {
           properties.add(decoratorAst);
         } else if (decoratorAst is ReferenceAst) {
           references.add(decoratorAst);
+        } else if (decoratorAst is AttributeAst) {
+          attributes.add(decoratorAst);
         } else {
+          exceptionHandler.handle(new AngularParserException(
+            NgParserWarningCode.INVALID_DECORATOR_IN_TEMPLATE,
+            decoratorAst.beginToken.offset,
+            decoratorAst.endToken.end - decoratorAst.beginToken.offset,
+          ));
           throw new StateError('Invalid decorator AST: $decoratorAst');
         }
       }
@@ -518,6 +526,7 @@ class RecursiveAstParser {
       _source,
       beginToken,
       endToken,
+      attributes: attributes,
       childNodes: childNodes,
       properties: properties,
       references: references,
