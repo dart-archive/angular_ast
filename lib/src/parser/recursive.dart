@@ -432,9 +432,11 @@ class RecursiveAstParser {
           selectAttributeFound = true;
           selectToken = nextToken;
           _consumeWhitespaces();
-          equalSign = _reader.next();
-          _consumeWhitespaces();
-          valueToken = _reader.next();
+          if (_reader.peekType() == NgTokenType.beforeElementDecoratorValue) {
+            equalSign = _reader.next();
+            _consumeWhitespaces();
+            valueToken = _reader.next();
+          }
         }
       }
     }
