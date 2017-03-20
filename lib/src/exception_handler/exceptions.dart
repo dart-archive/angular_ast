@@ -168,6 +168,10 @@ class NgParserWarningCode extends ErrorCode {
       const NgParserWarningCode(
           'NONVOID_ELEMENT_USING_VOID_END', 'Element is not a void-element');
 
+  static const NgParserWarningCode NGCONTENT_MUST_CLOSE_IMMEDIATELY =
+      const NgParserWarningCode('NGCONTENT_MUST_CLOSE_IMMEDIATElY',
+          "'<ng-content ...>' must be followed immediately by close '</ng-content>'");
+
   static const NgParserWarningCode PIPE_INVALID_IDENTIFIER =
       const NgParserWarningCode(
     'PIPE_INVALID_IDENTIFIER',

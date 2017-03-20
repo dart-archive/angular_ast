@@ -174,7 +174,7 @@ void main() {
     expect(
         astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
 
-    checkException(NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE, 5, 12);
+    checkException(NgParserWarningCode.NGCONTENT_MUST_CLOSE_IMMEDIATELY, 5, 12);
   });
 
   test('Should resolve dangling close ng-content', () {
@@ -193,6 +193,47 @@ void main() {
         astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
 
     checkException(NgParserWarningCode.DANGLING_CLOSE_ELEMENT, 5, 13);
+  });
+
+  test('Should resolve ng-content with children', () {
+    var asts = parse('<ng-content><div></div></ng-content>');
+    expect(asts.length, 3);
+
+    var ngcontent1 = asts[0];
+    var div = asts[1];
+    var ngcontent2 = asts[2];
+
+    expect(ngcontent1.childNodes.length, 0);
+    expect(div.childNodes.length, 0);
+    expect(ngcontent2.childNodes.length, 0);
+
+    expect(ngcontent1, new isInstanceOf<EmbeddedContentAst>());
+    expect(div, new isInstanceOf<ElementAst>());
+    expect(ngcontent2, new isInstanceOf<EmbeddedContentAst>());
+
+    expect(ngcontent1.isSynthetic, false);
+    expect(
+        (ngcontent1 as EmbeddedContentAst).closeComplement.isSynthetic, true);
+
+    expect(ngcontent2.isSynthetic, true);
+    expect(
+        (ngcontent2 as EmbeddedContentAst).closeComplement.isSynthetic, false);
+
+    expect(astsToString(asts),
+        '<ng-content select="*"></ng-content><div></div><ng-content select="*"></ng-content>');
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 2);
+
+    var e1 = exceptions[0];
+    expect(e1.errorCode, NgParserWarningCode.NGCONTENT_MUST_CLOSE_IMMEDIATELY);
+    expect(e1.offset, 0);
+    expect(e1.length, 12);
+
+    var e2 = exceptions[1];
+    expect(e2.errorCode, NgParserWarningCode.DANGLING_CLOSE_ELEMENT);
+    expect(e2.offset, 23);
+    expect(e2.length, 13);
   });
 
   test('Should handle ng-content used with void end', () {

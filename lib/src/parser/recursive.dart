@@ -461,7 +461,7 @@ class RecursiveAstParser {
     // Ensure closing </ng-content> exists.
     if (_reader.peekType() != NgTokenType.closeElementStart) {
       var e = new AngularParserException(
-        NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE,
+        NgParserWarningCode.NGCONTENT_MUST_CLOSE_IMMEDIATELY,
         beginToken.offset,
         endToken.end - beginToken.offset,
       );
@@ -473,7 +473,7 @@ class RecursiveAstParser {
 
       if (closeElementName != 'ng-content') {
         var e = new AngularParserException(
-          NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE,
+          NgParserWarningCode.NGCONTENT_MUST_CLOSE_IMMEDIATELY,
           beginToken.offset,
           endToken.end - beginToken.offset,
         );
