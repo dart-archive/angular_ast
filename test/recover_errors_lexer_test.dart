@@ -89,6 +89,7 @@ void testRecoverySolution(
 }
 
 void main() {
+  beforeInterpolation();
   afterComment();
   afterElementDecorator();
   afterElementDecoratorValue();
@@ -101,6 +102,7 @@ void main() {
   afterElementIdentifierClose();
   afterElementIdentifierOpen();
   elementEndClose();
+  interpolation();
   simpleElementDecorator();
   specialBananaDecorator();
   specialEventDecorator();
@@ -108,6 +110,39 @@ void main() {
   suffixBanana();
   suffixEvent();
   suffixProperty();
+}
+
+void beforeInterpolation() {
+  test('should resolve: dangling mustacheEnd at start', () {
+    var results = tokenize('}} some text');
+    expect(results, [
+      new NgToken.interpolationStart(0), // Synthetic
+      new NgToken.interpolationValue(0, ''), // Synthetic
+      new NgToken.interpolationEnd(0),
+      new NgToken.text(2, ' some text'),
+    ]);
+    expect(recoveringException.exceptions.length, 1);
+    var e = recoveringException.exceptions[0];
+    expect(e.context, '}}');
+    expect(e.offset, 0);
+
+    expect(untokenize(results), '{{}} some text');
+  });
+
+  test('should resolve: dangling mustacheEnd at end of text', () {
+    var results = tokenize('mustache text}}');
+    expect(results, [
+      new NgToken.interpolationStart(0), // Synthetic
+      new NgToken.interpolationValue(0, 'mustache text'),
+      new NgToken.interpolationEnd(13),
+    ]);
+    expect(recoveringException.exceptions.length, 1);
+    var e = recoveringException.exceptions[0];
+    expect(e.context, '}}');
+    expect(e.offset, 13);
+
+    expect(untokenize(results), '{{mustache text}}');
+  });
 }
 
 void afterComment() {
@@ -129,22 +164,34 @@ void afterComment() {
 }
 
 void afterInterpolation() {
-  test('should resolve: unexpected EOF in elementEndClose', () {
-    Iterable<NgToken> results = tokenize('{{1 + 2 + 3');
-    expect(
-      results,
-      [
-        new NgToken.interpolationStart(0),
-        new NgToken.interpolationValue(2, '1 + 2 + 3'),
-        new NgToken.interpolationEnd(11), // Synthetic
-      ],
-    );
-    expect(recoveringException.exceptions.length, 1);
-    var e = recoveringException.exceptions[0];
-    expect(e.context, '');
-    expect(e.offset, 11);
+  var baseHtml = "{{ 1 + 2 ";
+  var startState = NgScannerState.scanAfterInterpolation;
 
-    expect(untokenize(results), '{{1 + 2 + 3}}');
+  var resolveTokens = <NgSimpleTokenType>[
+    NgSimpleTokenType.commentBegin,
+    NgSimpleTokenType.openTagStart,
+    NgSimpleTokenType.closeTagStart,
+    NgSimpleTokenType.EOF,
+    NgSimpleTokenType.mustacheBegin,
+  ];
+
+  testRecoverySolution(
+    baseHtml,
+    startState,
+    resolveTokens,
+    NgTokenType.interpolationEnd,
+    NgScannerState.scanStart,
+  );
+  test("Testing resolved strings of $startState", () {
+    expect(untokenize(tokenize('{{ 1 + 2 <!--comment-->')),
+        '{{ 1 + 2 }}<!--comment-->');
+    expect(
+        untokenize(tokenize('{{ 1 + 2 <div></div>')), '{{ 1 + 2 }}<div></div>');
+    expect(
+        untokenize(tokenize('<div>{{ 1 + 2 </div>')), '<div>{{ 1 + 2 }}</div>');
+    expect(untokenize(tokenize('{{ 1 + 2 ')), '{{ 1 + 2 }}');
+    expect(
+        untokenize(tokenize('{{ 1 + 2 {{ 3 + 4 }}')), '{{ 1 + 2 }}{{ 3 + 4 }}');
   });
 }
 
@@ -867,6 +914,38 @@ void elementEndClose() {
     expect(untokenize(tokenize('</div @>')), '</div >');
     expect(untokenize(tokenize('</div blah>')), '</div >');
     expect(untokenize(tokenize('</div "blah">')), '</div >');
+  });
+}
+
+void interpolation() {
+  var baseHtml = '{{';
+  var startState = NgScannerState.scanInterpolation;
+
+  var resolveTokens = <NgSimpleTokenType>[
+    NgSimpleTokenType.commentBegin,
+    NgSimpleTokenType.openTagStart,
+    NgSimpleTokenType.closeTagStart,
+    NgSimpleTokenType.EOF,
+    NgSimpleTokenType.mustacheBegin,
+    NgSimpleTokenType.mustacheEnd,
+  ];
+
+  testRecoverySolution(
+    baseHtml,
+    startState,
+    resolveTokens,
+    NgTokenType.interpolationValue,
+    NgScannerState.scanAfterInterpolation,
+  );
+
+  test("Testing resolved strings of $startState", () {
+    expect(untokenize(tokenize('{{<!--comment-->')), '{{}}<!--comment-->');
+    expect(untokenize(tokenize('{{<div></div>')), '{{}}<div></div>');
+    expect(untokenize(tokenize('<div>{{</div>')), '<div>{{}}</div>');
+    expect(untokenize(tokenize('{{')), '{{}}');
+    expect(
+        untokenize(tokenize('{{{{mustache value}}')), '{{}}{{mustache value}}');
+    expect(untokenize(tokenize('{{}}')), '{{}}');
   });
 }
 

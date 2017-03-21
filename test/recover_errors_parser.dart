@@ -88,6 +88,102 @@ void main() {
     expect(element.closeComplement.isSynthetic, false);
   });
 
+  test('Should resolve complicated nested danglings', () {
+    var asts = parse('<a><b></c></a></b>');
+    expect(asts.length, 2);
+
+    var elementA = asts[0];
+    expect(elementA.childNodes.length, 1);
+    expect(elementA.isSynthetic, false);
+    expect((elementA as ElementAst).closeComplement.isSynthetic, false);
+
+    var elementInnerB = elementA.childNodes[0];
+    expect(elementInnerB.childNodes.length, 1);
+    expect(elementInnerB.isSynthetic, false);
+    expect((elementInnerB as ElementAst).closeComplement.isSynthetic, true);
+
+    var elementC = elementInnerB.childNodes[0];
+    expect(elementC.childNodes.length, 0);
+    expect(elementC.isSynthetic, true);
+    expect((elementC as ElementAst).closeComplement.isSynthetic, false);
+
+    var elementOuterB = asts[1];
+    expect(elementOuterB.childNodes.length, 0);
+    expect(elementOuterB.isSynthetic, true);
+    expect((elementOuterB as ElementAst).closeComplement.isSynthetic, false);
+
+    expect(astsToString(asts), '<a><b><c></c></b></a><b></b>');
+  });
+
+  test('Should resolve dangling open ng-content', () {
+    var asts = parse('<div><ng-content></div>');
+    expect(asts.length, 1);
+
+    var div = asts[0];
+    expect(div.childNodes.length, 1);
+
+    var ngContent = div.childNodes[0];
+    expect(ngContent, new isInstanceOf<EmbeddedContentAst>());
+    expect(ngContent.isSynthetic, false);
+    expect((ngContent as EmbeddedContentAst).closeComplement.isSynthetic, true);
+
+    expect(
+        astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
+  });
+
+  test('Should resolve dangling close ng-content', () {
+    var asts = parse('<div></ng-content></div>');
+    expect(asts.length, 1);
+
+    var div = asts[0];
+    expect(div.childNodes.length, 1);
+
+    var ngContent = div.childNodes[0];
+    expect(ngContent, new isInstanceOf<EmbeddedContentAst>());
+    expect(ngContent.isSynthetic, true);
+    expect(
+        (ngContent as EmbeddedContentAst).closeComplement.isSynthetic, false);
+
+    expect(
+        astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
+  });
+
+  test('Should drop invalid attrs in ng-content', () {
+    var asts = parse(
+        '<ng-content bad = "badValue" select="*" [badProp] = "badPropValue"></ng-content>');
+    expect(asts.length, 1);
+
+    var ngcontent = asts[0] as EmbeddedContentAst;
+    expect(ngcontent.selector, '*');
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 2);
+
+    var e1 = exceptions[0];
+    var e2 = exceptions[1];
+
+    expect(e1.context, ' bad="badValue"');
+    expect(e1.offset, 11);
+    expect(e2.context, ' [badProp]="badPropValue"');
+    expect(e2.offset, 39);
+  });
+
+  test('Should drop duplicate select attrs in ng-content', () {
+    var asts =
+        parse('<ng-content select = "*" select = "badSelect"></ng-content>');
+    expect(asts.length, 1);
+
+    var ngcontent = asts[0] as EmbeddedContentAst;
+    expect(ngcontent.selector, '*');
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 1);
+
+    var e = exceptions[0];
+    expect(e.context, ' select="badSelect"');
+    expect(e.offset, 24);
+  });
+
   test('Should parse property decorators with invalid dart value', () {
     final asts = parse('<div [myProp]="["></div>');
     expect(asts.length, 1);

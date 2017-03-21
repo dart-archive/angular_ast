@@ -20,6 +20,10 @@ void main() {
     );
   }
 
+  test('should parse empty string', () {
+    expect(parse(''), []);
+  });
+
   test('should parse a text node', () {
     expect(
       parse('Hello World'),

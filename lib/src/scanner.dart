@@ -14,9 +14,6 @@ import 'package:source_span/source_span.dart';
 
 /// A wrapper around [StringScanner] that scans tokens from an HTML string.
 class NgScanner {
-  static const _findAfterInterpolation = '}}';
-  static const _findBeforeInterpolation = '{{';
-
   final NgTokenReversibleReader _reader;
   NgScannerState _state = NgScannerState.scanStart;
   final ExceptionHandler exceptionHandler;
@@ -138,10 +135,15 @@ class NgScanner {
             return null;
           } else if (_current.type == NgSimpleTokenType.openTagStart ||
               _current.type == NgSimpleTokenType.closeTagStart) {
-            // TODO: scan for <!-- in cases of it introduced in mid element
             returnToken = scanElementStart();
           } else if (_current.type == NgSimpleTokenType.commentBegin) {
             returnToken = scanBeforeComment();
+          } else if (_current.type == NgSimpleTokenType.mustacheBegin ||
+              _current.type == NgSimpleTokenType.mustacheEnd) {
+            // If [NgSimpleTokenType.mustacheEnd], then error - but let
+            // scanBeforeInterpolation handle it.
+            _state = NgScannerState.scanBeforeInterpolation;
+            return scanBeforeInterpolation();
           } else {
             returnToken = scanText();
           }
@@ -237,7 +239,8 @@ class NgScanner {
       _state = NgScannerState.scanStart;
       return new NgToken.interpolationEnd(_current.offset);
     }
-    return handleError();
+    var overrideMessage = 'Unclosed mustache';
+    return handleError(overrideMessage: overrideMessage);
   }
 
   @protected
@@ -270,7 +273,15 @@ class NgScanner {
       _state = NgScannerState.scanInterpolation;
       return new NgToken.interpolationStart(_current.offset);
     }
-    return handleError();
+
+    var override = _current;
+    if (_current.type == NgSimpleTokenType.text &&
+        _reader.peekType() == NgSimpleTokenType.mustacheEnd) {
+      override = _reader.peek();
+    }
+    var overrideMessage = 'Unopened mustache';
+    return handleError(
+        overrideMessage: overrideMessage, overrideToken: override);
   }
 
   @protected
@@ -346,7 +357,7 @@ class NgScanner {
         if (_recoverErrors) {
           rightQuoteOffset = current.end;
         } else {
-          return handleError(current);
+          return handleError(overrideToken: current);
         }
       } else {
         rightQuoteOffset = current.quoteEndOffset;
@@ -422,23 +433,6 @@ class NgScanner {
   NgToken scanInterpolation() {
     if (_current.type == NgSimpleTokenType.text) {
       _state = NgScannerState.scanAfterInterpolation;
-      String text = _current.lexeme;
-      int afterInterpolation = text.indexOf(_findAfterInterpolation);
-
-      if (afterInterpolation != -1) {
-        int textOffsetAfterMustacheEnd =
-            afterInterpolation + _findAfterInterpolation.length;
-        if ((_current.offset + textOffsetAfterMustacheEnd) != _current.end) {
-          _reader.putBack(new NgSimpleToken.text(
-              _current.offset + textOffsetAfterMustacheEnd,
-              text.substring(textOffsetAfterMustacheEnd)));
-        }
-        _reader.putBack(new NgSimpleToken.mustacheEnd(
-            _current.offset + afterInterpolation));
-        return new NgToken.interpolationValue(
-            _current.offset, text.substring(0, afterInterpolation));
-      }
-
       return new NgToken.interpolationValue(_current.offset, _current.lexeme);
     }
     return handleError();
@@ -512,30 +506,10 @@ class NgScanner {
 
   @protected
   NgToken scanText() {
-    // TODO: move interpolation token finding logic elsewhere(?)
-    // TODO: be able to pinpoint incorrectly overlapping mustaches too.
     if (_current.type == NgSimpleTokenType.text) {
-      String text = _current.lexeme;
-      int beforeInterpolation = text.indexOf(_findBeforeInterpolation);
-
-      if (beforeInterpolation != -1) {
-        int afterMustacheTextOffset =
-            beforeInterpolation + _findBeforeInterpolation.length;
-
-        _reader.putBack(new NgSimpleToken.text(
-            _current.offset + afterMustacheTextOffset,
-            text.substring(afterMustacheTextOffset)));
-
-        if (beforeInterpolation == 0) {
-          _state = NgScannerState.scanInterpolation;
-          return new NgToken.interpolationStart(_current.offset);
-        } else {
-          _reader.putBack(new NgSimpleToken.mustacheBegin(
-              _current.offset + beforeInterpolation));
-          _state = NgScannerState.scanBeforeInterpolation;
-          return new NgToken.text(
-              _current.offset, text.substring(0, beforeInterpolation));
-        }
+      if (_reader.peekType() == NgSimpleTokenType.mustacheEnd) {
+        _state = NgScannerState.scanBeforeInterpolation;
+        return scanBeforeInterpolation();
       }
       _state = NgScannerState.scanStart;
       return new NgToken.text(_current.offset, _current.lexeme);
@@ -543,10 +517,14 @@ class NgScanner {
     return handleError();
   }
 
-  NgToken handleError([NgSimpleToken override]) {
+  NgToken handleError({
+    String overrideMessage,
+    NgSimpleToken overrideToken,
+  }) {
     NgScannerState currentState = _state;
     _state = NgScannerState.hasError;
-    var e = _generateException(override);
+    var e = _generateException(
+        overrideMessage: overrideMessage, overrideToken: overrideToken);
     if (e != null) {
       exceptionHandler.handle(e);
     }
@@ -564,8 +542,12 @@ class NgScanner {
     }
   }
 
-  AngularParserException _generateException([NgSimpleToken override]) {
-    var token = override ?? _current;
+  AngularParserException _generateException({
+    String overrideMessage,
+    NgSimpleToken overrideToken,
+  }) {
+    var token = overrideToken ?? _current;
+    var message = overrideMessage ?? 'Unexpected token: $token';
     if (_recoverErrors && _lastToken != null && _lastToken.errorSynthetic) {
       return null;
     }
@@ -576,7 +558,7 @@ class NgScanner {
     _lastErrorToken = token;
 
     return new AngularParserException(
-      'Unexpected character: $token',
+      message,
       token.lexeme,
       token.offset,
     );

@@ -21,6 +21,7 @@ export 'package:angular_ast/src/ast.dart'
         ParsedAttributeAst,
         ParsedBananaAst,
         ParsedCloseElementAst,
+        ParsedEmbeddedContentAst,
         ParsedEventAst,
         ParsedElementAst,
         ParsedPropertyAst,
