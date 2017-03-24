@@ -13,10 +13,10 @@ import 'package:angular_ast/src/token/tokens.dart';
 final int generationCount = 10000;
 final int iterationCount = 50;
 
-final dir = p.join('test', 'random_generator_test');
-String incorrectFilename = "incorrect.html";
-String lexerFixedFilename = "lexer_fixed.html";
-String fullyFixedFilename = "ast_fixed.html";
+final String dir = p.join('test', 'random_generator_test');
+String incorrectFilename = 'incorrect.html';
+String lexerFixedFilename = 'lexer_fixed.html';
+String fullyFixedFilename = 'ast_fixed.html';
 
 String untokenize(Iterable<NgToken> tokens) => tokens
     .fold(new StringBuffer(), (buffer, token) => buffer..write(token.lexeme))
@@ -29,9 +29,9 @@ enum State {
   text,
 }
 
-String genericExpression = " + 1 + 2";
+String genericExpression = ' + 1 + 2';
 
-final elementMap = <NgSimpleTokenType>[
+List<NgSimpleTokenType> elementMap = <NgSimpleTokenType>[
   NgSimpleTokenType.bang,
   NgSimpleTokenType.closeBanana,
   NgSimpleTokenType.closeBracket,
@@ -55,7 +55,7 @@ final elementMap = <NgSimpleTokenType>[
   NgSimpleTokenType.voidCloseTag,
 ];
 
-final textMap = <NgSimpleTokenType>[
+List<NgSimpleTokenType> textMap = <NgSimpleTokenType>[
   NgSimpleTokenType.commentBegin,
   NgSimpleTokenType.openTagStart,
   NgSimpleTokenType.closeTagStart,
@@ -64,7 +64,7 @@ final textMap = <NgSimpleTokenType>[
 ];
 
 NgSimpleTokenType generateRandomSimple(State state) {
-  Random rng = new Random();
+  var rng = new Random();
   switch (state) {
     case State.comment:
       if (rng.nextInt(100) <= 20) {
@@ -72,7 +72,7 @@ NgSimpleTokenType generateRandomSimple(State state) {
       }
       return NgSimpleTokenType.commentEnd;
     case State.element:
-      int i = rng.nextInt(elementMap.length);
+      var i = rng.nextInt(elementMap.length);
       return elementMap[i];
     case State.interpolation:
       if (rng.nextInt(100) <= 20) {
@@ -80,7 +80,7 @@ NgSimpleTokenType generateRandomSimple(State state) {
       }
       return NgSimpleTokenType.mustacheEnd;
     case State.text:
-      int i = rng.nextInt(textMap.length);
+      var i = rng.nextInt(textMap.length);
       return textMap[i];
     default:
       return NgSimpleTokenType.unexpectedChar;
@@ -88,18 +88,18 @@ NgSimpleTokenType generateRandomSimple(State state) {
 }
 
 String generateHtmlString() {
-  State state = State.text;
-  StringBuffer sb = new StringBuffer();
-  int identifierCount = 0;
+  var state = State.text;
+  var sb = new StringBuffer();
+  var identifierCount = 0;
   for (int i = 0; i < generationCount; i++) {
-    NgSimpleTokenType type = generateRandomSimple(state);
+    var type = generateRandomSimple(state);
     switch (state) {
       case State.comment:
         if (type == NgSimpleTokenType.commentEnd) {
           state = State.text;
           sb.write(NgSimpleToken.lexemeMap[type]);
         } else {
-          sb.write(" some comment");
+          sb.write(' some comment');
         }
         break;
       case State.element:
@@ -111,7 +111,7 @@ String generateHtmlString() {
         } else if (type == NgSimpleTokenType.singleQuote) {
           sb.write("'someSingleQuoteValue'");
         } else if (type == NgSimpleTokenType.identifier) {
-          sb.write("ident" + identifierCount.toString());
+          sb.write('ident${identifierCount.toString()}');
           identifierCount++;
         } else if (type == NgSimpleTokenType.whitespace) {
           sb.write(' ');
@@ -141,9 +141,9 @@ String generateHtmlString() {
           sb.write(NgSimpleToken.lexemeMap[type]);
         } else if (type == NgSimpleTokenType.mustacheBegin) {
           state = State.interpolation;
-          sb.write(NgSimpleToken.lexemeMap[type] + '0');
+          sb.write('${NgSimpleToken.lexemeMap[type]}0');
         } else {
-          sb.write("lorem ipsum");
+          sb.write('lorem ipsum');
         }
         break;
       default:
@@ -154,48 +154,46 @@ String generateHtmlString() {
 }
 
 main() async {
-  RecoveringExceptionHandler exceptionHandler =
-      new RecoveringExceptionHandler();
+  var exceptionHandler = new RecoveringExceptionHandler();
 
-  int totalIncorrectLength = 0;
-  int totalLexerTime = 0;
-  int totalParserTime = 0;
+  var totalIncorrectLength = 0;
+  var totalLexerTime = 0;
+  var totalParserTime = 0;
 
   for (int i = 0; i < iterationCount; i++) {
-    print("Iteration $i of $iterationCount ...");
-    Stopwatch stopwatch = new Stopwatch();
+    print('Iteration $i of $iterationCount ...');
+    var stopwatch = new Stopwatch();
 
-    String incorrectHtml = generateHtmlString();
+    var incorrectHtml = generateHtmlString();
     totalIncorrectLength += incorrectHtml.length;
     await new File(p.join(dir, incorrectFilename)).writeAsString(incorrectHtml);
 
     stopwatch.reset();
     stopwatch.start();
-    Iterable<NgToken> lexerTokens =
-        const NgLexer().tokenize(incorrectHtml, exceptionHandler);
+    var lexerTokens = const NgLexer().tokenize(incorrectHtml, exceptionHandler);
     stopwatch.stop();
     totalLexerTime += stopwatch.elapsedMicroseconds;
-    String lexerFixedString = untokenize(lexerTokens);
+    var lexerFixedString = untokenize(lexerTokens);
     await new File(p.join(dir, lexerFixedFilename))
         .writeAsString(lexerFixedString);
     exceptionHandler.exceptions.clear();
 
     stopwatch.reset();
     stopwatch.start();
-    List<StandaloneTemplateAst> ast = const NgParser().parsePreserve(
+    var ast = const NgParser().parsePreserve(
       incorrectHtml,
       sourceUrl: '/test/parser_test.dart#inline',
       exceptionHandler: exceptionHandler,
     );
     stopwatch.stop();
     totalParserTime += stopwatch.elapsedMilliseconds;
-    HumanizingTemplateAstVisitor visitor = const HumanizingTemplateAstVisitor();
-    String fixedString = ast.map((t) => t.accept(visitor)).join('');
+    var visitor = const HumanizingTemplateAstVisitor();
+    var fixedString = ast.map((t) => t.accept(visitor)).join('');
     await new File(p.join(dir, fullyFixedFilename)).writeAsString(fixedString);
     exceptionHandler.exceptions.clear();
   }
 
-  print("Total lines scanned/parsed: $totalIncorrectLength");
-  print("Total time for lexer: $totalLexerTime microseconds");
-  print("Total time for parser: $totalParserTime ms");
+  print('Total lines scanned/parsed: $totalIncorrectLength');
+  print('Total time for lexer: $totalLexerTime microseconds');
+  print('Total time for parser: $totalParserTime ms');
 }

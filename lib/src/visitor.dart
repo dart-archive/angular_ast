@@ -73,7 +73,4 @@ abstract class TemplateAstVisitor<R, C> {
 
   /// Visits all text ASTs.
   R visitText(TextAst astNode, [C context]);
-
-  /// Visits all whitespace ASTs.
-  R visitWhitespace(WhitespaceAst astNode, [C context]);
 }

@@ -30,16 +30,16 @@ List<StandaloneTemplateAst> parsePreserve(String template) {
 }
 
 String astsToString(List<StandaloneTemplateAst> asts) {
-  HumanizingTemplateAstVisitor visitor = const HumanizingTemplateAstVisitor();
+  var visitor = const HumanizingTemplateAstVisitor();
   return asts.map((t) => t.accept(visitor)).join('');
 }
 
 void main() {
   test('Should close unclosed element tag', () {
-    final asts = parse('<div>');
+    var asts = parse('<div>');
     expect(asts.length, 1);
 
-    ElementAst element = asts[0];
+    var element = asts[0] as ElementAst;
     expect(element, new ElementAst('div', new CloseElementAst('div')));
     expect(element.closeComplement, new CloseElementAst('div'));
     expect(element.isSynthetic, false);
@@ -48,10 +48,10 @@ void main() {
   });
 
   test('Should add open element tag to dangling close tag', () {
-    final asts = parse('</div>');
+    var asts = parse('</div>');
     expect(asts.length, 1);
 
-    ElementAst element = asts[0];
+    var element = asts[0] as ElementAst;
     expect(element, new ElementAst('div', new CloseElementAst('div')));
     expect(element.closeComplement, new CloseElementAst('div'));
     expect(element.isSynthetic, true);
@@ -60,19 +60,19 @@ void main() {
   });
 
   test('Should not close a void tag', () {
-    final asts = parse('<hr/>');
+    var asts = parse('<hr/>');
     expect(asts.length, 1);
 
-    ElementAst element = asts[0];
+    var element = asts[0] as ElementAst;
     expect(element, new ElementAst('hr', null));
     expect(element.closeComplement, null);
   });
 
   test('Should add close tag to dangling open within nested', () {
-    final asts = parse('<div><div><div>text1</div>text2</div>');
+    var asts = parse('<div><div><div>text1</div>text2</div>');
     expect(asts.length, 1);
 
-    ElementAst element = asts[0];
+    var element = asts[0] as ElementAst;
     expect(element.childNodes.length, 1);
     expect(element.childNodes[0].childNodes.length, 2);
     expect(element.closeComplement.isSynthetic, true);
@@ -80,10 +80,10 @@ void main() {
   });
 
   test('Should add synthetic open to dangling close within nested', () {
-    final asts = parse('<div><div></div>text1</div>text2</div>');
+    var asts = parse('<div><div></div>text1</div>text2</div>');
     expect(asts.length, 3);
 
-    ElementAst element = asts[2];
+    var element = asts[2] as ElementAst;
     expect(element.isSynthetic, true);
     expect(element.closeComplement.isSynthetic, false);
   });
@@ -185,12 +185,12 @@ void main() {
   });
 
   test('Should parse property decorators with invalid dart value', () {
-    final asts = parse('<div [myProp]="["></div>');
+    var asts = parse('<div [myProp]="["></div>');
     expect(asts.length, 1);
 
-    ElementAst element = asts[0];
+    var element = asts[0] as ElementAst;
     expect(element.properties.length, 1);
-    PropertyAst property = element.properties[0];
+    var property = element.properties[0];
     expect(property.expression, null);
     expect(property.value, '[');
 
@@ -200,12 +200,12 @@ void main() {
   });
 
   test('Should parse event decorators with invalid dart value', () {
-    final asts = parse('<div (myEvnt)="["></div>');
+    var asts = parse('<div (myEvnt)="["></div>');
     expect(asts.length, 1);
 
-    ElementAst element = asts[0];
+    var element = asts[0] as ElementAst;
     expect(element.events.length, 1);
-    EventAst event = element.events[0];
+    var event = element.events[0];
     expect(event.expression, null);
     expect(event.value, '[');
 
@@ -215,10 +215,10 @@ void main() {
   });
 
   test('Should parse banana decorator with invalid dart value', () {
-    List asts = parsePreserve('<div [(myBnna)]="["></div>');
+    var asts = parsePreserve('<div [(myBnna)]="["></div>');
     expect(asts.length, 1);
 
-    ElementAst element = asts[0];
+    var element = asts[0] as ElementAst;
     expect(element.bananas.length, 1);
     expect(element.bananas[0].value, '[');
 
@@ -236,15 +236,14 @@ void main() {
   });
 
   test('Should parse star(non micro) decorator with invalid dart value', () {
-    List asts = parsePreserve('<div *ngFor="["></div>');
+    var asts = parsePreserve('<div *ngFor="["></div>');
     expect(asts.length, 1);
 
-    ElementAst element = asts[0];
+    var element = asts[0] as ElementAst;
     expect(element.stars.length, 1);
     expect(element.stars[0].value, '[');
 
-    EmbeddedTemplateAst template =
-        element.accept(desugarVisitor) as EmbeddedTemplateAst;
+    var template = element.accept(desugarVisitor) as EmbeddedTemplateAst;
     expect(template.properties.length, 1);
     expect(template.properties[0].expression, null);
 
@@ -254,15 +253,14 @@ void main() {
   });
 
   test('Should parse star(micro) decorator with invalid dart value', () {
-    List asts = parsePreserve('<div *ngFor="let["></div>');
+    var asts = parsePreserve('<div *ngFor="let["></div>');
     expect(asts.length, 1);
 
-    ElementAst element = asts[0];
+    var element = asts[0] as ElementAst;
     expect(element.stars.length, 1);
     expect(element.stars[0].value, 'let[');
 
-    EmbeddedTemplateAst template =
-        element.accept(desugarVisitor) as EmbeddedTemplateAst;
+    var template = element.accept(desugarVisitor) as EmbeddedTemplateAst;
     expect(template.properties.length, 0);
     expect(template.references.length, 0);
 

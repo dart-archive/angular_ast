@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 void main() {
   // Returns the html parsed as a series of tokens.
-  const ExceptionHandler exceptionHandler = const ThrowingExceptionHandler();
+  var exceptionHandler = const ThrowingExceptionHandler();
   Iterable<NgToken> tokenize(String html) =>
       const NgLexer().tokenize(html, exceptionHandler);
 
@@ -181,7 +181,7 @@ void main() {
         new NgToken.whitespace(15, '  '),
         new NgAttributeValueToken.generate(
             new NgToken.doubleQuote(17),
-            new NgToken.elementDecoratorValue(18, "Submit"),
+            new NgToken.elementDecoratorValue(18, 'Submit'),
             new NgToken.doubleQuote(24)),
         new NgToken.whitespace(25, '  '),
         new NgToken.openElementEnd(27),

@@ -33,8 +33,7 @@ export 'package:angular_ast/src/ast.dart'
         StarAst,
         SyntheticTemplateAst,
         TemplateAst,
-        TextAst,
-        WhitespaceAst;
+        TextAst;
 export 'package:angular_ast/src/exception_handler/exception_handler.dart'
     show ExceptionHandler, RecoveringExceptionHandler, ThrowingExceptionHandler;
 export 'package:angular_ast/src/lexer.dart' show NgLexer;
@@ -68,7 +67,7 @@ List<TemplateAst> parse(
   bool desugar: true,
   ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
 }) {
-  final parser = toolFriendlyAst
+  var parser = toolFriendlyAst
       ? const NgParser(toolFriendlyAstOrigin: true)
       : const NgParser();
   if (desugar) {

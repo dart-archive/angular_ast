@@ -20,7 +20,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitBanana(BananaAst astNode, [_]) {
-    String name = '[(${astNode.name})]';
+    var name = '[(${astNode.name})]';
     if (astNode.value != null) {
       return '$name="${astNode.value}"';
     } else {
@@ -31,11 +31,7 @@ class HumanizingTemplateAstVisitor
   @override
   String visitCloseElement(CloseElementAst astNode, [StringBuffer context]) {
     context ??= new StringBuffer();
-    context..write('</')..write(astNode.name);
-    if (astNode.whitespaces.isNotEmpty) {
-      context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
-    }
-    context.write('>');
+    context..write('</')..write(astNode.name)..write('>');
     return context.toString();
   }
 
@@ -77,9 +73,6 @@ class HumanizingTemplateAstVisitor
       context
         ..write(' ')
         ..writeAll(astNode.stars.map(visitStar), ' ');
-    }
-    if (astNode.whitespaces.isNotEmpty) {
-      context..writeAll(astNode.whitespaces.map(visitWhitespace), ' ');
     }
 
     if (astNode.isSynthetic) {
@@ -144,7 +137,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitEvent(EventAst astNode, [_]) {
-    String name = '(${astNode.name})';
+    var name = '(${astNode.name})';
     if (astNode.value != null) {
       return '$name="${astNode.value}"';
     } else {
@@ -164,7 +157,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitProperty(PropertyAst astNode, [_]) {
-    String name = '[${astNode.name}]';
+    var name = '[${astNode.name}]';
     if (astNode.value != null) {
       return '$name="${astNode.value}"';
     } else {
@@ -174,7 +167,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitReference(ReferenceAst astNode, [_]) {
-    String identifier = '#${astNode.identifier}';
+    var identifier = '#${astNode.identifier}';
     if (astNode.variable != null) {
       return '$identifier="${astNode.variable}"';
     } else {
@@ -184,7 +177,7 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitStar(StarAst astNode, [_]) {
-    String name = '${astNode.name}';
+    var name = '${astNode.name}';
     if (astNode.value != null) {
       return 'name="${astNode.value}"';
     } else {
@@ -194,7 +187,4 @@ class HumanizingTemplateAstVisitor
 
   @override
   String visitText(TextAst astNode, [_]) => astNode.value;
-
-  @override
-  String visitWhitespace(WhitespaceAst astNode, [_]) => astNode.value;
 }

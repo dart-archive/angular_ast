@@ -7,11 +7,11 @@ import 'package:test/test.dart';
 
 void main() {
   // DesugarVisitor is tested by parser_test.dart
-  final visitor = const HumanizingTemplateAstVisitor();
+  var visitor = const HumanizingTemplateAstVisitor();
 
   test('should humanize a simple template and preserve inner spaces', () {
-    String templateString = '<button [title]="aTitle">Hello {{name}}</button>';
-    final template = parse(
+    var templateString = '<button [title]="aTitle">Hello {{name}}</button>';
+    var template = parse(
       templateString,
       sourceUrl: '/test/visitor_test.dart#inline',
     );
@@ -22,7 +22,7 @@ void main() {
   });
 
   test('should humanize a simple template *with* de-sugaring applied', () {
-    List<TemplateAst> template = parse(
+    var template = parse(
         '<widget *ngIf="someValue" [(value)]="value"></widget>',
         sourceUrl: '/test/visitor_test.dart#inline',
         toolFriendlyAst: false,

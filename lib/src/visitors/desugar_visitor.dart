@@ -27,9 +27,9 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
 
   @override
   TemplateAst visitBanana(BananaAst astNode, [String flag]) {
-    TemplateAst origin = _toolFriendlyAstOrigin ? astNode : null;
+    var origin = _toolFriendlyAstOrigin ? astNode : null;
 
-    String appendedValue = (flag == 'event') ? ' = \$event' : '';
+    var appendedValue = (flag == 'event') ? ' = \$event' : '';
     ExpressionAst expressionAst;
     if (astNode.value != null) {
       try {
@@ -38,7 +38,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
       } catch (e) {
         exceptionHandler.handle(e);
       }
-      if (flag == "event") {
+      if (flag == 'event') {
         return new EventAst.from(
           origin,
           astNode.name + 'Changed',
@@ -46,7 +46,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
           expressionAst,
         );
       }
-      if (flag == "property") {
+      if (flag == 'property') {
         return new PropertyAst.from(
           origin,
           astNode.name,
@@ -69,20 +69,20 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
   TemplateAst visitElement(ElementAst astNode, [_]) {
     if (astNode.bananas.isNotEmpty) {
       for (BananaAst bananaAst in astNode.bananas) {
-        TemplateAst toAddEvent = visitBanana(bananaAst, "event");
+        var toAddEvent = visitBanana(bananaAst, 'event');
         astNode.events.add(toAddEvent);
 
-        TemplateAst toAddProperty = visitBanana(bananaAst, "property");
+        var toAddProperty = visitBanana(bananaAst, 'property');
         astNode.properties.add(toAddProperty);
       }
       astNode.bananas.clear();
     }
 
     if (astNode.stars.isNotEmpty) {
-      StarAst starAst = astNode.stars[0];
-      TemplateAst origin = _toolFriendlyAstOrigin ? starAst : null;
-      final starExpression = starAst.value;
-      final directiveName = starAst.name;
+      var starAst = astNode.stars[0];
+      var origin = _toolFriendlyAstOrigin ? starAst : null;
+      var starExpression = starAst.value;
+      var directiveName = starAst.name;
       TemplateAst newAst;
 
       if (isMicroExpression(starExpression)) {
@@ -96,10 +96,8 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
         } catch (e) {
           exceptionHandler.handle(e);
         }
-        List<PropertyAst> properties =
-            micro == null ? <PropertyAst>[] : micro.properties;
-        List<ReferenceAst> references =
-            micro == null ? <ReferenceAst>[] : micro.assignments;
+        var properties = micro == null ? <PropertyAst>[] : micro.properties;
+        var references = micro == null ? <ReferenceAst>[] : micro.assignments;
         newAst = new EmbeddedTemplateAst.from(
           origin,
           childNodes: [
@@ -112,7 +110,7 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
           references: references,
         );
       } else {
-        ExpressionAst expression;
+        var expression;
         try {
           expression = new ExpressionAst.parse(
             starExpression,
@@ -170,7 +168,4 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
 
   @override
   TemplateAst visitText(TextAst astNode, [_]) => astNode;
-
-  @override
-  TemplateAst visitWhitespace(WhitespaceAst astNode, [_]) => astNode;
 }

@@ -14,8 +14,8 @@ class NgSimpleTokenizer {
   const NgSimpleTokenizer._();
 
   Iterable<NgSimpleToken> tokenize(String template) sync* {
-    final scanner = new NgSimpleScanner(template);
-    NgSimpleToken token = scanner.scan();
+    var scanner = new NgSimpleScanner(template);
+    var token = scanner.scan();
     while (token.type != NgSimpleTokenType.EOF) {
       yield token;
       token = scanner.scan();
@@ -41,11 +41,11 @@ class NgSimpleScanner {
       r'([a-zA-Z]([\w\_\-])*[a-zA-Z0-9]?)|' //10 any alphanumeric + '-' + '_'
       r'("([^"\\]|\\.)*"?)|' //12 closed double quote (includes group 13)
       r"('([^'\\]|\\.)*'?)|" //14 closed single quote (includes group 15)
-      r"(<)|" //16 <
-      r"(=)|" //17 =
-      r"(\*)|" //18 *
-      r"(\#)|" //19 #
-      r"(\.)"); //20 .
+      r'(<)|' //16 <
+      r'(=)|' //17 =
+      r'(\*)|' //18 *
+      r'(\#)|' //19 #
+      r'(\.)'); //20 .
   static final _commentEnd = new RegExp('-->');
   static final _mustaches = new RegExp(r'({{)|(}})');
 
@@ -77,7 +77,7 @@ class NgSimpleScanner {
   }
 
   NgSimpleToken scanComment() {
-    int offset = _scanner.position;
+    var offset = _scanner.position;
     while (true) {
       if (_scanner.peekChar() == $dash &&
           _scanner.peekChar(1) == $dash &&
@@ -98,19 +98,19 @@ class NgSimpleScanner {
   }
 
   NgSimpleToken scanCommentEnd() {
-    int offset = _scanner.position;
+    var offset = _scanner.position;
     _scanner.scan(_commentEnd);
     _state = _NgSimpleScannerState.text;
     return new NgSimpleToken.commentEnd(offset);
   }
 
   NgSimpleToken scanElement() {
-    int offset = _scanner.position;
+    var offset = _scanner.position;
     if (_scanner.peekChar() == null) {
       return new NgSimpleToken.EOF(offset);
     }
     if (_scanner.scan(_allElementMatches)) {
-      Match match = _scanner.lastMatch;
+      var match = _scanner.lastMatch;
       if (matchesGroup(match, 1)) {
         return new NgSimpleToken.closeBracket(offset);
       }
@@ -153,18 +153,18 @@ class NgSimpleScanner {
         return new NgSimpleToken.whitespace(offset, _scanner.substring(offset));
       }
       if (matchesGroup(match, 10)) {
-        String s = _scanner.substring(offset);
+        var s = _scanner.substring(offset);
         return new NgSimpleToken.identifier(offset, s);
       }
       if (matchesGroup(match, 12)) {
-        String lexeme = _scanner.substring(offset).replaceAll(r'\"', '"');
-        bool isClosed = lexeme[lexeme.length - 1] == '"';
+        var lexeme = _scanner.substring(offset).replaceAll(r'\"', '"');
+        var isClosed = lexeme[lexeme.length - 1] == '"';
         return new NgSimpleQuoteToken.doubleQuotedText(
             offset, lexeme, isClosed);
       }
       if (matchesGroup(match, 14)) {
-        String lexeme = _scanner.substring(offset).replaceAll(r"\'", "'");
-        bool isClosed = lexeme[lexeme.length - 1] == "'";
+        var lexeme = _scanner.substring(offset).replaceAll(r"\'", "'");
+        var isClosed = lexeme[lexeme.length - 1] == "'";
         return new NgSimpleQuoteToken.singleQuotedText(
             offset, lexeme, isClosed);
       }
@@ -200,12 +200,12 @@ class NgSimpleScanner {
   }
 
   NgSimpleToken scanText() {
-    int offset = _scanner.position;
+    var offset = _scanner.position;
     if (_scanner.peekChar() == null || _scanner.rest.length == 0) {
       return new NgSimpleToken.EOF(offset);
     }
     if (_scanner.scan(_allTextMatches)) {
-      Match match = _scanner.lastMatch;
+      var match = _scanner.lastMatch;
       if (matchesGroup(match, 1)) {
         var text = _scanner.substring(offset);
         var mustacheMatch = _mustaches.firstMatch(text);

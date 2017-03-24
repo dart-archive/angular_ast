@@ -19,7 +19,7 @@ class NgMicroParser {
     String expression, {
     @required String sourceUrl,
   }) {
-    final tokens = const NgMicroLexer().tokenize(expression).iterator;
+    var tokens = const NgMicroLexer().tokenize(expression).iterator;
     return new _RecursiveMicroAstParser(
       directive,
       expression,
@@ -48,7 +48,7 @@ class _RecursiveMicroAstParser {
 
   NgMicroAst parse() {
     while (_tokens.moveNext()) {
-      final token = _tokens.current;
+      var token = _tokens.current;
       if (token.type == NgMicroTokenType.letKeyword) {
         _parseLet();
       } else if (token.type == NgMicroTokenType.bindIdentifier) {
@@ -61,14 +61,14 @@ class _RecursiveMicroAstParser {
   }
 
   void _parseBind() {
-    final name = _tokens.current.lexeme;
+    var name = _tokens.current.lexeme;
     if (!_tokens.moveNext() ||
         _tokens.current.type != NgMicroTokenType.bindExpressionBefore ||
         !_tokens.moveNext() ||
         _tokens.current.type != NgMicroTokenType.bindExpression) {
       throw _unexpected();
     }
-    final value = _tokens.current.lexeme;
+    var value = _tokens.current.lexeme;
     properties.add(new PropertyAst(
       '${_directive}${name[0].toUpperCase()}${name.substring(1)}',
       value,
@@ -101,14 +101,14 @@ class _RecursiveMicroAstParser {
       if (_tokens.current.type != NgMicroTokenType.bindIdentifier) {
         throw _unexpected();
       }
-      final property = _tokens.current.lexeme;
+      var property = _tokens.current.lexeme;
       if (!_tokens.moveNext() ||
           _tokens.current.type != NgMicroTokenType.bindExpressionBefore ||
           !_tokens.moveNext() ||
           _tokens.current.type != NgMicroTokenType.bindExpression) {
         throw _unexpected();
       }
-      final expression = _tokens.current.lexeme;
+      var expression = _tokens.current.lexeme;
       properties.add(new PropertyAst(
         '${_directive}${property[0].toUpperCase()}${property.substring(1)}',
         expression,

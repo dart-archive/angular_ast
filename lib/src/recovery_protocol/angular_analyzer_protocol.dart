@@ -38,8 +38,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
-    int offset = current.offset;
+    var type = current.type;
+    var offset = current.offset;
 
     if (type == NgSimpleTokenType.openBracket ||
         type == NgSimpleTokenType.openParen ||
@@ -54,7 +54,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       returnState = NgScannerState.scanElementDecorator;
       returnToken = new NgToken.generateErrorSynthetic(
           offset, NgTokenType.beforeElementDecorator,
-          lexeme: " ");
+          lexeme: ' ');
     } else if (type == NgSimpleTokenType.EOF ||
         type == NgSimpleTokenType.commentBegin ||
         type == NgSimpleTokenType.openTagStart ||
@@ -79,8 +79,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
-    int offset = current.offset;
+    var type = current.type;
+    var offset = current.offset;
 
     if (type == NgSimpleTokenType.openBracket ||
         type == NgSimpleTokenType.openParen ||
@@ -117,8 +117,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
-    int offset = current.offset;
+    var type = current.type;
+    var offset = current.offset;
 
     if (type == NgSimpleTokenType.commentBegin ||
         type == NgSimpleTokenType.openTagStart ||
@@ -141,7 +141,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
+    var type = current.type;
 
     if (type == NgSimpleTokenType.openBracket ||
         type == NgSimpleTokenType.openParen ||
@@ -157,7 +157,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       reader.putBack(current);
       returnToken = new NgToken.generateErrorSynthetic(
           current.offset, NgTokenType.beforeElementDecorator,
-          lexeme: " ");
+          lexeme: ' ');
       returnState = NgScannerState.scanElementDecorator;
     } else if (type == NgSimpleTokenType.commentBegin ||
         type == NgSimpleTokenType.openTagStart ||
@@ -254,8 +254,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
-    int offset = current.offset;
+    var type = current.type;
+    var offset = current.offset;
 
     if (type == NgSimpleTokenType.equalSign ||
         type == NgSimpleTokenType.commentBegin ||
@@ -299,8 +299,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
-    int offset = current.offset;
+    var type = current.type;
+    var offset = current.offset;
 
     if (type == NgSimpleTokenType.openBracket ||
         type == NgSimpleTokenType.openParen ||
@@ -321,11 +321,11 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       reader.putBack(current);
       returnState = NgScannerState.scanAfterElementDecoratorValue;
 
-      NgToken left =
+      var left =
           new NgToken.generateErrorSynthetic(offset, NgTokenType.doubleQuote);
-      NgToken value = new NgToken.generateErrorSynthetic(
+      var value = new NgToken.generateErrorSynthetic(
           offset, NgTokenType.elementDecoratorValue);
-      NgToken right =
+      var right =
           new NgToken.generateErrorSynthetic(offset, NgTokenType.doubleQuote);
 
       returnToken = new NgAttributeValueToken.generate(left, value, right);
@@ -339,8 +339,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
-    int offset = current.offset;
+    var type = current.type;
+    var offset = current.offset;
 
     if (type == NgSimpleTokenType.commentBegin ||
         type == NgSimpleTokenType.openTagStart ||
@@ -369,8 +369,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
-    int offset = current.offset;
+    var type = current.type;
+    var offset = current.offset;
 
     if (type == NgSimpleTokenType.closeTagStart ||
         type == NgSimpleTokenType.openTagStart ||
@@ -392,8 +392,8 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
-    int offset = current.offset;
+    var type = current.type;
+    var offset = current.offset;
 
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
@@ -445,7 +445,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
+    var type = current.type;
 
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
@@ -466,7 +466,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
+    var type = current.type;
 
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
@@ -486,7 +486,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
+    var type = current.type;
 
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
@@ -506,7 +506,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
+    var type = current.type;
 
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
@@ -532,7 +532,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
+    var type = current.type;
 
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.forwardSlash ||
@@ -552,7 +552,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
+    var type = current.type;
 
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.forwardSlash ||
@@ -572,7 +572,7 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
       NgSimpleToken current, NgTokenReversibleReader reader) {
     NgScannerState returnState;
     NgToken returnToken;
-    NgSimpleTokenType type = current.type;
+    var type = current.type;
 
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.forwardSlash ||

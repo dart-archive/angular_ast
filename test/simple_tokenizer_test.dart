@@ -69,7 +69,7 @@ void main() {
   test('should tokenize an HTML element with void', () {
     expect(tokenize('<hr/>'), [
       new NgSimpleToken.openTagStart(0),
-      new NgSimpleToken.identifier(1, "hr"),
+      new NgSimpleToken.identifier(1, 'hr'),
       new NgSimpleToken.voidCloseTag(3),
       new NgSimpleToken.EOF(5),
     ]);
@@ -224,7 +224,7 @@ void main() {
   test('should tokenize asterisks', () {
     expect(tokenize('<span *ngIf="some bool"></span>'), [
       new NgSimpleToken.openTagStart(0),
-      new NgSimpleToken.identifier(1, "span"),
+      new NgSimpleToken.identifier(1, 'span'),
       new NgSimpleToken.whitespace(5, ' '),
       new NgSimpleToken.star(6),
       new NgSimpleToken.identifier(7, 'ngIf'),
