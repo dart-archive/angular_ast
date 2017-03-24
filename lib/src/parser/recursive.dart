@@ -8,7 +8,6 @@ import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/parser/reader.dart';
 import 'package:angular_ast/src/token/tokens.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:source_span/source_span.dart';
 
 /// A recursive descent AST parser from a series of tokens.
