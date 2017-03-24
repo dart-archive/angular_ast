@@ -512,7 +512,7 @@ class RecursiveAstParser {
       _consumeWhitespaces();
       lastConsumedToken = _reader.next(); // Attribute value
     }
-    return lastConsumedToken.end;
+    return lastConsumedToken?.end ?? nextToken.end;
   }
 
   /// Returns and parses an interpolation AST.
