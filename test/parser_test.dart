@@ -312,6 +312,14 @@ void main() {
     );
   });
 
+  test('should parse a structural directive in child position', () {
+    expect(
+      parse('<div><div *ngIf="someValue">Hello World</div></div>'),
+      parse(
+          '<div><template [ngIf]="someValue"><div>Hello World</div></template></div>'),
+    );
+  });
+
   test('should parse a void element (implicit)', () {
     expect(
       parse('<input><div></div>'),

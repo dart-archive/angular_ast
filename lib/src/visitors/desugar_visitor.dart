@@ -58,9 +58,12 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
 
   @override
   TemplateAst visitElement(ElementAst astNode, [_]) {
+    var newChildren = <StandaloneTemplateAst>[];
     astNode.childNodes.forEach((child) {
-      child.accept(this);
+      newChildren.add(child.accept(this) as StandaloneTemplateAst);
     });
+    astNode.childNodes.clear();
+    astNode.childNodes.addAll(newChildren);
 
     if (astNode.bananas.isNotEmpty) {
       for (BananaAst bananaAst in astNode.bananas) {
