@@ -10,24 +10,18 @@ import 'package:test/test.dart';
 RecoveringExceptionHandler recoveringExceptionHandler =
     new RecoveringExceptionHandler();
 
-DesugarVisitor desugarVisitor =
-    new DesugarVisitor(exceptionHandler: recoveringExceptionHandler);
-
-List<StandaloneTemplateAst> parse(String template) {
+List<StandaloneTemplateAst> parse(
+  String template, {
+  desugar: false,
+  bool parseExpression: false,
+}) {
   recoveringExceptionHandler.exceptions.clear();
-  return const NgParser().parsePreserve(
+  return const NgParser().parse(
     template,
     sourceUrl: '/test/recover_error_Parser.dart#inline',
     exceptionHandler: recoveringExceptionHandler,
-  );
-}
-
-List<StandaloneTemplateAst> parsePreserve(String template) {
-  recoveringExceptionHandler.exceptions.clear();
-  return const NgParser().parsePreserve(
-    template,
-    sourceUrl: '/test/recover_error_Parser.dart#inline',
-    exceptionHandler: recoveringExceptionHandler,
+    desugar: desugar,
+    parseExpressions: parseExpression,
   );
 }
 
@@ -341,7 +335,7 @@ void main() {
   });
 
   test('Should parse property decorators with invalid dart value', () {
-    var asts = parse('<div [myProp]="["></div>');
+    var asts = parse('<div [myProp]="["></div>', parseExpression: true);
     expect(asts.length, 1);
 
     var element = asts[0] as ElementAst;
@@ -354,7 +348,7 @@ void main() {
   });
 
   test('Should parse event decorators with invalid dart value', () {
-    var asts = parse('<div (myEvnt)="["></div>');
+    var asts = parse('<div (myEvnt)="["></div>', parseExpression: true);
     expect(asts.length, 1);
 
     var element = asts[0] as ElementAst;
@@ -367,14 +361,16 @@ void main() {
   });
 
   test('Should parse banana decorator with invalid dart value', () {
-    var asts = parsePreserve('<div [(myBnna)]="["></div>');
+    var asts = parse(
+      '<div [(myBnna)]="["></div>',
+      desugar: true,
+      parseExpression: true,
+    );
     expect(asts.length, 1);
 
     var element = asts[0] as ElementAst;
-    expect(element.bananas.length, 1);
-    expect(element.bananas[0].value, '[');
+    expect(element.bananas.length, 0);
 
-    element.accept(desugarVisitor);
     expect(element.events.length, 1);
     expect(element.properties.length, 1);
     expect(element.events[0].expression, null);
@@ -383,51 +379,45 @@ void main() {
     expect(recoveringExceptionHandler.exceptions.length, 2);
     var e1 = recoveringExceptionHandler.exceptions[0];
     expect(e1.errorCode, ParserErrorCode.MISSING_IDENTIFIER);
-    expect(e1.offset, 19);
-    expect(e1.length, 1);
-
     var e2 = recoveringExceptionHandler.exceptions[1];
     expect(e2.errorCode, ParserErrorCode.MISSING_IDENTIFIER);
-    expect(e2.offset, 17);
-    expect(e2.length, 1);
   });
 
   test('Should parse star(non micro) decorator with invalid dart value', () {
-    var asts = parsePreserve('<div *ngFor="["></div>');
+    var asts =
+        parse('<div *ngFor="["></div>', desugar: true, parseExpression: true);
     expect(asts.length, 1);
+    expect(asts[0], new isInstanceOf<EmbeddedTemplateAst>());
 
-    var element = asts[0] as ElementAst;
-    expect(element.stars.length, 1);
-    expect(element.stars[0].value, '[');
-
-    var template = element.accept(desugarVisitor) as EmbeddedTemplateAst;
+    var template = asts[0] as EmbeddedTemplateAst;
     expect(template.properties.length, 1);
     expect(template.properties[0].expression, null);
 
     expect(recoveringExceptionHandler.exceptions.length, 1);
     var exception = recoveringExceptionHandler.exceptions[0];
     expect(exception.errorCode, ParserErrorCode.MISSING_IDENTIFIER);
-    expect(exception.offset, 13);
-    expect(exception.length, 1);
   });
 
   test('Should parse star(micro) decorator with invalid dart value', () {
-    var asts = parsePreserve('<div *ngFor="let["></div>');
+    var asts = parse(
+      '<div *ngFor="let["></div>',
+      desugar: true,
+      parseExpression: true,
+    );
     expect(asts.length, 1);
-
+    // Desugaring fails, so remains as [ElementAst]
+    // instead of [EmbeddedTemplateAst].
+    expect(asts[0], new isInstanceOf<ElementAst>());
     var element = asts[0] as ElementAst;
+    expect(element.properties.length, 0);
+    expect(element.references.length, 0);
     expect(element.stars.length, 1);
-    expect(element.stars[0].value, 'let[');
-
-    var template = element.accept(desugarVisitor) as EmbeddedTemplateAst;
-    expect(template.properties.length, 0);
-    expect(template.references.length, 0);
 
     checkException(NgParserWarningCode.INVALID_MICRO_EXPRESSION, 13, 4);
   });
 
   test('Should resolve event name with too many fixes', () {
-    var asts = parsePreserve('<div (event.postfix.illegal)="blah"></div>');
+    var asts = parse('<div (event.postfix.illegal)="blah"></div>');
     expect(asts.length, 1);
 
     var element = asts[0] as ElementAst;
@@ -440,7 +430,7 @@ void main() {
   });
 
   test('Should resolve property name with too many fixes', () {
-    var asts = parsePreserve('<div [prop.postfix.unit.illegal]="blah"></div>');
+    var asts = parse('<div [prop.postfix.unit.illegal]="blah"></div>');
     expect(asts.length, 1);
 
     var element = asts[0] as ElementAst;

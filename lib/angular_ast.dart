@@ -23,6 +23,7 @@ export 'package:angular_ast/src/ast.dart'
         ParsedCloseElementAst,
         ParsedEmbeddedContentAst,
         ParsedEventAst,
+        ParsedInterpolationAst,
         ParsedElementAst,
         ParsedPropertyAst,
         ParsedReferenceAst,
@@ -42,6 +43,7 @@ export 'package:angular_ast/src/token/tokens.dart'
     show NgToken, NgTokenType, NgAttributeValueToken;
 export 'package:angular_ast/src/visitor.dart'
     show
+        ExpressionParserVisitor,
         HumanizingTemplateAstVisitor,
         IdentityTemplateAstVisitor,
         TemplateAstVisitor,
@@ -62,22 +64,18 @@ List<TemplateAst> parse(
   @required String sourceUrl,
   bool toolFriendlyAst: false, // Only needed if desugar = true
   bool desugar: true,
+  bool parseExpressions: true,
   ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
 }) {
   var parser = toolFriendlyAst
       ? const NgParser(toolFriendlyAstOrigin: true)
       : const NgParser();
-  if (desugar) {
-    return parser.parse(
-      template,
-      sourceUrl: sourceUrl,
-      exceptionHandler: exceptionHandler,
-    );
-  } else {
-    return parser.parsePreserve(
-      template,
-      sourceUrl: sourceUrl,
-      exceptionHandler: exceptionHandler,
-    );
-  }
+
+  return parser.parse(
+    template,
+    sourceUrl: sourceUrl,
+    exceptionHandler: exceptionHandler,
+    desugar: desugar,
+    parseExpressions: parseExpressions,
+  );
 }

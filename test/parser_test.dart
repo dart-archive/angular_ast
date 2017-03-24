@@ -14,9 +14,11 @@ void main() {
   }
 
   List<StandaloneTemplateAst> parsePreserve(String template) {
-    return const NgParser().parsePreserve(
+    return const NgParser().parse(
       template,
       sourceUrl: '/test/parser_test.dart#inline',
+      desugar: false,
+      parseExpressions: false,
     );
   }
 

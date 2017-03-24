@@ -53,11 +53,6 @@ void main() {
           new PropertyAst(
             'ngForOf',
             'items.where(filter)',
-            new ExpressionAst.parse(
-              'items.where(filter)',
-              9,
-              sourceUrl: '/test/expression/micro/parser_test.dart#inline',
-            ),
           ),
         ],
       ),
@@ -75,20 +70,10 @@ void main() {
           new PropertyAst(
             'ngForOf',
             'items',
-            new ExpressionAst.parse(
-              'items',
-              12,
-              sourceUrl: '/test/expression/micro/parser_test.dart#inline',
-            ),
           ),
           new PropertyAst(
             'ngForTrackBy',
             'byId',
-            new ExpressionAst.parse(
-              'byId',
-              28,
-              sourceUrl: '/test/expression/micro/parser_test.dart#inline',
-            ),
           ),
         ],
       ),

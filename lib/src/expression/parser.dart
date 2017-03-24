@@ -33,7 +33,6 @@ class _ThrowingListener implements AnalysisErrorListener {
 /// Parses a template [expression].
 Expression parseExpression(
   String expression, {
-  bool deSugarPipes: true,
   @required String sourceUrl,
 }) {
   final source = _resourceProvider
@@ -48,30 +47,24 @@ Expression parseExpression(
   final parser = new _NgExpressionParser(
     source,
     listener,
-    deSugarPipes: deSugarPipes,
   );
   return parser.parseExpression(scanner.tokenize());
 }
 
 /// Extends the Dart language to understand the current Angular 'pipe' syntax.
+/// Angular syntax disallows bitwise-or operation. Any '|' seen will
+/// be treated as a pipe.
 ///
 /// Based on https://github.com/dart-lang/angular_analyzer_plugin/pull/160
 class _NgExpressionParser extends Parser {
-  final bool _deSugarPipes;
-
   _NgExpressionParser(
     Source source,
-    AnalysisErrorListener errorListener, {
-    bool deSugarPipes,
-  })
-      : _deSugarPipes = deSugarPipes,
-        super(source, errorListener);
+    AnalysisErrorListener errorListener,
+  )
+      : super(source, errorListener);
 
   @override
   Expression parseBitwiseOrExpression() {
-    if (!_deSugarPipes) {
-      return super.parseBitwiseOrExpression();
-    }
     Expression expression;
     if (currentToken.keyword == Keyword.SUPER &&
         currentToken.next.type == TokenType.BAR) {

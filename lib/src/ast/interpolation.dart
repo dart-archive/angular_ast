@@ -25,10 +25,9 @@ abstract class InterpolationAst implements StandaloneTemplateAst {
   factory InterpolationAst.parsed(
     SourceFile sourceFile,
     NgToken beginToken,
-    String value,
-    ExpressionAst expression,
+    NgToken valueToken,
     NgToken endToken,
-  ) = _ParsedInterpolationAst;
+  ) = ParsedInterpolationAst;
 
   @override
   /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
@@ -37,6 +36,7 @@ abstract class InterpolationAst implements StandaloneTemplateAst {
 
   /// Bound expression.
   ExpressionAst get expression;
+  set expression(ExpressionAst expression);
 
   /// Bound String value used in expression; used to preserve offsets
   String get value;
@@ -53,27 +53,28 @@ abstract class InterpolationAst implements StandaloneTemplateAst {
   String toString() => '$InterpolationAst {$value}';
 }
 
-class _ParsedInterpolationAst extends TemplateAst with InterpolationAst {
+class ParsedInterpolationAst extends TemplateAst with InterpolationAst {
   @override
-  final ExpressionAst expression;
+  ExpressionAst expression;
 
-  @override
-  final String value;
+  final NgToken valueToken;
 
-  _ParsedInterpolationAst(
+  ParsedInterpolationAst(
     SourceFile sourceFile,
     NgToken beginToken,
-    this.value,
-    this.expression,
+    this.valueToken,
     NgToken endToken,
   )
       : super.parsed(beginToken, endToken, sourceFile);
+
+  @override
+  String get value => valueToken.lexeme;
 }
 
 class _SyntheticInterpolationAst extends SyntheticTemplateAst
     with InterpolationAst {
   @override
-  final ExpressionAst expression;
+  ExpressionAst expression;
 
   _SyntheticInterpolationAst(this.expression);
 

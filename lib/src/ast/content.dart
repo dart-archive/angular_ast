@@ -19,9 +19,9 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
 
   /// Create a synthetic [EmbeddedContentAst] that originated from [origin].
   factory EmbeddedContentAst.from(
-    TemplateAst origin,
+    TemplateAst origin, [
     String selector,
-  ) = _SyntheticEmbeddedContentAst.from;
+  ]) = _SyntheticEmbeddedContentAst.from;
 
   /// Create a new [EmbeddedContentAst] parsed from tokens in [sourceFile].
   factory EmbeddedContentAst.parsed(

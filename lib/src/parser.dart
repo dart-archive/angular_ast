@@ -53,27 +53,9 @@ class NgParser {
   List<StandaloneTemplateAst> parse(
     String template, {
     @required String sourceUrl,
+    bool desugar: true,
+    bool parseExpressions: true,
     ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
-  }) {
-    var asts = parsePreserve(
-      template,
-      sourceUrl: sourceUrl,
-      exceptionHandler: exceptionHandler,
-      deSugarPipes: true,
-    );
-    var visitor =
-        new DesugarVisitor(toolFriendlyAstOrigin: _toolFriendlyAstOrigin);
-    return asts.map((t) => t.accept(visitor)).toList();
-  }
-
-  /// Return a series of tokens by incrementally scanning [template].
-  ///
-  /// Does not automatically desugar.
-  List<StandaloneTemplateAst> parsePreserve(
-    String template, {
-    @required String sourceUrl,
-    ExceptionHandler exceptionHandler: const ThrowingExceptionHandler(),
-    bool deSugarPipes: false,
   }) {
     var tokens = const NgLexer().tokenize(template, exceptionHandler);
     var parser = new RecursiveAstParser(
@@ -84,8 +66,23 @@ class NgParser {
       tokens,
       _voidElements,
       exceptionHandler,
-      deSugarPipes,
     );
-    return parser.parse();
+    var asts = parser.parse();
+    if (desugar) {
+      var desugarVisitor = new DesugarVisitor(
+        toolFriendlyAstOrigin: _toolFriendlyAstOrigin,
+        exceptionHandler: exceptionHandler,
+      );
+      asts = asts.map((t) => t.accept(desugarVisitor)).toList();
+    }
+
+    if (parseExpressions) {
+      var expressionParserVisitor = new ExpressionParserVisitor(
+        sourceUrl,
+        exceptionHandler: exceptionHandler,
+      );
+      asts = asts.map((t) => t.accept(expressionParserVisitor)).toList();
+    }
+    return asts;
   }
 }

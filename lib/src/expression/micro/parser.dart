@@ -25,7 +25,7 @@ class NgMicroParser {
       directive,
       expressionOffset,
       expression.length,
-      sourceUrl,
+//      sourceUrl,
       tokens,
     )
         .parse();
@@ -36,7 +36,7 @@ class _RecursiveMicroAstParser {
   final String _directive;
   final int _expressionOffset;
   final int _expressionLength;
-  final String _sourceUrl;
+//  final String _sourceUrl;
   final Iterator<NgMicroToken> _tokens;
 
   final references = <ReferenceAst>[];
@@ -46,7 +46,7 @@ class _RecursiveMicroAstParser {
     this._directive,
     this._expressionOffset,
     this._expressionLength,
-    this._sourceUrl,
+//    this._sourceUrl,
     this._tokens,
   );
 
@@ -76,11 +76,11 @@ class _RecursiveMicroAstParser {
     properties.add(new PropertyAst(
       '${_directive}${name[0].toUpperCase()}${name.substring(1)}',
       value,
-      new ExpressionAst.parse(
-        value,
-        _tokens.current.offset,
-        sourceUrl: _sourceUrl,
-      ),
+//      new ExpressionAst.parse(
+//        value,
+//        _tokens.current.offset,
+//        sourceUrl: _sourceUrl,
+//      ),
     ));
   }
 
@@ -114,15 +114,15 @@ class _RecursiveMicroAstParser {
         throw _unexpected();
       }
       var expression = _tokens.current.lexeme;
-      var expressionOffset = _tokens.current.offset;
+//      var expressionOffset = _tokens.current.offset;
       properties.add(new PropertyAst(
         '${_directive}${property[0].toUpperCase()}${property.substring(1)}',
         expression,
-        new ExpressionAst.parse(
-          expression,
-          expressionOffset,
-          sourceUrl: _sourceUrl,
-        ),
+//        new ExpressionAst.parse(
+//          expression,
+//          expressionOffset,
+//          sourceUrl: _sourceUrl,
+//        ),
       ));
     }
   }

@@ -17,14 +17,12 @@ class RecursiveAstParser {
   final SourceFile _source;
   final List<String> _voidElements;
   final exceptionHandler;
-  final _deSugarPipes;
 
   RecursiveAstParser(
     SourceFile sourceFile,
     Iterable<NgToken> tokens,
     this._voidElements,
     this.exceptionHandler,
-    this._deSugarPipes,
   )
       : _reader = new NgTokenReversibleReader<NgTokenType>(sourceFile, tokens),
         _source = sourceFile;
@@ -135,7 +133,6 @@ class RecursiveAstParser {
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.eventPrefix) {
-        var expressionAst = parseExpression(valueToken?.innerValue);
         if (decoratorToken.lexeme.split('.').length > 2) {
           exceptionHandler.handle(new AngularParserException(
             NgParserWarningCode.EVENT_NAME_TOO_MANY_FIXES,
@@ -151,11 +148,9 @@ class RecursiveAstParser {
           decoratorToken,
           suffixToken,
           valueToken,
-          expressionAst,
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.propertyPrefix) {
-        var expressionAst = parseExpression(valueToken?.innerValue);
         if (decoratorToken.lexeme.split('.').length > 3) {
           exceptionHandler.handle(new AngularParserException(
             NgParserWarningCode.PROPERTY_NAME_TOO_MANY_FIXES,
@@ -171,7 +166,6 @@ class RecursiveAstParser {
           decoratorToken,
           suffixToken,
           valueToken,
-          expressionAst,
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.referencePrefix) {
@@ -526,12 +520,10 @@ class RecursiveAstParser {
   InterpolationAst parseInterpolation(NgToken beginToken) {
     var valueToken = _reader.next();
     var endToken = _reader.next();
-    var expressionAst = parseExpression(valueToken);
     return new InterpolationAst.parsed(
       _source,
       beginToken,
-      valueToken.lexeme,
-      expressionAst,
+      valueToken,
       endToken,
     );
   }
@@ -597,28 +589,4 @@ class RecursiveAstParser {
 
   /// Returns and parses a text AST.
   TextAst parseText(NgToken token) => new TextAst.parsed(_source, token);
-
-  /// Parse expression
-  ExpressionAst parseExpression(NgToken valueToken) {
-    try {
-      if (valueToken == null) {
-        return null;
-      }
-      return new ExpressionAst.parse(
-        valueToken.lexeme,
-        valueToken.offset,
-        sourceUrl: _source.url.toString(),
-        deSugarPipes: _deSugarPipes,
-      );
-    } on AnalysisError catch (e) {
-      exceptionHandler.handle(new AngularParserException(
-        e.errorCode,
-        e.offset,
-        e.length,
-      ));
-    } on AngularParserException catch (e) {
-      exceptionHandler.handle(e);
-    }
-    return null;
-  }
 }
