@@ -115,12 +115,15 @@ class NgSimpleScanner {
       return new NgSimpleToken.EOF(offset);
     }
     _state = _NgSimpleScannerState.text;
+
     if (_scanner.scan(_doctypeBegin)) {
       // DOCTYPE declaration exists
+      var text = _scanner.string.substring(_scanner.position);
       var endOffset = _scanner.string.length;
-      if (_scanner.scan(_gt)) {
-        var match = _scanner.lastMatch;
-        endOffset = match.end;
+
+      var match = _gt.firstMatch(text);
+      if (match != null) {
+        endOffset = _scanner.position + match.end;
       }
       _scanner.position = endOffset;
       return new NgSimpleToken.text(

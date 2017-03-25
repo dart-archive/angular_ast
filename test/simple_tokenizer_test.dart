@@ -427,23 +427,20 @@ void main() {
 
   test('should tokenize long html with doctype', () {
     const html = r'''
-      <!DOCTYPE html>
-      <div>
-        <span hidden>Hello World</span>
-        <a href="www.somelink.com/index.html">Click me!</a>
-        <!-- some random comment inserted here -->
-        <ul>
-          <li>1</li>
-          <li>
-            <textarea disabled name="box" readonly>Test</textarea>
-          </li>
-          <li>
-            <myTag myAttr="some value "literal""></myTag>
-            <button disabled [attr.x]="y">3</button>
-          </li>
-        </ul>
-      </div>
-    ''';
-    expect(untokenize(tokenize(html)), html);
+<!DOCTYPE html>
+<div>
+</div>''';
+    expect(tokenize(html), [
+      new NgSimpleToken.text(0, '<!DOCTYPE html>'),
+      new NgSimpleToken.text(15, '\n'),
+      new NgSimpleToken.openTagStart(16),
+      new NgSimpleToken.identifier(17, 'div'),
+      new NgSimpleToken.tagEnd(20),
+      new NgSimpleToken.text(21, '\n'),
+      new NgSimpleToken.closeTagStart(22),
+      new NgSimpleToken.identifier(24, 'div'),
+      new NgSimpleToken.tagEnd(27),
+      new NgSimpleToken.EOF(28),
+    ]);
   });
 }
