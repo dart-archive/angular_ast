@@ -15,6 +15,7 @@ class NgSimpleTokenizer {
 
   Iterable<NgSimpleToken> tokenize(String template) sync* {
     var scanner = new NgSimpleScanner(template);
+    scanner.resetState();
     var token = scanner.scan();
     while (token.type != NgSimpleTokenType.EOF) {
       yield token;
@@ -50,18 +51,17 @@ class NgSimpleScanner {
   static final _mustaches = new RegExp(r'({{)|(}})');
   static final _newline = new RegExp('\n');
 
-  final StringScanner _scanner;
-  _NgSimpleScannerState _state = _NgSimpleScannerState.text;
+  static final _doctypeBegin = new RegExp(r'(<!DOCTYPE)|(>)');
+  static final _gt = new RegExp(r'>');
 
-  factory NgSimpleScanner(String html, {sourceUrl, initialTextState: true}) {
-    return new NgSimpleScanner._(new StringScanner(html, sourceUrl: sourceUrl),
-        initialTextState: initialTextState);
+  final StringScanner _scanner;
+  _NgSimpleScannerState _state = _NgSimpleScannerState.doctype;
+
+  factory NgSimpleScanner(String html, {sourceUrl}) {
+    return new NgSimpleScanner._(new StringScanner(html, sourceUrl: sourceUrl));
   }
 
-  NgSimpleScanner._(this._scanner, {initialTextState})
-      : _state = (initialTextState)
-            ? _NgSimpleScannerState.text
-            : _NgSimpleScannerState.element;
+  NgSimpleScanner._(this._scanner);
 
   NgSimpleToken scan() {
     switch (_state) {
@@ -69,6 +69,8 @@ class NgSimpleScanner {
         return scanComment();
       case _NgSimpleScannerState.commentEnd:
         return scanCommentEnd();
+      case _NgSimpleScannerState.doctype:
+        return scanDoctype();
       case _NgSimpleScannerState.element:
         return scanElement();
       case _NgSimpleScannerState.text:
@@ -107,9 +109,29 @@ class NgSimpleScanner {
     return new NgSimpleToken.commentEnd(offset);
   }
 
+  NgSimpleToken scanDoctype() {
+    var offset = _scanner.position;
+    if (_scanner.isDone) {
+      return new NgSimpleToken.EOF(offset);
+    }
+    _state = _NgSimpleScannerState.text;
+    if (_scanner.scan(_doctypeBegin)) {
+      // DOCTYPE declaration exists
+      var endOffset = _scanner.string.length;
+      if (_scanner.scan(_gt)) {
+        var match = _scanner.lastMatch;
+        endOffset = match.end;
+      }
+      _scanner.position = endOffset;
+      return new NgSimpleToken.text(
+          offset, _scanner.string.substring(offset, endOffset));
+    }
+    return scanText();
+  }
+
   NgSimpleToken scanElement() {
     var offset = _scanner.position;
-    if (_scanner.peekChar() == null) {
+    if (_scanner.isDone) {
       return new NgSimpleToken.EOF(offset);
     }
     if (_scanner.scan(_allElementMatches)) {
@@ -204,7 +226,8 @@ class NgSimpleScanner {
 
   NgSimpleToken scanText() {
     var offset = _scanner.position;
-    if (_scanner.peekChar() == null || _scanner.rest.length == 0) {
+    //if (_scanner.peekChar() == null || _scanner.rest.length == 0) {
+    if (_scanner.isDone) {
       return new NgSimpleToken.EOF(offset);
     }
     if (_scanner.scan(_allTextMatches)) {
@@ -312,6 +335,17 @@ class NgSimpleScanner {
     return new NgSimpleToken.unexpectedChar(
         offset, new String.fromCharCode(_scanner.readChar()));
   }
+
+  void resetState() {
+    _state = _NgSimpleScannerState.doctype;
+  }
 }
 
-enum _NgSimpleScannerState { text, element, comment, commentEnd, interpolation }
+enum _NgSimpleScannerState {
+  doctype,
+  text,
+  element,
+  comment,
+  commentEnd,
+  interpolation,
+}

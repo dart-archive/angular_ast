@@ -408,4 +408,42 @@ void main() {
       new NgSimpleToken.EOF(9),
     ]);
   });
+
+  test('should tokenize simple doctype declaration', () {
+    expect(tokenize('<!DOCTYPE html>'), [
+      new NgSimpleToken.text(0, '<!DOCTYPE html>'),
+      new NgSimpleToken.EOF(15),
+    ]);
+  });
+
+  test('should tokenize complicated doctype declaration', () {
+    var html = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"'
+        ' "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
+    expect(tokenize(html), [
+      new NgSimpleToken.text(0, html),
+      new NgSimpleToken.EOF(109),
+    ]);
+  });
+
+  test('should tokenize long html with doctype', () {
+    const html = r'''
+      <!DOCTYPE html>
+      <div>
+        <span hidden>Hello World</span>
+        <a href="www.somelink.com/index.html">Click me!</a>
+        <!-- some random comment inserted here -->
+        <ul>
+          <li>1</li>
+          <li>
+            <textarea disabled name="box" readonly>Test</textarea>
+          </li>
+          <li>
+            <myTag myAttr="some value "literal""></myTag>
+            <button disabled [attr.x]="y">3</button>
+          </li>
+        </ul>
+      </div>
+    ''';
+    expect(untokenize(tokenize(html)), html);
+  });
 }
