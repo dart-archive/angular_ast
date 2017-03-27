@@ -87,15 +87,6 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
       var propertiesToAdd = <PropertyAst>[];
       var referencesToAdd = <ReferenceAst>[];
 
-      // Only add property/reference if they weren't created
-      // by desugaring a banana.
-      for (var property in astNode.properties) {
-        if (!property.isSynthetic) propertiesToAdd.add(property);
-      }
-      for (var reference in astNode.references) {
-        if (!reference.isSynthetic) referencesToAdd.add(reference);
-      }
-
       if (isMicroExpression(starExpression)) {
         NgMicroAst micro;
         try {
