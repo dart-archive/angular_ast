@@ -1073,9 +1073,7 @@ class NgScanner {
         offset,
         length,
       );
-      if (e != null) {
-        exceptionHandler.handle(e);
-      }
+      exceptionHandler.handle(e);
     }
 
     if (_recoverErrors) {
@@ -1103,7 +1101,6 @@ class NgScanner {
       return null;
     }
     _lastErrorToken = _current;
-
     return new AngularParserException(
       errorCode,
       offset,

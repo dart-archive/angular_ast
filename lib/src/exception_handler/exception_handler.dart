@@ -30,6 +30,8 @@ class RecoveringExceptionHandler implements ExceptionHandler {
 
   @override
   void handle(AngularParserException e) {
-    exceptions.add(e);
+    if (e != null) {
+      exceptions.add(e);
+    }
   }
 }

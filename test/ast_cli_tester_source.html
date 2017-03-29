@@ -1,0 +1,23 @@
+(click)='h1.hidden = !h1.hidden; counter.reset()'
+
+</div>
+<my-counter
+        [maxCount]='4'
+        {{x}} : {{item.trim()}}
+<!-- @ngIgnoreErrors: --><h1 #h1>Showing {{items.length}} items:</h1>
+[count]="items.length"
+#counter
+<div *ngIf="items.length > 0">
+    </li>
+
+
+    (reset)=''
+    [m *ngFor='let item of items; let x=index' [hidden]='item != null'>
+    <form #ngForm="ngForm"></form>
+
+    <lilet x=index' [hidden]='item != null'>
+        (incremented)='items.add($event.toString())'></my-counter>
+        {{ngForm.dirty}}
+
+        <input [(ngModel)]="header" />
+
