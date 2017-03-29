@@ -229,7 +229,6 @@ class NgSimpleScanner {
 
   NgSimpleToken scanText() {
     var offset = _scanner.position;
-    //if (_scanner.peekChar() == null || _scanner.rest.length == 0) {
     if (_scanner.isDone) {
       return new NgSimpleToken.EOF(offset);
     }

@@ -445,4 +445,36 @@ void main() {
     expect(interpolation.endToken.offset, 22);
     expect(interpolation.expression, isNotNull);
   });
+
+  // Moved from expression/micro/parser_test.dart
+  test(
+      'should parse, desugar, and expression-parse *ngFor with full dart expression',
+      () {
+    var templateString = '''
+<div *ngFor="let x of items.where(filter)"></div>''';
+    expect(parse(templateString), [
+      new EmbeddedTemplateAst(
+        attributes: [
+          new AttributeAst('ngFor'),
+        ],
+        childNodes: [
+          new ElementAst('div', new CloseElementAst('div')),
+        ],
+        properties: [
+          new PropertyAst(
+            'ngForOf',
+            'items.where(filter)',
+            new ExpressionAst.parse(
+              'items.where(filter)',
+              13,
+              sourceUrl: '/test/expression/micro/parser_test.dart#inline',
+            ),
+          ),
+        ],
+        references: [
+          new ReferenceAst('x'),
+        ],
+      )
+    ]);
+  });
 }

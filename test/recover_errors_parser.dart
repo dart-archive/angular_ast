@@ -241,7 +241,6 @@ void main() {
     checkException(NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END, 11, 2);
   });
 
-  //TODO: Max: add attrs into these
   test('Should resolve dangling open template', () {
     var asts = parse('<div><template ngFor let-item [ngForOf]="items" '
         'let-i="index"></div>');
