@@ -186,7 +186,7 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 12)) {
         var lexeme = _scanner.substring(offset).replaceAll(r'\"', '"');
-        var isClosed = lexeme[lexeme.length - 1] == '"';
+        var isClosed = (lexeme.length > 1) && lexeme[lexeme.length - 1] == '"';
         return new NgSimpleQuoteToken.doubleQuotedText(
             offset, lexeme, isClosed);
       }
