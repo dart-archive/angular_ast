@@ -192,7 +192,7 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 14)) {
         var lexeme = _scanner.substring(offset).replaceAll(r"\'", "'");
-        var isClosed = lexeme[lexeme.length - 1] == "'";
+        var isClosed = (lexeme.length > 1) && lexeme[lexeme.length - 1] == "'";
         return new NgSimpleQuoteToken.singleQuotedText(
             offset, lexeme, isClosed);
       }
