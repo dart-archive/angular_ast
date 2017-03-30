@@ -94,9 +94,6 @@ abstract class ElementAst implements StandaloneTemplateAst {
     return visitor.visitElement(this, context);
   }
 
-  /// Whether this is a `<template>` tag and should not be directly rendered.
-  bool get isEmbeddedTemplate => name == 'template';
-
   /// Determines whether the element tag name is void element.
   bool get isVoidElement;
 

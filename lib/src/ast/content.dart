@@ -5,6 +5,7 @@
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
+import 'package:quiver/core.dart';
 import 'package:source_span/source_span.dart';
 
 /// Represents an `<ng-content>` element AST.
@@ -18,9 +19,9 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
 
   /// Create a synthetic [EmbeddedContentAst] that originated from [origin].
   factory EmbeddedContentAst.from(
-    TemplateAst origin,
+    TemplateAst origin, [
     String selector,
-  ) = _SyntheticEmbeddedContentAst.from;
+  ]) = _SyntheticEmbeddedContentAst.from;
 
   /// Create a new [EmbeddedContentAst] parsed from tokens in [sourceFile].
   factory EmbeddedContentAst.parsed(
@@ -41,7 +42,10 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
 
   /// A CSS selector denoting what elements should be embedded.
   ///
-  /// May be `*` to signify _all_ elements.
+  /// May be null if and only if decorator 'select' is defined,
+  /// but no value is assigned.
+  /// If 'select' is not defined at all (simple <ng-content>), then the value
+  /// will default to '*'.
   String get selector;
 
   /// </ng-content> that is paired to this <ng-content>.
@@ -50,11 +54,13 @@ abstract class EmbeddedContentAst implements StandaloneTemplateAst {
 
   @override
   bool operator ==(Object o) {
-    return o is EmbeddedContentAst && o.selector == selector;
+    return o is EmbeddedContentAst &&
+        o.selector == selector &&
+        o.closeComplement == closeComplement;
   }
 
   @override
-  int get hashCode => selector.hashCode;
+  int get hashCode => hash2(selector.hashCode, closeComplement);
 
   @override
   String toString() => '$EmbeddedContentAst {$selector}';
@@ -93,7 +99,14 @@ class ParsedEmbeddedContentAst extends TemplateAst with EmbeddedContentAst {
         );
 
   @override
-  String get selector => selectorValueToken?.innerValue?.lexeme ?? '*';
+  String get selector {
+    // '<ng-content select>' ; no value was defined.
+    // Return null to handle later.
+    if (selectToken != null && equalSign == null) {
+      return null;
+    }
+    return selectorValueToken?.innerValue?.lexeme ?? '*';
+  }
 }
 
 class _SyntheticEmbeddedContentAst extends SyntheticTemplateAst
@@ -111,7 +124,6 @@ class _SyntheticEmbeddedContentAst extends SyntheticTemplateAst
   _SyntheticEmbeddedContentAst.from(
     TemplateAst origin, [
     this.selector = '*',
-    this.closeComplement,
   ])
       : super.from(origin) {
     this.closeComplement = new CloseElementAst('ng-content');

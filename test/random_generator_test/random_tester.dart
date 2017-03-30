@@ -180,10 +180,12 @@ main() async {
 
     stopwatch.reset();
     stopwatch.start();
-    var ast = const NgParser().parsePreserve(
+    var ast = const NgParser().parse(
       incorrectHtml,
       sourceUrl: '/test/parser_test.dart#inline',
       exceptionHandler: exceptionHandler,
+      desugar: false,
+      parseExpressions: false,
     );
     stopwatch.stop();
     totalParserTime += stopwatch.elapsedMilliseconds;

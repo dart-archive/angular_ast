@@ -14,9 +14,11 @@ void main() {
   }
 
   List<StandaloneTemplateAst> parsePreserve(String template) {
-    return const NgParser().parsePreserve(
+    return const NgParser().parse(
       template,
       sourceUrl: '/test/parser_test.dart#inline',
+      desugar: false,
+      parseExpressions: false,
     );
   }
 
@@ -70,6 +72,7 @@ void main() {
       [
         new InterpolationAst(new ExpressionAst.parse(
           'name',
+          3,
           sourceUrl: '/test/expression/parser_test.dart#inline',
         )),
       ],
@@ -85,6 +88,7 @@ void main() {
         new CommentAst('Goodbye'),
         new InterpolationAst(new ExpressionAst.parse(
           'name',
+          32,
           sourceUrl: '/test/expression/parser_test.dart#inline',
         )),
       ],
@@ -153,6 +157,7 @@ void main() {
               'onClick()',
               new ExpressionAst.parse(
                 'onClick()',
+                19,
                 sourceUrl: '/test/expression/parser_test.dart#inline',
               )),
         ]),
@@ -181,6 +186,7 @@ void main() {
               'btnValue',
               new ExpressionAst.parse(
                 'btnValue',
+                17,
                 sourceUrl: '/test/expression/parser_test.dart#inline',
               )),
         ]),
@@ -238,6 +244,21 @@ void main() {
     );
   });
 
+  test('should parse a <template> directive with a attributes', () {
+    expect(
+      parse('<template ngFor let-item let-i="index"></template>'),
+      [
+        new EmbeddedTemplateAst(
+          attributes: [
+            new AttributeAst('ngFor'),
+            new AttributeAst('let-item'),
+            new AttributeAst('let-i', 'index'),
+          ],
+        ),
+      ],
+    );
+  });
+
   test('should parse a <template> directive with a property', () {
     expect(
       parse('<template [ngIf]="someValue"></template>'),
@@ -249,6 +270,7 @@ void main() {
                 'someValue',
                 new ExpressionAst.parse(
                   'someValue',
+                  18,
                   sourceUrl: '/test/expression/parser_test.dart#inline',
                 )),
           ],
@@ -290,6 +312,14 @@ void main() {
     );
   });
 
+  test('should parse a structural directive in child position', () {
+    expect(
+      parse('<div><div *ngIf="someValue">Hello World</div></div>'),
+      parse(
+          '<div><template [ngIf]="someValue"><div>Hello World</div></template></div>'),
+    );
+  });
+
   test('should parse a void element (implicit)', () {
     expect(
       parse('<input><div></div>'),
@@ -313,6 +343,7 @@ void main() {
                 'myName = \$event',
                 new ExpressionAst.parse(
                   'myName = \$event',
+                  19,
                   sourceUrl: '/test/expression/parser_test.dart#inline',
                 )),
           ],
@@ -322,6 +353,7 @@ void main() {
                 'myName',
                 new ExpressionAst.parse(
                   'myName',
+                  19,
                   sourceUrl: '/test/expression/parser_test.dart#inline',
                 )),
           ],
@@ -347,6 +379,7 @@ void main() {
               'items',
               new ExpressionAst.parse(
                 'items',
+                23,
                 sourceUrl: '/test/expression/parser_test.dart#inline',
               ),
             ),
@@ -355,6 +388,7 @@ void main() {
               'byId',
               new ExpressionAst.parse(
                 'byId',
+                39,
                 sourceUrl: '/test/expression/parser_test.dart#inline',
               ),
             ),
@@ -410,5 +444,37 @@ void main() {
     expect(interpolation.value.length, 15);
     expect(interpolation.endToken.offset, 22);
     expect(interpolation.expression, isNotNull);
+  });
+
+  // Moved from expression/micro/parser_test.dart
+  test(
+      'should parse, desugar, and expression-parse *ngFor with full dart expression',
+      () {
+    var templateString = '''
+<div *ngFor="let x of items.where(filter)"></div>''';
+    expect(parse(templateString), [
+      new EmbeddedTemplateAst(
+        attributes: [
+          new AttributeAst('ngFor'),
+        ],
+        childNodes: [
+          new ElementAst('div', new CloseElementAst('div')),
+        ],
+        properties: [
+          new PropertyAst(
+            'ngForOf',
+            'items.where(filter)',
+            new ExpressionAst.parse(
+              'items.where(filter)',
+              13,
+              sourceUrl: '/test/expression/micro/parser_test.dart#inline',
+            ),
+          ),
+        ],
+        references: [
+          new ReferenceAst('x'),
+        ],
+      )
+    ]);
   });
 }

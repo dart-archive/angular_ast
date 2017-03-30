@@ -11,7 +11,7 @@ import 'package:angular_ast/src/expression/micro.dart';
 /// within a given AST. Ignores non-desugarable nodes.
 /// This modifies the structure, and the original version of
 /// each desugared node can be accessed by 'origin'.
-class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
+class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
   final bool _toolFriendlyAstOrigin;
   final ExceptionHandler exceptionHandler;
 
@@ -30,20 +30,12 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
     var origin = _toolFriendlyAstOrigin ? astNode : null;
 
     var appendedValue = (flag == 'event') ? ' = \$event' : '';
-    ExpressionAst expressionAst;
     if (astNode.value != null) {
-      try {
-        expressionAst = new ExpressionAst.parse(astNode.value + appendedValue,
-            sourceUrl: astNode.sourceUrl);
-      } catch (e) {
-        exceptionHandler.handle(e);
-      }
       if (flag == 'event') {
         return new EventAst.from(
           origin,
           astNode.name + 'Changed',
           astNode.value + appendedValue,
-          expressionAst,
         );
       }
       if (flag == 'property') {
@@ -51,7 +43,6 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
           origin,
           astNode.name,
           astNode.value,
-          expressionAst,
         );
       }
     }
@@ -67,6 +58,13 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
 
   @override
   TemplateAst visitElement(ElementAst astNode, [_]) {
+    var newChildren = <StandaloneTemplateAst>[];
+    astNode.childNodes.forEach((child) {
+      newChildren.add(child.accept(this) as StandaloneTemplateAst);
+    });
+    astNode.childNodes.clear();
+    astNode.childNodes.addAll(newChildren);
+
     if (astNode.bananas.isNotEmpty) {
       for (BananaAst bananaAst in astNode.bananas) {
         var toAddEvent = visitBanana(bananaAst, 'event');
@@ -82,8 +80,12 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
       var starAst = astNode.stars[0];
       var origin = _toolFriendlyAstOrigin ? starAst : null;
       var starExpression = starAst.value;
+      var expressionOffset =
+          (starAst as ParsedStarAst).valueToken.innerValue.offset;
       var directiveName = starAst.name;
-      TemplateAst newAst;
+      EmbeddedTemplateAst newAst;
+      var propertiesToAdd = <PropertyAst>[];
+      var referencesToAdd = <ReferenceAst>[];
 
       if (isMicroExpression(starExpression)) {
         NgMicroAst micro;
@@ -91,13 +93,18 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
           micro = parseMicroExpression(
             directiveName,
             starExpression,
+            expressionOffset,
             sourceUrl: astNode.sourceUrl,
           );
         } catch (e) {
           exceptionHandler.handle(e);
+          return astNode;
         }
-        var properties = micro == null ? <PropertyAst>[] : micro.properties;
-        var references = micro == null ? <ReferenceAst>[] : micro.assignments;
+        if (micro != null) {
+          propertiesToAdd.addAll(micro.properties);
+          referencesToAdd.addAll(micro.assignments);
+        }
+
         newAst = new EmbeddedTemplateAst.from(
           origin,
           childNodes: [
@@ -106,31 +113,20 @@ class DesugarVisitor extends TemplateAstVisitor<TemplateAst, String> {
           attributes: [
             new AttributeAst(directiveName),
           ],
-          properties: properties,
-          references: references,
+          properties: propertiesToAdd,
+          references: referencesToAdd,
         );
       } else {
-        var expression;
-        try {
-          expression = new ExpressionAst.parse(
-            starExpression,
-            sourceUrl: astNode.sourceUrl,
-          );
-        } catch (e) {
-          exceptionHandler.handle(e);
-        }
+        propertiesToAdd.add(new PropertyAst(
+          directiveName,
+          starExpression,
+        ));
         newAst = new EmbeddedTemplateAst.from(
           origin,
           childNodes: [
             astNode,
           ],
-          properties: [
-            new PropertyAst(
-              directiveName,
-              starExpression,
-              expression,
-            ),
-          ],
+          properties: propertiesToAdd,
         );
       }
 

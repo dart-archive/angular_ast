@@ -26,14 +26,15 @@ void main() {
     try {
       var tokens = tokenize(input);
       var fixed = untokenize(tokens);
-      if (input == fixed) {
+      if (exceptionHandler.exceptions.isEmpty) {
         print('CORRECT(UNCHANGED): $input');
       } else {
         print('ORGNL: $input');
         print('FIXED: $fixed');
         print('ERRORS:');
         exceptionHandler.exceptions.forEach((e) {
-          print('${e.message} :: ${e.context} at ${e.offset}');
+          var context = input.substring(e.offset, e.offset + e.length);
+          print('${e.errorCode.message} :: $context at ${e.offset}');
         });
       }
     } catch (e) {

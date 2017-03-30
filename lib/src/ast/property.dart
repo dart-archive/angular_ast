@@ -40,7 +40,6 @@ abstract class PropertyAst implements TemplateAst {
     NgToken elementDecoratorToken,
     NgToken suffixToken, [
     NgAttributeValueToken valueToken,
-    ExpressionAst expressionAst,
     NgToken equalSignToken,
   ]) = ParsedPropertyAst;
 
@@ -65,6 +64,7 @@ abstract class PropertyAst implements TemplateAst {
 
   /// Bound expression; optional for backwards compatibility.
   ExpressionAst get expression;
+  set expression(ExpressionAst expression);
 
   /// Name of the property being set.
   String get name;
@@ -133,17 +133,18 @@ class ParsedPropertyAst extends TemplateAst
     this.nameToken,
     this.suffixToken, [
     this.valueToken,
-    this.expression,
     this.equalSignToken,
   ])
       : super.parsed(
             beginToken,
             valueToken == null ? suffixToken : valueToken.rightQuote,
-            sourceFile);
+            sourceFile) {
+    if (_nameWithoutBrackets.split('.').length > 3) {}
+  }
 
   /// ExpressionAst of `"value"`; may be `null` to have no value.
   @override
-  final ExpressionAst expression;
+  ExpressionAst expression;
 
   String get _nameWithoutBrackets => nameToken.lexeme;
 
@@ -183,6 +184,7 @@ class ParsedPropertyAst extends TemplateAst
   @override
   String get postfix {
     final split = _nameWithoutBrackets.split('.');
+    assert(split.length < 3);
     return split.length > 1 ? split[1] : null;
   }
 
@@ -190,6 +192,7 @@ class ParsedPropertyAst extends TemplateAst
   @override
   String get unit {
     final split = _nameWithoutBrackets.split('.');
+    assert(split.length < 3);
     return split.length > 2 ? split[2] : null;
   }
 }
@@ -214,7 +217,7 @@ class _SyntheticPropertyAst extends SyntheticTemplateAst with PropertyAst {
       : super.from(origin);
 
   @override
-  final ExpressionAst expression;
+  ExpressionAst expression;
 
   @override
   final String name;

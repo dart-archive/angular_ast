@@ -3,48 +3,49 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:convert';
 import 'package:angular_ast/angular_ast.dart';
+import 'package:path/path.dart' as p;
 
 RecoveringExceptionHandler exceptionHandler = new RecoveringExceptionHandler();
 
-List<StandaloneTemplateAst> parse(String template) =>
-    const NgParser().parsePreserve(
+List<StandaloneTemplateAst> parse(String template) => const NgParser().parse(
       template,
       sourceUrl: '/test/parser_test.dart#inline',
       exceptionHandler: exceptionHandler,
+      desugar: false,
+      parseExpressions: false,
     );
 
 void main() {
   String input;
-  while (true) {
-    if (exceptionHandler is RecoveringExceptionHandler) {
-      exceptionHandler.exceptions.clear();
-    }
-    input = stdin.readLineSync(encoding: UTF8);
-    if (input == 'QUIT') {
-      break;
-    }
-    var ast = parse(input);
-    print('----------------------------------------------');
-    if (exceptionHandler is ThrowingExceptionHandler) {
+  if (exceptionHandler is RecoveringExceptionHandler) {
+    exceptionHandler.exceptions.clear();
+  }
+  var fileDir = p.join('test', 'ast_cli_tester_source.html');
+  var file = new File(fileDir.toString());
+  input = file.readAsStringSync();
+  //input = stdin.readLineSync(encoding: UTF8);
+  var ast = parse(input);
+  print('----------------------------------------------');
+  if (exceptionHandler is ThrowingExceptionHandler) {
+    print('CORRECT!');
+    print(ast);
+  }
+  if (exceptionHandler is RecoveringExceptionHandler) {
+    var exceptionsList = exceptionHandler.exceptions;
+    if (exceptionsList.isEmpty) {
       print('CORRECT!');
       print(ast);
-    }
-    if (exceptionHandler is RecoveringExceptionHandler) {
-      var exceptionsList = exceptionHandler.exceptions;
-      if (exceptionsList.isEmpty) {
-        print('CORRECT!');
-        print(ast);
-      } else {
-        var visitor = const HumanizingTemplateAstVisitor();
-        var fixed = ast.map((t) => t.accept(visitor)).join('');
-        print('ORGNL: $input');
-        print('FIXED: $fixed');
-      }
+    } else {
+      var visitor = const HumanizingTemplateAstVisitor();
+      var fixed = ast.map((t) => t.accept(visitor)).join('');
+      print('ORGNL: $input');
+      print('FIXED: $fixed');
+
       print('\n\nERRORS:');
       exceptionHandler.exceptions.forEach((e) {
-        print('${e.message} :: ${e.context} at ${e.offset}');
+        var context = input.substring(e.offset, e.offset + e.length);
+        print('${e.errorCode.message} :: $context at ${e.offset}');
       });
     }
   }

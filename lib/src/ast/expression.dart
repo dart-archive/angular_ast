@@ -18,14 +18,14 @@ class ExpressionAst implements TemplateAst {
 
   /// Create a new expression AST by parsing [expression].
   factory ExpressionAst.parse(
-    String expression, {
-    bool deSugarPipes: true,
+    String expression,
+    int offset, {
     @required String sourceUrl,
     ExceptionHandler exceptionHandler,
   }) {
+    var paddedExpression = ' ' * offset + expression;
     return new ExpressionAst(parseExpression(
-      expression,
-      deSugarPipes: deSugarPipes,
+      paddedExpression,
       sourceUrl: sourceUrl,
     ));
   }

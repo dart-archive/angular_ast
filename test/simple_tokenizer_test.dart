@@ -363,4 +363,84 @@ void main() {
       new NgSimpleToken.EOF(47),
     ]);
   });
+
+  test('should tokenize only up to newline with dangling open mustache', () {
+    expect(tokenize('{{ some mustache \n unclosed'), [
+      new NgSimpleToken.mustacheBegin(0),
+      new NgSimpleToken.text(2, ' some mustache '),
+      new NgSimpleToken.whitespace(17, '\n'),
+      new NgSimpleToken.text(18, ' unclosed'),
+      new NgSimpleToken.EOF(27),
+    ]);
+  });
+
+  test('should tokenize only up to newline with dangling open mustache2', () {
+    expect(tokenize('{{\n  blah'), [
+      new NgSimpleToken.mustacheBegin(0),
+      new NgSimpleToken.whitespace(2, '\n'),
+      new NgSimpleToken.text(3, '  blah'),
+      new NgSimpleToken.EOF(9),
+    ]);
+  });
+
+  test(
+      'should tokenize "<" as expression within '
+      'mustache if it begins with "{{"', () {
+    expect(tokenize('{{ 5 < 3 }}'), [
+      new NgSimpleToken.mustacheBegin(0),
+      new NgSimpleToken.text(2, ' 5 < 3 '),
+      new NgSimpleToken.mustacheEnd(9),
+      new NgSimpleToken.EOF(11),
+    ]);
+  });
+
+  test(
+      'should tokenize "<" as tag start if '
+      'before dangling mustache close', () {
+    expect(tokenize(' 5 < 3 }}'), [
+      new NgSimpleToken.text(0, ' 5 '),
+      new NgSimpleToken.openTagStart(3),
+      new NgSimpleToken.whitespace(4, ' '),
+      new NgSimpleToken.unexpectedChar(5, '3'),
+      new NgSimpleToken.whitespace(6, ' '),
+      new NgSimpleToken.unexpectedChar(7, '}'),
+      new NgSimpleToken.unexpectedChar(8, '}'),
+      new NgSimpleToken.EOF(9),
+    ]);
+  });
+
+  test('should tokenize simple doctype declaration', () {
+    expect(tokenize('<!DOCTYPE html>'), [
+      new NgSimpleToken.text(0, '<!DOCTYPE html>'),
+      new NgSimpleToken.EOF(15),
+    ]);
+  });
+
+  test('should tokenize complicated doctype declaration', () {
+    var html = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"'
+        ' "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
+    expect(tokenize(html), [
+      new NgSimpleToken.text(0, html),
+      new NgSimpleToken.EOF(109),
+    ]);
+  });
+
+  test('should tokenize long html with doctype', () {
+    const html = r'''
+<!DOCTYPE html>
+<div>
+</div>''';
+    expect(tokenize(html), [
+      new NgSimpleToken.text(0, '<!DOCTYPE html>'),
+      new NgSimpleToken.text(15, '\n'),
+      new NgSimpleToken.openTagStart(16),
+      new NgSimpleToken.identifier(17, 'div'),
+      new NgSimpleToken.tagEnd(20),
+      new NgSimpleToken.text(21, '\n'),
+      new NgSimpleToken.closeTagStart(22),
+      new NgSimpleToken.identifier(24, 'div'),
+      new NgSimpleToken.tagEnd(27),
+      new NgSimpleToken.EOF(28),
+    ]);
+  });
 }

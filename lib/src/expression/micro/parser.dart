@@ -16,14 +16,16 @@ class NgMicroParser {
 
   NgMicroAst parse(
     String directive,
-    String expression, {
+    String expression,
+    int expressionOffset, {
     @required String sourceUrl,
   }) {
-    var tokens = const NgMicroLexer().tokenize(expression).iterator;
+    var paddedExpression = ' ' * expressionOffset + expression;
+    var tokens = const NgMicroLexer().tokenize(paddedExpression).iterator;
     return new _RecursiveMicroAstParser(
       directive,
-      expression,
-      sourceUrl,
+      expressionOffset,
+      expression.length,
       tokens,
     )
         .parse();
@@ -32,8 +34,9 @@ class NgMicroParser {
 
 class _RecursiveMicroAstParser {
   final String _directive;
-  final String _expression;
-  final String _sourceUrl;
+  final int _expressionOffset;
+  final int _expressionLength;
+//  final String _sourceUrl;
   final Iterator<NgMicroToken> _tokens;
 
   final references = <ReferenceAst>[];
@@ -41,8 +44,8 @@ class _RecursiveMicroAstParser {
 
   _RecursiveMicroAstParser(
     this._directive,
-    this._expression,
-    this._sourceUrl,
+    this._expressionOffset,
+    this._expressionLength,
     this._tokens,
   );
 
@@ -72,10 +75,6 @@ class _RecursiveMicroAstParser {
     properties.add(new PropertyAst(
       '${_directive}${name[0].toUpperCase()}${name.substring(1)}',
       value,
-      new ExpressionAst.parse(
-        value,
-        sourceUrl: _sourceUrl,
-      ),
     ));
   }
 
@@ -112,7 +111,6 @@ class _RecursiveMicroAstParser {
       properties.add(new PropertyAst(
         '${_directive}${property[0].toUpperCase()}${property.substring(1)}',
         expression,
-        new ExpressionAst.parse(expression, sourceUrl: _sourceUrl),
       ));
     }
   }
@@ -120,9 +118,9 @@ class _RecursiveMicroAstParser {
   AngularParserException _unexpected([NgMicroToken token]) {
     token ??= _tokens.current;
     return new AngularParserException(
-      'Unexpected: ${token}',
-      _expression,
-      token.offset,
+      NgParserWarningCode.INVALID_MICRO_EXPRESSION,
+      _expressionOffset,
+      _expressionLength,
     );
   }
 }

@@ -38,6 +38,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     SourceFile sourceFile,
     NgToken beginToken,
     NgToken endToken, {
+    CloseElementAst closeComplement,
     List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
     List<PropertyAst> properties,
@@ -66,10 +67,16 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
   /// Unlike a reference to a DOM element, this will be a `TemplateRef`.
   List<ReferenceAst> get references;
 
+  /// </template> that is paired to this <template>.
+  CloseElementAst get closeComplement;
+  set closeComplement(CloseElementAst closeComplement);
+
   @override
   bool operator ==(Object o) {
     if (o is EmbeddedTemplateAst) {
-      return _listEquals.equals(properties, o.properties) &&
+      return closeComplement == o.closeComplement &&
+          _listEquals.equals(attributes, o.attributes) &&
+          _listEquals.equals(properties, o.properties) &&
           _listEquals.equals(childNodes, o.childNodes) &&
           _listEquals.equals(references, o.references);
     }
@@ -78,11 +85,13 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
 
   @override
   int get hashCode {
-    return hash3(
-      _listEquals.hash(properties),
+    return hashObjects([
+      closeComplement,
+      _listEquals.hash(attributes),
       _listEquals.hash(childNodes),
+      _listEquals.hash(properties),
       _listEquals.hash(references),
-    );
+    ]);
   }
 
   @override
@@ -112,6 +121,9 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
         ..writeAll(childNodes, ', ')
         ..write(' ');
     }
+    if (closeComplement != null) {
+      buffer..write('closeComplement=')..write(closeComplement)..write(' ');
+    }
     return (buffer..write('}')).toString();
   }
 }
@@ -121,6 +133,7 @@ class _ParsedEmbeddedTemplateAst extends TemplateAst with EmbeddedTemplateAst {
     SourceFile sourceFile,
     NgToken beginToken,
     NgToken endToken, {
+    this.closeComplement,
     this.attributes: const [],
     this.childNodes: const [],
     this.properties: const [],
@@ -139,6 +152,9 @@ class _ParsedEmbeddedTemplateAst extends TemplateAst with EmbeddedTemplateAst {
 
   @override
   final List<ReferenceAst> references;
+
+  @override
+  CloseElementAst closeComplement;
 }
 
 class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
@@ -148,7 +164,8 @@ class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
     this.childNodes: const [],
     this.properties: const [],
     this.references: const [],
-  });
+  })
+      : closeComplement = new CloseElementAst('template');
 
   _SyntheticEmbeddedTemplateAst.from(
     TemplateAst origin, {
@@ -156,7 +173,8 @@ class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
     this.childNodes: const [],
     this.properties: const [],
     this.references: const [],
-  });
+  })
+      : closeComplement = new CloseElementAst('template');
 
   @override
   final List<AttributeAst> attributes;
@@ -169,4 +187,7 @@ class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
 
   @override
   final List<ReferenceAst> references;
+
+  @override
+  CloseElementAst closeComplement;
 }

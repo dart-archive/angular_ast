@@ -47,6 +47,8 @@ void testRecoverySolution(
     String errorString;
     if (type == NgSimpleTokenType.doubleQuote) {
       errorString = '""';
+    } else if (type == NgSimpleTokenType.singleQuote) {
+      errorString = "''";
     } else if (type == NgSimpleTokenType.identifier) {
       errorString = 'some-identifier';
     } else {
@@ -65,13 +67,14 @@ void testRecoverySolution(
       NgToken expectedSynthetic;
       if (expectedSyntheticType == null) {
         expectedSynthetic = null;
-      } else if (expectedSyntheticType == NgTokenType.doubleQuote) {
+      } else if (expectedSyntheticType == NgTokenType.doubleQuote ||
+          expectedSyntheticType == NgTokenType.singleQuote) {
         var left = new NgToken.generateErrorSynthetic(
-            recoveryOffset, NgTokenType.doubleQuote);
+            recoveryOffset, expectedSyntheticType);
         var value = new NgToken.generateErrorSynthetic(
             recoveryOffset, NgTokenType.elementDecoratorValue);
         var right = new NgToken.generateErrorSynthetic(
-            recoveryOffset, NgTokenType.doubleQuote);
+            recoveryOffset, expectedSyntheticType);
         expectedSynthetic =
             new NgAttributeValueToken.generate(left, value, right);
       } else {
@@ -85,6 +88,14 @@ void testRecoverySolution(
       expect(solution.nextState, expectedNextState);
     });
   }
+}
+
+void checkException(NgParserWarningCode errorCode, int offset, int length) {
+  expect(recoveringException.exceptions.length, 1);
+  var e = recoveringException.exceptions[0];
+  expect(e.errorCode, errorCode);
+  expect(e.offset, offset);
+  expect(e.length, length);
 }
 
 void main() {
@@ -113,40 +124,35 @@ void main() {
 
 void beforeInterpolation() {
   test('should resolve: dangling mustacheEnd at start', () {
-    var results = tokenize('}} some text');
+    var html = '}} some text';
+    var results = tokenize(html);
     expect(results, [
       new NgToken.interpolationStart(0), // Synthetic
       new NgToken.interpolationValue(0, ''), // Synthetic
       new NgToken.interpolationEnd(0),
       new NgToken.text(2, ' some text'),
     ]);
-    expect(recoveringException.exceptions.length, 1);
-    var e = recoveringException.exceptions[0];
-    expect(e.context, '}}');
-    expect(e.offset, 0);
-
+    checkException(NgParserWarningCode.UNOPENED_MUSTACHE, 0, 2);
     expect(untokenize(results), '{{}} some text');
   });
 
   test('should resolve: dangling mustacheEnd at end of text', () {
-    var results = tokenize('mustache text}}');
+    var html = 'mustache text}}';
+    var results = tokenize(html);
     expect(results, [
       new NgToken.interpolationStart(0), // Synthetic
       new NgToken.interpolationValue(0, 'mustache text'),
       new NgToken.interpolationEnd(13),
     ]);
-    expect(recoveringException.exceptions.length, 1);
-    var e = recoveringException.exceptions[0];
-    expect(e.context, '}}');
-    expect(e.offset, 13);
-
+    checkException(NgParserWarningCode.UNOPENED_MUSTACHE, 13, 2);
     expect(untokenize(results), '{{mustache text}}');
   });
 }
 
 void afterComment() {
   test('should resolve: unexpected EOF in afterComment', () {
-    var results = tokenize('<!-- some comment ');
+    var html = '<!-- some comment ';
+    var results = tokenize(html);
     expect(
       results,
       [
@@ -155,10 +161,8 @@ void afterComment() {
         new NgToken.commentEnd(18),
       ],
     );
-    expect(recoveringException.exceptions.length, 1);
-    var e = recoveringException.exceptions[0];
-    expect(e.context, '');
-    expect(e.offset, 18);
+    checkException(NgParserWarningCode.UNTERMINATED_COMMENT, 0, 18);
+    expect(untokenize(results), '<!-- some comment -->');
   });
 }
 
@@ -166,12 +170,12 @@ void afterInterpolation() {
   var baseHtml = '{{ 1 + 2 ';
   var startState = NgScannerState.scanAfterInterpolation;
 
+  // All other tokens are automatically integrated as an 'expression'text value
+  // and therefore unreachable.
   var resolveTokens = <NgSimpleTokenType>[
-    NgSimpleTokenType.commentBegin,
-    NgSimpleTokenType.openTagStart,
-    NgSimpleTokenType.closeTagStart,
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.mustacheBegin,
+    NgSimpleTokenType.whitespace,
   ];
 
   testRecoverySolution(
@@ -182,21 +186,19 @@ void afterInterpolation() {
     NgScannerState.scanStart,
   );
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('{{ 1 + 2 <!--comment-->')),
-        '{{ 1 + 2 }}<!--comment-->');
-    expect(
-        untokenize(tokenize('{{ 1 + 2 <div></div>')), '{{ 1 + 2 }}<div></div>');
-    expect(
-        untokenize(tokenize('<div>{{ 1 + 2 </div>')), '<div>{{ 1 + 2 }}</div>');
-    expect(untokenize(tokenize('{{ 1 + 2 ')), '{{ 1 + 2 }}');
-    expect(
-        untokenize(tokenize('{{ 1 + 2 {{ 3 + 4 }}')), '{{ 1 + 2 }}{{ 3 + 4 }}');
+    expect(untokenize(tokenize('{{5 + 1')), '{{5 + 1}}');
+    checkException(NgParserWarningCode.UNTERMINATED_MUSTACHE, 0, 2);
+    expect(untokenize(tokenize('{{5 + 1{{ 2 + 4 }}')), '{{5 + 1}}{{ 2 + 4 }}');
+    checkException(NgParserWarningCode.UNTERMINATED_MUSTACHE, 0, 2);
+    expect(untokenize(tokenize('{{5 + 1 \n<div>')), '{{5 + 1 }}\n<div>');
+    checkException(NgParserWarningCode.UNTERMINATED_MUSTACHE, 0, 2);
   });
 }
 
 void comment() {
   test('should resolve: unexpected EOF in scanComment', () {
-    var results = tokenize('<!-- some comment ');
+    var html = '<!-- some comment ';
+    var results = tokenize(html);
     expect(
       results,
       [
@@ -205,10 +207,8 @@ void comment() {
         new NgToken.commentEnd(18)
       ],
     );
-    expect(recoveringException.exceptions.length, 1);
-    var e = recoveringException.exceptions[0];
-    expect(e.context, '');
-    expect(e.offset, 18);
+    checkException(NgParserWarningCode.UNTERMINATED_COMMENT, 0, 18);
+    expect(untokenize(results), '<!-- some comment -->');
   });
 }
 
@@ -235,6 +235,7 @@ void elementIdentifierClose() {
     NgSimpleTokenType.dash,
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
     NgSimpleTokenType.hash,
     NgSimpleTokenType.star,
     NgSimpleTokenType.period,
@@ -258,27 +259,51 @@ void elementIdentifierClose() {
   );
 
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('</<div>')), '</><div>');
-    expect(untokenize(tokenize('</<!--comment-->')), '</><!--comment-->');
+    // Resolve1 types
     expect(untokenize(tokenize('</</div>')), '</></div>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 4);
+    expect(untokenize(tokenize('</<div>')), '</><div>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 3);
     expect(untokenize(tokenize('</>')), '</>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 3);
+    expect(untokenize(tokenize('</<!--comment-->')), '</><!--comment-->');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 6);
     expect(untokenize(tokenize('</')), '</>');
-    expect(untokenize(tokenize('</ <div>')), '</ ><div>');
-    expect(untokenize(tokenize('</!')), '</>');
-    expect(untokenize(tokenize('</[')), '</>');
-    expect(untokenize(tokenize('</]')), '</>');
-    expect(untokenize(tokenize('</(')), '</>');
-    expect(untokenize(tokenize('</)')), '</>');
-    expect(untokenize(tokenize('</[(')), '</>');
-    expect(untokenize(tokenize('</)]')), '</>');
-    expect(untokenize(tokenize('</-')), '</>');
-    expect(untokenize(tokenize('</=')), '</>');
-    expect(untokenize(tokenize('<//')), '</>');
-    expect(untokenize(tokenize('</#')), '</>');
-    expect(untokenize(tokenize('</*')), '</>');
-    expect(untokenize(tokenize('</.')), '</>');
-    expect(untokenize(tokenize('</"blah"')), '</>');
-    expect(untokenize(tokenize('</@')), '</>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
+    expect(untokenize(tokenize('</ >')), '</ >');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 3);
+
+    // Drop types
+    expect(untokenize(tokenize('</!div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
+    expect(untokenize(tokenize('</[div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
+    expect(untokenize(tokenize('</(div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
+    expect(untokenize(tokenize('</[(div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 2);
+    expect(untokenize(tokenize('</]div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
+    expect(untokenize(tokenize('</)div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
+    expect(untokenize(tokenize('</)]div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 2);
+    expect(untokenize(tokenize('</-div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
+    expect(untokenize(tokenize('</=div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
+    expect(untokenize(tokenize('</"blah"div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 6);
+    expect(untokenize(tokenize("</'blah'div>")), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 6);
+    expect(untokenize(tokenize('</#div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
+    expect(untokenize(tokenize('</*div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
+    expect(untokenize(tokenize('</.div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
+    expect(untokenize(tokenize('</@div>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 2, 1);
   });
 }
 
@@ -296,18 +321,14 @@ void elementIdentifierOpen() {
     NgSimpleTokenType.hash,
     NgSimpleTokenType.star,
     NgSimpleTokenType.commentBegin,
-    NgSimpleTokenType.commentEnd,
     NgSimpleTokenType.openTagStart,
     NgSimpleTokenType.closeTagStart,
     NgSimpleTokenType.tagEnd,
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
     NgSimpleTokenType.whitespace,
-    NgSimpleTokenType.bang,
-    NgSimpleTokenType.dash,
-    NgSimpleTokenType.period,
-    NgSimpleTokenType.unexpectedChar,
   ];
 
   testRecoverySolution(
@@ -318,27 +339,63 @@ void elementIdentifierOpen() {
     NgScannerState.scanAfterElementIdentifierOpen,
   );
 
+  var dropTokens = <NgSimpleTokenType>[
+    NgSimpleTokenType.bang,
+    NgSimpleTokenType.dash,
+    NgSimpleTokenType.period,
+    NgSimpleTokenType.unexpectedChar,
+  ];
+
+  testRecoverySolution(
+    baseHtml,
+    startState,
+    dropTokens,
+    null,
+    null,
+  );
+
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('<!>')), '<>');
-    expect(untokenize(tokenize('<->')), '<>');
-    expect(untokenize(tokenize('<.>')), '<>');
-    expect(untokenize(tokenize('<[someProp]>')), '< [someProp]>');
-    expect(untokenize(tokenize('<]>')), '< []>');
-    expect(untokenize(tokenize('<(someEvnt)>')), '< (someEvnt)>');
+    // Resolve1 types
+    expect(untokenize(tokenize('<(evnt)>')), '< (evnt)>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
+    expect(untokenize(tokenize('<[(bnna)]>')), '< [(bnna)]>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 3);
+    expect(untokenize(tokenize('<[prop]>')), '< [prop]>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
     expect(untokenize(tokenize('<)>')), '< ()>');
-    expect(untokenize(tokenize('<[(someBnna)]>')), '< [(someBnna)]>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
     expect(untokenize(tokenize('<)]>')), '< [()]>');
-    expect(untokenize(tokenize('<#someRef>')), '< #someRef>');
-    expect(untokenize(tokenize('<*someTemp>')), '< *someTemp>');
-    expect(untokenize(tokenize('<<!-- comment -->')), '<><!-- comment -->');
-    expect(untokenize(tokenize('<<div>')), '<><div>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 3);
+    expect(untokenize(tokenize('<]>')), '< []>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
+    expect(untokenize(tokenize('<#ref>')), '< #ref>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
+    expect(untokenize(tokenize('<*temp>')), '< *temp>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
+    expect(untokenize(tokenize('<<!--comment-->')), '<><!--comment-->');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 5);
+    expect(untokenize(tokenize('<<span>')), '<><span>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
     expect(untokenize(tokenize('<</div>')), '<></div>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 3);
     expect(untokenize(tokenize('<>')), '<>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
     expect(untokenize(tokenize('<')), '<>');
-    expect(untokenize(tokenize('<"blah">')), '< ="blah">');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 1);
     expect(untokenize(tokenize('<="blah">')), '< ="blah">');
-    expect(untokenize(tokenize('< >')), '< >');
-    expect(untokenize(tokenize('<@>')), '<>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
+    expect(untokenize(tokenize('<"blah">')), '< ="blah">');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 7);
+    expect(untokenize(tokenize("<'blah'>")), "< ='blah'>");
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 7);
+    expect(untokenize(tokenize('< attr>')), '< attr>');
+    checkException(NgParserWarningCode.ELEMENT_IDENTIFIER, 0, 2);
+
+    // Drop types
+    expect(untokenize(tokenize('<!div>')), '<div>');
+    expect(untokenize(tokenize('<-div>')), '<div>');
+    expect(untokenize(tokenize('<.div>')), '<div>');
+    expect(untokenize(tokenize('<@div>')), '<div>');
   });
 }
 
@@ -362,6 +419,8 @@ void afterElementIdentifierClose() {
     NgSimpleTokenType.closeBracket,
     NgSimpleTokenType.closeParen,
     NgSimpleTokenType.closeBanana,
+    NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.forwardSlash,
     NgSimpleTokenType.hash,
@@ -387,24 +446,49 @@ void afterElementIdentifierClose() {
   );
 
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('</div<div>')), '</div><div>');
+    // Resolve1 types
     expect(untokenize(tokenize('</div<!--comment-->')), '</div><!--comment-->');
-    expect(untokenize(tokenize('</div</div>')), '</div></div>');
+    checkException(NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER, 2, 3);
+    expect(untokenize(tokenize('</div<span>')), '</div><span>');
+    checkException(NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER, 2, 3);
+    expect(untokenize(tokenize('</div</span>')), '</div></span>');
+    checkException(NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER, 2, 3);
     expect(untokenize(tokenize('</div')), '</div>');
+    checkException(NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER, 2, 3);
     expect(untokenize(tokenize('</div/>')), '</div>');
+    checkException(NgParserWarningCode.VOID_CLOSE_IN_CLOSE_TAG, 5, 2);
+
+    // Drop types
     expect(untokenize(tokenize('</div!>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
     expect(untokenize(tokenize('</div[>')), '</div>');
-    expect(untokenize(tokenize('</div]>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
     expect(untokenize(tokenize('</div(>')), '</div>');
-    expect(untokenize(tokenize('</div)>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
     expect(untokenize(tokenize('</div[(>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 2);
+    expect(untokenize(tokenize('</div]>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
+    expect(untokenize(tokenize('</div)>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
     expect(untokenize(tokenize('</div)]>')), '</div>');
-    expect(untokenize(tokenize('</div=>')), '</div>');
-    expect(untokenize(tokenize('</div/ >')), '</div >');
-    expect(untokenize(tokenize('</div#>')), '</div>');
-    expect(untokenize(tokenize('</div*>')), '</div>');
-    expect(untokenize(tokenize('</div@>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 2);
     expect(untokenize(tokenize('</div"blah">')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 6);
+    expect(untokenize(tokenize("</div'blah'>")), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 6);
+    expect(untokenize(tokenize('</div=>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
+    expect(untokenize(tokenize('</div/ >')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
+    expect(untokenize(tokenize('</div#>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
+    expect(untokenize(tokenize('</div*>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
+    expect(untokenize(tokenize('</div.>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
+    expect(untokenize(tokenize('</div@>')), '</div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
   });
 }
 
@@ -423,6 +507,7 @@ void afterElementIdentifierOpen() {
     NgSimpleTokenType.star,
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
   ];
 
   var resolveTokens2 = <NgSimpleTokenType>[
@@ -465,24 +550,63 @@ void afterElementIdentifierOpen() {
   );
 
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('<div!>')), '<div>');
-    expect(untokenize(tokenize('<div.>')), '<div>');
-    expect(untokenize(tokenize('<div[someProp]>')), '<div [someProp]>');
-    expect(untokenize(tokenize('<div]>')), '<div []>');
-    expect(untokenize(tokenize('<div(someEvnt)>')), '<div (someEvnt)>');
-    expect(untokenize(tokenize('<div)>')), '<div ()>');
-    expect(untokenize(tokenize('<div[(someBnna)]>')), '<div [(someBnna)]>');
-    expect(untokenize(tokenize('<div)]>')), '<div [()]>');
-    expect(untokenize(tokenize('<div#someRef>')), '<div #someRef>');
-    expect(untokenize(tokenize('<div*someTemp>')), '<div *someTemp>');
-    expect(
-        untokenize(tokenize('<div<!-- comment -->')), '<div><!-- comment -->');
-    expect(untokenize(tokenize('<div<div>')), '<div><div>');
-    expect(untokenize(tokenize('<div</div>')), '<div></div>');
-    expect(untokenize(tokenize('<div')), '<div>');
-    expect(untokenize(tokenize('<div"blah">')), '<div ="blah">');
+    // Resolve1 types
+    expect(untokenize(tokenize('<div[prop]>')), '<div [prop]>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+    expect(untokenize(tokenize('<div(evnt)>')), '<div (evnt)>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+    expect(untokenize(tokenize('<div[(bnna)]>')), '<div [(bnna)]>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+    expect(untokenize(tokenize('<div#ref>')), '<div #ref>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+    expect(untokenize(tokenize('<div*temp>')), '<div *temp>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
     expect(untokenize(tokenize('<div="blah">')), '<div ="blah">');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+    expect(untokenize(tokenize("<div='blah'>")), "<div ='blah'>");
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+    expect(untokenize(tokenize('<div]>')), '<div []>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+    expect(untokenize(tokenize('<div)>')), '<div ()>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+    expect(untokenize(tokenize('<div)]>')), '<div [()]>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+    expect(untokenize(tokenize('<div"blah">')), '<div ="blah">');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+    expect(untokenize(tokenize("<div'blah'>")), "<div ='blah'>");
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 1, 3);
+
+    // Resolve2 types
+    expect(untokenize(tokenize('<div<!--comment-->')), '<div><!--comment-->');
+    checkException(NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER, 1, 3);
+    expect(untokenize(tokenize('<div<span>')), '<div><span>');
+    checkException(NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER, 1, 3);
+    expect(untokenize(tokenize('<div</div>')), '<div></div>');
+    checkException(NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER, 1, 3);
+    expect(untokenize(tokenize('<div')), '<div>');
+    checkException(NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER, 1, 3);
+
+    // Drop types
+    expect(untokenize(tokenize('<div!>')), '<div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 4, 1);
+    expect(untokenize(tokenize('<div/ >')), '<div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 4, 1);
+    expect(untokenize(tokenize('<div.>')), '<div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 4, 1);
     expect(untokenize(tokenize('<div@>')), '<div>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 4, 1);
   });
 }
 
@@ -499,6 +623,7 @@ void afterElementDecorator() {
     NgSimpleTokenType.closeBanana,
     NgSimpleTokenType.hash,
     NgSimpleTokenType.star,
+    NgSimpleTokenType.identifier,
   ];
 
   testRecoverySolution(
@@ -527,6 +652,7 @@ void afterElementDecorator() {
 
   var resolveTokens3 = <NgSimpleTokenType>[
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
   ];
 
   testRecoverySolution(
@@ -552,29 +678,59 @@ void afterElementDecorator() {
   );
 
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('<div blah!></div>')), '<div blah></div>');
-    expect(untokenize(tokenize('<div blah[someProp]="x"></div>')),
-        '<div blah [someProp]="x"></div>');
-    expect(untokenize(tokenize('<div blah]="x"></div>')),
-        '<div blah []="x"></div>');
-    expect(untokenize(tokenize('<div blah(someProp)="x"></div>')),
-        '<div blah (someProp)="x"></div>');
-    expect(untokenize(tokenize('<div blah)="x"></div>')),
-        '<div blah ()="x"></div>');
-    expect(untokenize(tokenize('<div blah[(someBnna)]="x"></div>')),
-        '<div blah [(someBnna)]="x"></div>');
-    expect(untokenize(tokenize('<div bnna)]="x"></div>')),
-        '<div bnna [()]="x"></div>');
-    expect(untokenize(tokenize('<div blah<!-- comment -->')),
-        '<div blah><!-- comment -->');
-    expect(untokenize(tokenize('<div blah<span>')), '<div blah><span>');
-    expect(untokenize(tokenize('<div blah</div>')), '<div blah></div>');
+    // Resolve1 types
+    expect(untokenize(tokenize('<div blah[prop]>')), '<div blah [prop]>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 9, 1);
+    expect(untokenize(tokenize('<div blah(evnt)>')), '<div blah (evnt)>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 9, 1);
+    expect(untokenize(tokenize('<div blah[(bnna)]>')), '<div blah [(bnna)]>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 9, 2);
+    expect(untokenize(tokenize('<div blah]>')), '<div blah []>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 9, 1);
+    expect(untokenize(tokenize('<div blah)>')), '<div blah ()>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 9, 1);
+    expect(untokenize(tokenize('<div blah)]>')), '<div blah [()]>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 9, 2);
+    expect(untokenize(tokenize('<div blah#ref>')), '<div blah #ref>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 9, 1);
+    expect(untokenize(tokenize('<div blah*temp>')), '<div blah *temp>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 9, 1);
+    expect(untokenize(tokenize('<div [blah]blah2>')), '<div [blah] blah2>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 11, 5);
+
+    // Resolve2 types
     expect(untokenize(tokenize('<div blah')), '<div blah>');
-    expect(untokenize(tokenize('<div blah#someRef>')), '<div blah #someRef>');
-    expect(untokenize(tokenize('<div blah*myTemp>')), '<div blah *myTemp>');
-    expect(untokenize(tokenize('<div blah"quotedText">')),
-        '<div blah="quotedText">');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 5, 4);
+    expect(untokenize(tokenize('<div blah<!--comment-->')),
+        '<div blah><!--comment-->');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 5, 4);
+    expect(untokenize(tokenize('<div blah<span>')), '<div blah><span>');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 5, 4);
+    expect(untokenize(tokenize('<div blah</div>')), '<div blah></div>');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 5, 4);
+
+    // Resolve3 types
+    expect(untokenize(tokenize('<div blah"value">')), '<div blah="value">');
+    checkException(NgParserWarningCode.EXPECTED_EQUAL_SIGN, 5, 11);
+    expect(untokenize(tokenize("<div blah'value'>")), "<div blah='value'>");
+    checkException(NgParserWarningCode.EXPECTED_EQUAL_SIGN, 5, 11);
+
+    // Drop types
+    expect(untokenize(tokenize('<div blah!>')), '<div blah>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 9, 1);
+    expect(untokenize(tokenize('<div blah/ >')), '<div blah >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 9, 1);
     expect(untokenize(tokenize('<div blah@>')), '<div blah>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 9, 1);
   });
 }
 
@@ -636,42 +792,71 @@ void afterElementDecoratorValue() {
   );
 
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('<div someName="someValue"!>')),
-        '<div someName="someValue">');
-    expect(untokenize(tokenize('<div someName="someValue"[someProp]>')),
-        '<div someName="someValue" [someProp]>');
+    // Resolve1 types
+    expect(untokenize(tokenize('<div someName="someValue"[prop]>')),
+        '<div someName="someValue" [prop]>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 14, 11);
+    expect(untokenize(tokenize('<div someName="someValue"(evnt)>')),
+        '<div someName="someValue" (evnt)>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 14, 11);
+    expect(untokenize(tokenize('<div someName="someValue"[(bnna)]>')),
+        '<div someName="someValue" [(bnna)]>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 14, 11);
+    expect(untokenize(tokenize('<div someName="someValue"#ref>')),
+        '<div someName="someValue" #ref>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 14, 11);
+    expect(untokenize(tokenize('<div someName="someValue"*temp>')),
+        '<div someName="someValue" *temp>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 14, 11);
     expect(untokenize(tokenize('<div someName="someValue"]>')),
         '<div someName="someValue" []>');
-    expect(untokenize(tokenize('<div someName="someValue"(someEvent)>')),
-        '<div someName="someValue" (someEvent)>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 14, 11);
     expect(untokenize(tokenize('<div someName="someValue")>')),
         '<div someName="someValue" ()>');
-    expect(untokenize(tokenize('<div someName="someValue"[(someEvent)]>')),
-        '<div someName="someValue" [(someEvent)]>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 14, 11);
     expect(untokenize(tokenize('<div someName="someValue")]>')),
         '<div someName="someValue" [()]>');
-    expect(untokenize(tokenize('<div someName="someValue"<!-- comment -->')),
-        '<div someName="someValue"><!-- comment -->');
-    expect(untokenize(tokenize('<div someName="someValue"->')),
-        '<div someName="someValue">');
-    expect(untokenize(tokenize('<div someName="someValue"<span>')),
-        '<div someName="someValue"><span>');
-    expect(untokenize(tokenize('<div someName="someValue"</div>')),
-        '<div someName="someValue"></div>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 14, 11);
+    expect(untokenize(tokenize('<div someName="someValue"blah>')),
+        '<div someName="someValue" blah>');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 14, 11);
+    expect(untokenize(tokenize('<div someName="someValue"="anotherValue">')),
+        '<div someName="someValue" ="anotherValue">');
+    checkException(
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR, 14, 11);
+
+    // Resolve2 types
     expect(untokenize(tokenize('<div someName="someValue"')),
         '<div someName="someValue">');
-    expect(untokenize(tokenize('<div someName="someValue"="otherValue">')),
-        '<div someName="someValue" ="otherValue">');
-    expect(untokenize(tokenize('<div someName="someValue"*someTemp>')),
-        '<div someName="someValue" *someTemp>');
-    expect(untokenize(tokenize('<div someName="someValue"#someRef>')),
-        '<div someName="someValue" #someRef>');
-    expect(untokenize(tokenize('<div someName="someValue"someOther>')),
-        '<div someName="someValue" someOther>');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 14, 11);
+    expect(untokenize(tokenize('<div someName="someValue"<!--comment-->')),
+        '<div someName="someValue"><!--comment-->');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 14, 11);
+    expect(untokenize(tokenize('<div someName="someValue"<span>')),
+        '<div someName="someValue"><span>');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 14, 11);
+    expect(untokenize(tokenize('<div someName="someValue"</div>')),
+        '<div someName="someValue"></div>');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 14, 11);
+
+    // Resolve3 types
+    expect(untokenize(tokenize('<div someName="someValue"!>')),
+        '<div someName="someValue">');
+    expect(untokenize(tokenize('<div someName="someValue"->')),
+        '<div someName="someValue">');
+    expect(untokenize(tokenize('<div someName="someValue"/ >')),
+        '<div someName="someValue" >');
     expect(untokenize(tokenize('<div someName="someValue".>')),
         '<div someName="someValue">');
-    expect(untokenize(tokenize('<div someName="someValue""quotedText">')),
-        '<div someName="someValue" ="quotedText">');
     expect(untokenize(tokenize('<div someName="someValue"@>')),
         '<div someName="someValue">');
   });
@@ -688,9 +873,7 @@ void elementDecorator() {
     NgSimpleTokenType.closeTagStart,
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.doubleQuote,
-    NgSimpleTokenType.dash,
-    NgSimpleTokenType.unexpectedChar,
-    NgSimpleTokenType.period,
+    NgSimpleTokenType.singleQuote,
   ];
 
   testRecoverySolution(
@@ -705,6 +888,9 @@ void elementDecorator() {
   var dropTokens = <NgSimpleTokenType>[
     NgSimpleTokenType.bang,
     NgSimpleTokenType.forwardSlash,
+    NgSimpleTokenType.unexpectedChar,
+    NgSimpleTokenType.dash,
+    NgSimpleTokenType.period,
   ];
 
   testRecoverySolution(
@@ -752,19 +938,44 @@ void elementDecorator() {
   );
 
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('<div ]>')), '<div []>');
-    expect(untokenize(tokenize('<div )>')), '<div ()>');
-    expect(untokenize(tokenize('<div )]>')), '<div [()]>');
-    expect(untokenize(tokenize('<div <!-- comment -->')),
-        '<div ><!-- comment -->');
-    expect(untokenize(tokenize('<div <span>')), '<div ><span>');
-    expect(untokenize(tokenize('<div </div>')), '<div ></div>');
-    expect(untokenize(tokenize('<div ')), '<div >');
-    expect(untokenize(tokenize('<div ->')), '<div >');
-    expect(untokenize(tokenize('<div @>')), '<div >');
-    expect(untokenize(tokenize('<div !attr>')), '<div attr>');
-    expect(untokenize(tokenize('<div "blah">')), '<div ="blah">');
+    // Resolve1 types
     expect(untokenize(tokenize('<div ="blah">')), '<div ="blah">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 4, 1);
+    expect(untokenize(tokenize('<div <!--comment-->')), '<div ><!--comment-->');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 4, 1);
+    expect(untokenize(tokenize('<div <span>')), '<div ><span>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 4, 1);
+    expect(untokenize(tokenize('<div </div>')), '<div ></div>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 4, 1);
+    expect(untokenize(tokenize('<div ')), '<div >');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 4, 1);
+    expect(untokenize(tokenize('<div "blah">')), '<div ="blah">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 4, 1);
+    expect(untokenize(tokenize("<div 'blah'>")), "<div ='blah'>");
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 4, 1);
+
+    // Resolve2 types
+    expect(untokenize(tokenize('<div ]>')), '<div []>');
+    checkException(
+        NgParserWarningCode.ELEMENT_DECORATOR_SUFFIX_BEFORE_PREFIX, 5, 1);
+    expect(untokenize(tokenize('<div )>')), '<div ()>');
+    checkException(
+        NgParserWarningCode.ELEMENT_DECORATOR_SUFFIX_BEFORE_PREFIX, 5, 1);
+    expect(untokenize(tokenize('<div )]>')), '<div [()]>');
+    checkException(
+        NgParserWarningCode.ELEMENT_DECORATOR_SUFFIX_BEFORE_PREFIX, 5, 2);
+
+    // Drop tokens
+    expect(untokenize(tokenize('<div !attr>')), '<div attr>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
+    expect(untokenize(tokenize('<div /attr>')), '<div attr>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
+    expect(untokenize(tokenize('<div @attr>')), '<div attr>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
+    expect(untokenize(tokenize('<div -attr>')), '<div attr>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
+    expect(untokenize(tokenize('<div .attr>')), '<div attr>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 5, 1);
   });
 }
 
@@ -816,32 +1027,53 @@ void elementDecoratorValue() {
   );
 
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('<div attr=!>')), '<div attr="">');
-    expect(untokenize(tokenize('<div attr=->')), '<div attr="">');
-    expect(untokenize(tokenize('<div attr=@>')), '<div attr="">');
-    expect(untokenize(tokenize('<div attr=.>')), '<div attr="">');
-    expect(untokenize(tokenize('<div attr=/ >')), '<div attr= "">');
+    // Resolve1 types
+    expect(untokenize(tokenize('<div attr=[prop]>')), '<div attr="" [prop]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
+    expect(untokenize(tokenize('<div attr=(evnt)>')), '<div attr="" (evnt)>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
     expect(
-        untokenize(tokenize('<div attr=#someRef>')), '<div attr="" #someRef>');
-    expect(untokenize(tokenize('<div attr=*someTemp>')),
-        '<div attr="" *someTemp>');
-    expect(untokenize(tokenize('<div attr=blah>')), '<div attr="" blah>');
-    expect(untokenize(tokenize('<div attr=[someProp]>')),
-        '<div attr="" [someProp]>');
+        untokenize(tokenize('<div attr=[(bnna)]>')), '<div attr="" [(bnna)]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
     expect(untokenize(tokenize('<div attr=]>')), '<div attr="" []>');
-    expect(untokenize(tokenize('<div attr=(someEvnt)>')),
-        '<div attr="" (someEvnt)>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
     expect(untokenize(tokenize('<div attr=)>')), '<div attr="" ()>');
-    expect(untokenize(tokenize('<div attr=[(someBnna)]>')),
-        '<div attr="" [(someBnna)]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
     expect(untokenize(tokenize('<div attr=)]>')), '<div attr="" [()]>');
-    expect(untokenize(tokenize('<div attr=<!-- comment -->')),
-        '<div attr=""><!-- comment -->');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
+    expect(untokenize(tokenize('<div attr=<!--comment-->')),
+        '<div attr=""><!--comment-->');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
     expect(untokenize(tokenize('<div attr=<span>')), '<div attr=""><span>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
     expect(untokenize(tokenize('<div attr=</div>')), '<div attr=""></div>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
     expect(untokenize(tokenize('<div attr=>')), '<div attr="">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
     expect(untokenize(tokenize('<div attr=/>')), '<div attr=""/>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
+    expect(untokenize(tokenize('<div attr=')), '<div attr="">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
     expect(untokenize(tokenize('<div attr=="blah">')), '<div attr="" ="blah">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
+    expect(untokenize(tokenize('<div attr=#ref>')), '<div attr="" #ref>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
+    expect(untokenize(tokenize('<div attr=attr2>')), '<div attr="" attr2>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
+    expect(untokenize(tokenize('<div attr=*temp>')), '<div attr="" *temp>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
+
+    // Drop types
+    expect(untokenize(tokenize('<div attr=!"blah">')), '<div attr="blah">');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
+    expect(untokenize(tokenize('<div attr=-"blah">')), '<div attr="blah">');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
+    expect(untokenize(tokenize('<div attr=/"blah">')), '<div attr="blah">');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
+    expect(untokenize(tokenize('<div attr=."blah">')), '<div attr="blah">');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
+    expect(untokenize(tokenize('<div attr=@"blah">')), '<div attr="blah">');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
   });
 }
 
@@ -854,7 +1086,7 @@ void elementEndClose() {
     NgSimpleTokenType.openTagStart,
     NgSimpleTokenType.closeTagStart,
     NgSimpleTokenType.EOF,
-    NgSimpleTokenType.whitespace,
+    NgSimpleTokenType.voidCloseTag,
   ];
 
   testRecoverySolution(
@@ -880,6 +1112,7 @@ void elementEndClose() {
     NgSimpleTokenType.identifier,
     NgSimpleTokenType.period,
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
     NgSimpleTokenType.unexpectedChar,
   ];
 
@@ -892,27 +1125,50 @@ void elementEndClose() {
   );
 
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('</div <div>')), '</div ><div>');
+    // Resolve1 types
     expect(
         untokenize(tokenize('</div <!--comment-->')), '</div ><!--comment-->');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 0, 10);
+    expect(untokenize(tokenize('</div <div>')), '</div ><div>');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 0, 7);
     expect(untokenize(tokenize('</div </div>')), '</div ></div>');
-    expect(untokenize(tokenize('</div ')), '</div >');
-    expect(untokenize(tokenize('</div /><div>')), '</div ><div>');
+    checkException(NgParserWarningCode.EXPECTED_TAG_CLOSE, 0, 8);
+    expect(untokenize(tokenize('</div />')), '</div >');
+    checkException(NgParserWarningCode.VOID_CLOSE_IN_CLOSE_TAG, 6, 2);
+
+    // Drop types
     expect(untokenize(tokenize('</div !>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div [>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div ]>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div (>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div )>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div [(>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 2);
     expect(untokenize(tokenize('</div )]>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 2);
     expect(untokenize(tokenize('</div ->')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div =>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div .>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div #>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div *>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div @>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('</div blah>')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 4);
     expect(untokenize(tokenize('</div "blah">')), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 6);
+    expect(untokenize(tokenize("</div 'blah'>")), '</div >');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 6);
   });
 }
 
@@ -921,9 +1177,6 @@ void interpolation() {
   var startState = NgScannerState.scanInterpolation;
 
   var resolveTokens = <NgSimpleTokenType>[
-    NgSimpleTokenType.commentBegin,
-    NgSimpleTokenType.openTagStart,
-    NgSimpleTokenType.closeTagStart,
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.mustacheBegin,
     NgSimpleTokenType.mustacheEnd,
@@ -938,13 +1191,14 @@ void interpolation() {
   );
 
   test('Testing resolved strings of $startState', () {
-    expect(untokenize(tokenize('{{<!--comment-->')), '{{}}<!--comment-->');
-    expect(untokenize(tokenize('{{<div></div>')), '{{}}<div></div>');
-    expect(untokenize(tokenize('<div>{{</div>')), '<div>{{}}</div>');
+    // Resolve1 types
     expect(untokenize(tokenize('{{')), '{{}}');
-    expect(
-        untokenize(tokenize('{{{{mustache value}}')), '{{}}{{mustache value}}');
+    checkException(NgParserWarningCode.UNTERMINATED_MUSTACHE, 0, 2);
+    expect(untokenize(tokenize('{{{{mustache}}')), '{{}}{{mustache}}');
+    checkException(NgParserWarningCode.UNTERMINATED_MUSTACHE, 0, 2);
     expect(untokenize(tokenize('{{}}')), '{{}}');
+    checkException(NgParserWarningCode.EMPTY_INTERPOLATION, 0, 4);
+    // All other tokens will be engrained as part of mustache expression.
   });
 }
 
@@ -968,6 +1222,7 @@ void simpleElementDecorator() {
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
     NgSimpleTokenType.whitespace,
   ];
 
@@ -996,28 +1251,49 @@ void simpleElementDecorator() {
   );
 
   test('Testing resolved strings of $startState', () {
+    // Resolve1 types
     expect(untokenize(tokenize('<div #[prop]>')), '<div # [prop]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
     expect(untokenize(tokenize('<div #(evnt)>')), '<div # (evnt)>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
     expect(untokenize(tokenize('<div #[(bnna)]>')), '<div # [(bnna)]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
     expect(untokenize(tokenize('<div #]>')), '<div # []>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
     expect(untokenize(tokenize('<div #)>')), '<div # ()>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
     expect(untokenize(tokenize('<div #)]>')), '<div # [()]>');
-    expect(untokenize(tokenize('<div #*myTemp>')), '<div # *myTemp>');
-    expect(untokenize(tokenize('<div ##myRefr>')), '<div # #myRefr>');
-    expect(untokenize(tokenize('<div #')), '<div #>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
+    expect(untokenize(tokenize('<div ##ref>')), '<div # #ref>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
+    expect(untokenize(tokenize('<div #*temp>')), '<div # *temp>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
     expect(untokenize(tokenize('<div #<span>')), '<div #><span>');
-    expect(
-        untokenize(tokenize('<div #<!--comment-->')), '<div #><!--comment-->');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
     expect(untokenize(tokenize('<div #</div>')), '<div #></div>');
-    expect(untokenize(tokenize('<div #>')), '<div #>');
-    expect(untokenize(tokenize('<div #/>')), '<div #/>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
+    expect(untokenize(tokenize('<div #')), '<div #>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
     expect(untokenize(tokenize('<div #="blah">')), '<div #="blah">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
     expect(untokenize(tokenize('<div #"blah">')), '<div #="blah">');
-    expect(untokenize(tokenize('<div # blah>')), '<div # blah>');
-    expect(untokenize(tokenize('<div #!refr>')), '<div #refr>');
-    expect(untokenize(tokenize('<div #-refr>')), '<div #refr>');
-    expect(untokenize(tokenize('<div #/refr>')), '<div #refr>');
-    expect(untokenize(tokenize('<div #@refr>')), '<div #refr>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
+    expect(untokenize(tokenize("<div #'blah'>")), "<div #='blah'>");
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
+    expect(untokenize(tokenize('<div # attr>')), '<div # attr>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR, 5, 1);
+
+    // Drop types
+    expect(untokenize(tokenize('<div #!ref>')), '<div #ref>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
+    expect(untokenize(tokenize('<div #-ref>')), '<div #ref>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
+    expect(untokenize(tokenize('<div #/ref>')), '<div #ref>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
+    expect(untokenize(tokenize('<div #.ref>')), '<div #ref>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
+    expect(untokenize(tokenize('<div #@ref>')), '<div #ref>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
   });
 }
 
@@ -1036,11 +1312,13 @@ void specialBananaDecorator() {
     NgSimpleTokenType.star,
     NgSimpleTokenType.openTagStart,
     NgSimpleTokenType.closeTagStart,
+    NgSimpleTokenType.commentBegin,
     NgSimpleTokenType.tagEnd,
     NgSimpleTokenType.voidCloseTag,
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
     NgSimpleTokenType.whitespace,
   ];
 
@@ -1068,28 +1346,54 @@ void specialBananaDecorator() {
   );
 
   test('Testing resolved strings of $startState', () {
+    // Resolve1 types
     expect(untokenize(tokenize('<div [([myProp]>')), '<div [()] [myProp]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [((myEvnt)>')), '<div [()] (myEvnt)>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [([(myBnna)]>')), '<div [()] [(myBnna)]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [(]>')), '<div [()] []>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [()>')), '<div [()] ()>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [()]>')), '<div [()]>');
-    expect(untokenize(tokenize('<div [(*myTemp>')), '<div [()] *myTemp>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [(#myRefr>')), '<div [()] #myRefr>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
+    expect(untokenize(tokenize('<div [(*myTemp>')), '<div [()] *myTemp>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
+    expect(untokenize(tokenize('<div [(<span>')), '<div [()]><span>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
+    expect(untokenize(tokenize('<div [(</div>')), '<div [()]></div>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [(<!--comment-->')),
         '<div [()]><!--comment-->');
-    expect(untokenize(tokenize('<div [(<span>')), '<div [()]><span>');
-    expect(untokenize(tokenize('<div [(</div>')), '<div [()]></div>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [(>')), '<div [()]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [(/>')), '<div [()]/>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [(')), '<div [()]>');
-    expect(untokenize(tokenize('<div [(=>')), '<div [()]="">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
+    expect(untokenize(tokenize('<div [(="blah">')), '<div [()]="blah">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [("blah">')), '<div [()]="blah">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
+    expect(untokenize(tokenize("<div [('blah'>")), "<div [()]='blah'>");
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
     expect(untokenize(tokenize('<div [( blah>')), '<div [()] blah>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 2);
+
+    // Drop types
     expect(untokenize(tokenize('<div [(!bnna)]>')), '<div [(bnna)]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 7, 1);
     expect(untokenize(tokenize('<div [(-bnna)]>')), '<div [(bnna)]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 7, 1);
     expect(untokenize(tokenize('<div [(/bnna)]>')), '<div [(bnna)]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 7, 1);
     expect(untokenize(tokenize('<div [(@bnna)]>')), '<div [(bnna)]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 7, 1);
   });
 }
 
@@ -1106,6 +1410,7 @@ void specialEventDecorator() {
     NgSimpleTokenType.closeBanana,
     NgSimpleTokenType.hash,
     NgSimpleTokenType.star,
+    NgSimpleTokenType.commentBegin,
     NgSimpleTokenType.openTagStart,
     NgSimpleTokenType.closeTagStart,
     NgSimpleTokenType.tagEnd,
@@ -1113,6 +1418,7 @@ void specialEventDecorator() {
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
     NgSimpleTokenType.whitespace,
   ];
 
@@ -1140,28 +1446,54 @@ void specialEventDecorator() {
   );
 
   test('Testing resolved strings of $startState', () {
+    // Resolve1 types
     expect(untokenize(tokenize('<div ([myProp]>')), '<div () [myProp]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div ((myEvnt)>')), '<div () (myEvnt)>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div ([(myBnna)]>')), '<div () [(myBnna)]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div (]>')), '<div () []>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div ()>')), '<div ()>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div ()]>')), '<div () [()]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div (*myTemp>')), '<div () *myTemp>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div (#myRefr>')), '<div () #myRefr>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(
         untokenize(tokenize('<div (<!--comment-->')), '<div ()><!--comment-->');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div (<span>')), '<div ()><span>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div (</div>')), '<div ()></div>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div (>')), '<div ()>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div (/>')), '<div ()/>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div (')), '<div ()>');
-    expect(untokenize(tokenize('<div (=>')), '<div ()="">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
+    expect(untokenize(tokenize('<div (="blah">')), '<div ()="blah">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div ("blah">')), '<div ()="blah">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
+    expect(untokenize(tokenize("<div ('blah'>")), "<div ()='blah'>");
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div ( attr>')), '<div () attr>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
+
+    // Drop types
     expect(untokenize(tokenize('<div (!evnt)>')), '<div (evnt)>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('<div (-evnt)>')), '<div (evnt)>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('<div (@evnt)>')), '<div (evnt)>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('<div (/evnt)>')), '<div (evnt)>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
   });
 }
 
@@ -1177,6 +1509,7 @@ void specialPropertyDecorator() {
     NgSimpleTokenType.closeBanana,
     NgSimpleTokenType.hash,
     NgSimpleTokenType.star,
+    NgSimpleTokenType.commentBegin,
     NgSimpleTokenType.openTagStart,
     NgSimpleTokenType.closeTagStart,
     NgSimpleTokenType.tagEnd,
@@ -1184,6 +1517,7 @@ void specialPropertyDecorator() {
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
     NgSimpleTokenType.whitespace,
   ];
 
@@ -1211,27 +1545,52 @@ void specialPropertyDecorator() {
   );
 
   test('Testing resolved strings of $startState', () {
+    // Resolve1 types
     expect(untokenize(tokenize('<div [[myProp]>')), '<div [] [myProp]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [[(myBnna)]>')), '<div [] [(myBnna)]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div []>')), '<div []>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [)>')), '<div [] ()>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [)]>')), '<div [] [()]>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [*myTemp>')), '<div [] *myTemp>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [#myRefr>')), '<div [] #myRefr>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [')), '<div []>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [<span>')), '<div []><span>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(
         untokenize(tokenize('<div [<!--comment-->')), '<div []><!--comment-->');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [</div>')), '<div []></div>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [>')), '<div []>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [/>')), '<div []/>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div ["blah">')), '<div []="blah">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
+    expect(untokenize(tokenize("<div ['blah'>")), "<div []='blah'>");
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [="blah">')), '<div []="blah">');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
     expect(untokenize(tokenize('<div [ attr>')), '<div [] attr>');
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 1);
+
+    // Drop types
     expect(untokenize(tokenize('<div [!prop]>')), '<div [prop]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('<div [-prop]>')), '<div [prop]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('<div [/prop]>')), '<div [prop]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
     expect(untokenize(tokenize('<div [@prop]>')), '<div [prop]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 6, 1);
   });
 }
 
@@ -1255,6 +1614,7 @@ void suffixBanana() {
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
     NgSimpleTokenType.whitespace,
   ];
 
@@ -1280,29 +1640,54 @@ void suffixBanana() {
 
   // Resolvables
   test('Testing resolved strings of $startState', () {
+    // Resolve1 types
     expect(untokenize(tokenize('<div [(bnna[prop]>')), '<div [(bnna)] [prop]>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna(evnt)>')), '<div [(bnna)] (evnt)>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna[(bnna2)]>')),
         '<div [(bnna)] [(bnna2)]>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna]>')), '<div [(bnna)] []>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna)>')), '<div [(bnna)] ()>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna#refr>')), '<div [(bnna)] #refr>');
-    expect(untokenize(tokenize('<div [(bnna*templ')), '<div [(bnna)] *templ>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
+    expect(untokenize(tokenize('<div [(bnna*templ>')), '<div [(bnna)] *templ>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna<!--comment-->')),
         '<div [(bnna)]><!--comment-->');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna<span>')), '<div [(bnna)]><span>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna</div>')), '<div [(bnna)]></div>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna>')), '<div [(bnna)]>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna/>')), '<div [(bnna)]/>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna')), '<div [(bnna)]>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(
         untokenize(tokenize('<div [(bnna="quote">')), '<div [(bnna)]="quote">');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(
         untokenize(tokenize('<div [(bnna"quote">')), '<div [(bnna)]="quote">');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
+    expect(
+        untokenize(tokenize("<div [(bnna'quote'>")), "<div [(bnna)]='quote'>");
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
     expect(untokenize(tokenize('<div [(bnna attr>')), '<div [(bnna)] attr>');
+    checkException(NgParserWarningCode.SUFFIX_BANANA, 5, 6);
+
+    // Drop types
     expect(untokenize(tokenize('<div [(bnna!)]>')), '<div [(bnna)]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 11, 1);
     expect(untokenize(tokenize('<div [(bnna/)]>')), '<div [(bnna)]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 11, 1);
     expect(untokenize(tokenize('<div [(bnna@)]>')), '<div [(bnna)]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 11, 1);
   });
 }
 
@@ -1326,6 +1711,7 @@ void suffixEvent() {
     NgSimpleTokenType.EOF,
     NgSimpleTokenType.equalSign,
     NgSimpleTokenType.doubleQuote,
+    NgSimpleTokenType.singleQuote,
     NgSimpleTokenType.whitespace,
   ];
   var dropTokens = <NgSimpleTokenType>[
@@ -1350,27 +1736,51 @@ void suffixEvent() {
 
   // Resolvables
   test('Testing resolved strings of $startState', () {
+    // Resolve1 types
     expect(untokenize(tokenize('<div (evnt[prop]>')), '<div (evnt) [prop]>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt(evnt2)>')), '<div (evnt) (evnt2)>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(
         untokenize(tokenize('<div (evnt[(bnna)]>')), '<div (evnt) [(bnna)]>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt]>')), '<div (evnt) []>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt)]>')), '<div (evnt) [()]>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt#refr>')), '<div (evnt) #refr>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt*templ>')), '<div (evnt) *templ>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt<!--comment-->')),
         '<div (evnt)><!--comment-->');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt<span>')), '<div (evnt)><span>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt</div>')), '<div (evnt)></div>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt>')), '<div (evnt)>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt/>')), '<div (evnt)/>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt')), '<div (evnt)>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt="quote">')), '<div (evnt)="quote">');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt"quote">')), '<div (evnt)="quote">');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
+    expect(untokenize(tokenize("<div (evnt'quote'>")), "<div (evnt)='quote'>");
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
     expect(untokenize(tokenize('<div (evnt attr>')), '<div (evnt) attr>');
+    checkException(NgParserWarningCode.SUFFIX_EVENT, 5, 5);
+
+    // Drop types
     expect(untokenize(tokenize('<div (evnt!)>')), '<div (evnt)>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
     expect(untokenize(tokenize('<div (evnt/)>')), '<div (evnt)>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
     expect(untokenize(tokenize('<div (evnt@)>')), '<div (evnt)>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
   });
 }
 
@@ -1419,25 +1829,48 @@ void suffixProperty() {
   // Resolvables
   test('Testing resolved strings of $startState', () {
     expect(untokenize(tokenize('<div [prop[prop2]>')), '<div [prop] [prop2]>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop(evnt)>')), '<div [prop] (evnt)>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(
         untokenize(tokenize('<div [prop[(bnna)]>')), '<div [prop] [(bnna)]>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop)>')), '<div [prop] ()>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop)]>')), '<div [prop] [()]>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop#refr>')), '<div [prop] #refr>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop*templ>')), '<div [prop] *templ>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop<!--comment-->')),
         '<div [prop]><!--comment-->');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop<span>')), '<div [prop]><span>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop</div>')), '<div [prop]></div>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop>')), '<div [prop]>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop/>')), '<div [prop]/>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop')), '<div [prop]>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop="quote">')), '<div [prop]="quote">');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop"quote">')), '<div [prop]="quote">');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
+    expect(untokenize(tokenize("<div [prop'quote'>")), "<div [prop]='quote'>");
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
     expect(untokenize(tokenize('<div [prop attr>')), '<div [prop] attr>');
+    checkException(NgParserWarningCode.SUFFIX_PROPERTY, 5, 5);
+
+    // Drop types
     expect(untokenize(tokenize('<div [prop!]>')), '<div [prop]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
     expect(untokenize(tokenize('<div [prop@]>')), '<div [prop]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
     expect(untokenize(tokenize('<div [prop/]>')), '<div [prop]>');
+    checkException(NgParserWarningCode.UNEXPECTED_TOKEN, 10, 1);
   });
 }

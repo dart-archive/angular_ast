@@ -15,7 +15,8 @@ export 'package:angular_ast/src/ast/event.dart' show EventAst, ParsedEventAst;
 export 'package:angular_ast/src/ast/expression.dart' show ExpressionAst;
 export 'package:angular_ast/src/ast/interface.dart'
     show StandaloneTemplateAst, SyntheticTemplateAst, TemplateAst;
-export 'package:angular_ast/src/ast/interpolation.dart' show InterpolationAst;
+export 'package:angular_ast/src/ast/interpolation.dart'
+    show InterpolationAst, ParsedInterpolationAst;
 export 'package:angular_ast/src/ast/property.dart'
     show PropertyAst, ParsedPropertyAst;
 export 'package:angular_ast/src/ast/reference.dart'

@@ -21,12 +21,14 @@ bool isMicroExpression(String expression) {
 /// Returns a de-sugared micro AST from [expression].
 NgMicroAst parseMicroExpression(
   String directive,
-  String expression, {
+  String expression,
+  int expressionOffset, {
   String sourceUrl,
 }) {
   return const NgMicroParser().parse(
     directive,
     expression,
+    expressionOffset,
     sourceUrl: sourceUrl,
   );
 }

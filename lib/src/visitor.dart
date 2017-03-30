@@ -6,6 +6,7 @@ import 'package:angular_ast/src/ast.dart';
 export 'package:angular_ast/src/visitors/humanizing.dart';
 export 'package:angular_ast/src/visitors/identity.dart';
 export 'package:angular_ast/src/visitors/desugar_visitor.dart';
+export 'package:angular_ast/src/visitors/expression_parser_visitor.dart';
 
 /// A visitor for [TemplateAst] trees that may process each node.
 ///

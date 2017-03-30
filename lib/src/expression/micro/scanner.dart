@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:angular_ast/src/exception_handler/angular_parser_exception.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/expression/micro/token.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -17,6 +17,8 @@ class NgMicroScanner {
   static final _findWhitespace = new RegExp(r'\s+');
 
   final StringScanner _scanner;
+  int _expressionOffset;
+  int _expressionLength;
 
   _NgMicroScannerState _state = _NgMicroScannerState.scanInitial;
 
@@ -24,7 +26,11 @@ class NgMicroScanner {
     return new NgMicroScanner._(new StringScanner(html, sourceUrl: sourceUrl));
   }
 
-  NgMicroScanner._(this._scanner);
+  NgMicroScanner._(this._scanner) {
+    _scanner.scan(_findWhitespace);
+    _expressionOffset = _scanner.position;
+    _expressionLength = _scanner.string.length - _expressionOffset;
+  }
 
   NgMicroToken scan() {
     switch (_state) {
@@ -170,12 +176,11 @@ class NgMicroScanner {
   }
 
   AngularParserException _unexpected() {
-    var char = new String.fromCharCode(_scanner.peekChar());
     _state = _NgMicroScannerState.hasError;
     return new AngularParserException(
-      'Unexpected character: $char',
-      _scanner.string,
-      _scanner.position,
+      NgParserWarningCode.INVALID_MICRO_EXPRESSION,
+      _expressionOffset,
+      _expressionLength,
     );
   }
 }

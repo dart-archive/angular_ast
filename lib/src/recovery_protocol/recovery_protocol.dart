@@ -113,10 +113,6 @@ abstract class RecoveryProtocol {
           NgSimpleToken current, NgTokenReversibleReader reader) =>
       new RecoverySolution.skip();
 
-  RecoverySolution scanCloseElementEnd(
-          NgSimpleToken current, NgTokenReversibleReader reader) =>
-      new RecoverySolution.skip();
-
   RecoverySolution scanComment(
           NgSimpleToken current, NgTokenReversibleReader reader) =>
       new RecoverySolution.skip();

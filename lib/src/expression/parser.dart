@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:angular_ast/src/exception_handler/angular_parser_exception.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -23,9 +23,9 @@ class _ThrowingListener implements AnalysisErrorListener {
   @override
   void onError(AnalysisError error) {
     throw new AngularParserException(
-      error.toString(),
-      error.source.contents.data,
+      error.errorCode,
       error.offset,
+      error.length,
     );
   }
 }
@@ -33,7 +33,6 @@ class _ThrowingListener implements AnalysisErrorListener {
 /// Parses a template [expression].
 Expression parseExpression(
   String expression, {
-  bool deSugarPipes: true,
   @required String sourceUrl,
 }) {
   final source = _resourceProvider
@@ -48,30 +47,24 @@ Expression parseExpression(
   final parser = new _NgExpressionParser(
     source,
     listener,
-    deSugarPipes: deSugarPipes,
   );
   return parser.parseExpression(scanner.tokenize());
 }
 
 /// Extends the Dart language to understand the current Angular 'pipe' syntax.
+/// Angular syntax disallows bitwise-or operation. Any '|' seen will
+/// be treated as a pipe.
 ///
 /// Based on https://github.com/dart-lang/angular_analyzer_plugin/pull/160
 class _NgExpressionParser extends Parser {
-  final bool _deSugarPipes;
-
   _NgExpressionParser(
     Source source,
-    AnalysisErrorListener errorListener, {
-    bool deSugarPipes,
-  })
-      : _deSugarPipes = deSugarPipes,
-        super(source, errorListener);
+    AnalysisErrorListener errorListener,
+  )
+      : super(source, errorListener);
 
   @override
   Expression parseBitwiseOrExpression() {
-    if (!_deSugarPipes) {
-      return super.parseBitwiseOrExpression();
-    }
     Expression expression;
     if (currentToken.keyword == Keyword.SUPER &&
         currentToken.next.type == TokenType.BAR) {
@@ -106,9 +99,9 @@ class _NgExpressionParser extends Parser {
     }
     if (expression.rightOperand is! Identifier) {
       throw new AngularParserException(
-        'Pipe name must be a valid identifier',
-        expression.toSource(),
+        NgParserWarningCode.PIPE_INVALID_IDENTIFIER,
         expression.rightOperand.offset,
+        expression.toSource().length,
       );
     }
     return new PipeExpression(
