@@ -173,7 +173,7 @@ class NgScanner {
     }
     // Only triggered by EOF.
     return handleError(
-      NgParserWarningCode.AFTER_COMMENT,
+      NgParserWarningCode.UNTERMINATED_COMMENT,
       _lastCommentStartOffset,
       _current.offset - _lastCommentStartOffset,
     );
@@ -213,7 +213,7 @@ class NgScanner {
         type == NgSimpleTokenType.closeBanana ||
         type == NgSimpleTokenType.identifier) {
       return handleError(
-        NgParserWarningCode.AFTER_DECORATOR_NEED_WHITESPACE,
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR,
         _current.offset,
         _current.length,
       );
@@ -224,7 +224,7 @@ class NgScanner {
         type == NgSimpleTokenType.openTagStart ||
         type == NgSimpleTokenType.closeTagStart) {
       return handleError(
-        NgParserWarningCode.AFTER_DECORATOR_NEED_CLOSE,
+        NgParserWarningCode.EXPECTED_TAG_CLOSE,
         _lastToken.offset,
         _lastToken.length,
       );
@@ -233,7 +233,7 @@ class NgScanner {
     if (type == NgSimpleTokenType.doubleQuote ||
         type == NgSimpleTokenType.singleQuote) {
       return handleError(
-        NgParserWarningCode.AFTER_DECORATOR_NEED_EQUAL,
+        NgParserWarningCode.EXPECTED_EQUAL_SIGN,
         _lastToken.offset,
         _current.end - _lastToken.offset,
       );
@@ -275,7 +275,7 @@ class NgScanner {
         type == NgSimpleTokenType.doubleQuote ||
         type == NgSimpleTokenType.singleQuote) {
       return handleError(
-        NgParserWarningCode.AFTER_DECORATOR_VALUE_NEED_WHITESPACE,
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR,
         _lastToken.offset,
         _lastToken.length,
       );
@@ -286,7 +286,7 @@ class NgScanner {
         type == NgSimpleTokenType.openTagStart ||
         type == NgSimpleTokenType.closeTagStart) {
       return handleError(
-        NgParserWarningCode.AFTER_DECORATOR_VALUE_NEED_CLOSE,
+        NgParserWarningCode.EXPECTED_TAG_CLOSE,
         _lastToken.offset,
         _lastToken.length,
       );
@@ -316,7 +316,7 @@ class NgScanner {
         type == NgSimpleTokenType.closeTagStart ||
         type == NgSimpleTokenType.EOF) {
       return handleError(
-        NgParserWarningCode.AFTER_ELEMENT_IDENTIFIER,
+        NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER,
         _lastToken.offset,
         _lastToken.length,
       );
@@ -365,7 +365,7 @@ class NgScanner {
         type == NgSimpleTokenType.doubleQuote ||
         type == NgSimpleTokenType.singleQuote) {
       return handleError(
-        NgParserWarningCode.AFTER_ELEMENT_IDENTIFIER_OPEN_NEED_WHITESPACE,
+        NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR,
         _lastToken.offset,
         _lastToken.length,
       );
@@ -376,7 +376,7 @@ class NgScanner {
         type == NgSimpleTokenType.closeTagStart ||
         type == NgSimpleTokenType.EOF) {
       return handleError(
-        NgParserWarningCode.AFTER_ELEMENT_IDENTIFIER,
+        NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER,
         _lastToken.offset,
         _lastToken.length,
       );
@@ -401,7 +401,7 @@ class NgScanner {
         type == NgSimpleTokenType.mustacheBegin ||
         type == NgSimpleTokenType.whitespace) {
       return handleError(
-        NgParserWarningCode.AFTER_INTERPOLATION,
+        NgParserWarningCode.UNTERMINATED_MUSTACHE,
         _lastOpenMustacheOffset,
         '{{'.length,
       );
@@ -462,7 +462,7 @@ class NgScanner {
       errorToken = _reader.peek();
     }
     return handleError(
-      NgParserWarningCode.BEFORE_INTERPOLATION,
+      NgParserWarningCode.UNOPENED_MUSTACHE,
       errorToken.offset,
       errorToken.length,
     );
@@ -480,7 +480,7 @@ class NgScanner {
     }
     // Only EOF should enable error.
     return handleError(
-      NgParserWarningCode.AFTER_COMMENT,
+      NgParserWarningCode.UNTERMINATED_COMMENT,
       _lastCommentStartOffset,
       '<!--'.length,
     );
@@ -725,7 +725,7 @@ class NgScanner {
         type == NgSimpleTokenType.closeTagStart ||
         type == NgSimpleTokenType.EOF) {
       return handleError(
-        NgParserWarningCode.ELEMENT_END,
+        NgParserWarningCode.EXPECTED_TAG_CLOSE,
         _lastElementStartOffset,
         _current.end - _lastElementStartOffset,
       );
@@ -803,7 +803,7 @@ class NgScanner {
     if (type == NgSimpleTokenType.EOF ||
         type == NgSimpleTokenType.mustacheBegin) {
       return handleError(
-        NgParserWarningCode.AFTER_INTERPOLATION,
+        NgParserWarningCode.UNTERMINATED_MUSTACHE,
         _lastOpenMustacheOffset,
         '{{'.length,
       );

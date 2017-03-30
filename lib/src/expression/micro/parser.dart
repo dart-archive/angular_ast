@@ -20,7 +20,8 @@ class NgMicroParser {
     int expressionOffset, {
     @required String sourceUrl,
   }) {
-    var tokens = const NgMicroLexer().tokenize(expression).iterator;
+    var paddedExpression = ' ' * expressionOffset + expression;
+    var tokens = const NgMicroLexer().tokenize(paddedExpression).iterator;
     return new _RecursiveMicroAstParser(
       directive,
       expressionOffset,

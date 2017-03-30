@@ -25,10 +25,9 @@ NgMicroAst parseMicroExpression(
   int expressionOffset, {
   String sourceUrl,
 }) {
-  var paddedExpression = ' ' * expressionOffset + expression;
   return const NgMicroParser().parse(
     directive,
-    paddedExpression,
+    expression,
     expressionOffset,
     sourceUrl: sourceUrl,
   );

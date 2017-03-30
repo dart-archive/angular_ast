@@ -36,10 +36,10 @@ abstract class EventAst implements TemplateAst {
     NgToken beginToken,
     NgToken prefixToken,
     NgToken elementDecoratorToken,
-    NgToken suffixToken,
+    NgToken suffixToken, [
     NgAttributeValueToken valueToken,
     NgToken equalSignToken,
-  ) = ParsedEventAst;
+  ]) = ParsedEventAst;
 
   @override
   bool operator ==(Object o) =>
@@ -104,10 +104,10 @@ class ParsedEventAst extends TemplateAst
     NgToken beginToken,
     this.prefixToken,
     this.nameToken,
-    this.suffixToken,
+    this.suffixToken, [
     this.valueToken,
     this.equalSignToken,
-  )
+  ])
       : super.parsed(
           beginToken,
           valueToken == null ? suffixToken : valueToken.rightQuote,
@@ -158,6 +158,7 @@ class ParsedEventAst extends TemplateAst
   @override
   String get postfix {
     final split = _nameWithoutParentheses.split('.');
+    assert(split.length < 2);
     return split.length > 1 ? split[1] : null;
   }
 }

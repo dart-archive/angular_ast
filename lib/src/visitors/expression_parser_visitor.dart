@@ -7,7 +7,7 @@ import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/visitor.dart';
 
-class ExpressionParserVisitor<C> implements TemplateAstVisitor<TemplateAst, C> {
+class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
   final ExceptionHandler exceptionHandler;
   final String sourceUrl;
 
@@ -15,33 +15,33 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<TemplateAst, C> {
       : exceptionHandler = exceptionHandler ?? new ThrowingExceptionHandler();
 
   @override
-  TemplateAst visitAttribute(AttributeAst astNode, [_]) => astNode;
+  visitAttribute(AttributeAst astNode, [_]) => null;
 
   @override
-  TemplateAst visitBanana(BananaAst astNode, [_]) => astNode;
+  visitBanana(BananaAst astNode, [_]) => null;
 
   @override
-  TemplateAst visitCloseElement(CloseElementAst astNode, [_]) => astNode;
+  visitCloseElement(CloseElementAst astNode, [_]) => null;
 
   @override
-  TemplateAst visitComment(CommentAst astNode, [_]) => astNode;
+  visitComment(CommentAst astNode, [_]) => null;
 
   @override
-  TemplateAst visitEmbeddedContent(EmbeddedContentAst astNode, [_]) => astNode;
+  visitEmbeddedContent(EmbeddedContentAst astNode, [_]) => null;
 
   @override
-  TemplateAst visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [_]) {
+  visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [_]) {
     astNode.properties.forEach((property) {
       property.accept(this);
     });
     astNode.childNodes.forEach((child) {
       child.accept(this);
     });
-    return astNode;
+    return null;
   }
 
   @override
-  TemplateAst visitElement(ElementAst astNode, [_]) {
+  visitElement(ElementAst astNode, [_]) {
     astNode.events.forEach((event) {
       event.accept(this);
     });
@@ -51,11 +51,11 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<TemplateAst, C> {
     astNode.childNodes.forEach((child) {
       child.accept(this);
     });
-    return astNode;
+    return null;
   }
 
   @override
-  TemplateAst visitEvent(EventAst astNode, [_]) {
+  visitEvent(EventAst astNode, [_]) {
     ExpressionAst expression;
     if (astNode is ParsedEventAst && astNode.valueToken != null) {
       var innerValue = astNode.valueToken.innerValue;
@@ -64,14 +64,14 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<TemplateAst, C> {
       expression = _parseExpression(astNode.value, 0);
     }
     astNode.expression = expression;
-    return astNode;
+    return null;
   }
 
   @override
-  TemplateAst visitExpression(ExpressionAst astNode, [_]) => astNode;
+  visitExpression(ExpressionAst astNode, [_]) => null;
 
   @override
-  TemplateAst visitInterpolation(InterpolationAst astNode, [_]) {
+  visitInterpolation(InterpolationAst astNode, [_]) {
     ExpressionAst expression;
     if (astNode is ParsedInterpolationAst && astNode.value != null) {
       expression = _parseExpression(
@@ -80,11 +80,11 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<TemplateAst, C> {
       expression = _parseExpression(astNode.value, 0);
     }
     astNode.expression = expression;
-    return astNode;
+    return null;
   }
 
   @override
-  TemplateAst visitProperty(PropertyAst astNode, [_]) {
+  visitProperty(PropertyAst astNode, [_]) {
     ExpressionAst expression;
     if (astNode is ParsedPropertyAst && astNode.valueToken != null) {
       var valueToken = astNode.valueToken.innerValue;
@@ -96,17 +96,17 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<TemplateAst, C> {
       expression = _parseExpression(astNode.value, 0);
     }
     astNode.expression = expression;
-    return astNode;
+    return null;
   }
 
   @override
-  TemplateAst visitReference(ReferenceAst astNode, [_]) => astNode;
+  visitReference(ReferenceAst astNode, [_]) => null;
 
   @override
-  TemplateAst visitStar(StarAst astNode, [_]) => astNode;
+  visitStar(StarAst astNode, [_]) => null;
 
   @override
-  TemplateAst visitText(TextAst astNode, [_]) => astNode;
+  visitText(TextAst astNode, [_]) => null;
 
   /// Parse expression
   ExpressionAst _parseExpression(String expression, int offset) {

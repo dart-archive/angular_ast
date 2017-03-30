@@ -138,7 +138,9 @@ class ParsedPropertyAst extends TemplateAst
       : super.parsed(
             beginToken,
             valueToken == null ? suffixToken : valueToken.rightQuote,
-            sourceFile);
+            sourceFile) {
+    if (_nameWithoutBrackets.split('.').length > 3) {}
+  }
 
   /// ExpressionAst of `"value"`; may be `null` to have no value.
   @override
@@ -182,6 +184,7 @@ class ParsedPropertyAst extends TemplateAst
   @override
   String get postfix {
     final split = _nameWithoutBrackets.split('.');
+    assert(split.length < 3);
     return split.length > 1 ? split[1] : null;
   }
 
@@ -189,6 +192,7 @@ class ParsedPropertyAst extends TemplateAst
   @override
   String get unit {
     final split = _nameWithoutBrackets.split('.');
+    assert(split.length < 3);
     return split.length > 2 ? split[2] : null;
   }
 }

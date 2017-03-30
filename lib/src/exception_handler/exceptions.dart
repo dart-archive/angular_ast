@@ -9,63 +9,6 @@ part of angular_ast.src.exceptions;
 /// and for the error message to explain what is wrong, and when appropriate,
 /// how the problem can be corrected.
 class NgParserWarningCode extends ErrorCode {
-  static const NgParserWarningCode AFTER_COMMENT = const NgParserWarningCode(
-    'AFTER_COMMENT',
-    'Unterminated comment',
-  );
-
-  static const NgParserWarningCode AFTER_DECORATOR_NEED_CLOSE =
-      const NgParserWarningCode(
-    'AFTER_DECORATOR_NEED_CLOSE',
-    "Expected tag close: '>' or '/>' after decorator",
-  );
-
-  static const NgParserWarningCode AFTER_DECORATOR_NEED_EQUAL =
-      const NgParserWarningCode('AFTER_DECORATOR_NEED_EQUAL',
-          "Expected '=' between decorator and value");
-
-  static const NgParserWarningCode AFTER_DECORATOR_NEED_WHITESPACE =
-      const NgParserWarningCode(
-    'AFTER_DECORATOR_NEED_WHITESPACE',
-    'Expected whitespace between differing decorators',
-  );
-
-  static const NgParserWarningCode AFTER_DECORATOR_VALUE_NEED_CLOSE =
-      const NgParserWarningCode(
-    'AFTER_DECORATOR_VALUE_NEED_CLOSE',
-    "Expected tag close: '>' or '/>' after decorator value",
-  );
-
-  static const NgParserWarningCode AFTER_DECORATOR_VALUE_NEED_WHITESPACE =
-      const NgParserWarningCode(
-    'AFTER_DECORATOR_VALUE_NEED_WHITESPACE',
-    'Expected whitespace after decorator value',
-  );
-
-  static const NgParserWarningCode AFTER_ELEMENT_IDENTIFIER =
-      const NgParserWarningCode(
-    'AFTER_ELEMENT_IDENTIFIER',
-    'Expected either whitespace or close tag end after element identifier',
-  );
-
-  static const NgParserWarningCode
-      AFTER_ELEMENT_IDENTIFIER_OPEN_NEED_WHITESPACE = const NgParserWarningCode(
-    'AFTER_ELEMENT_IDENTIFIER_OPEN_NEED_WHITESPACE',
-    'Expected whitespace after element identifier before decorator',
-  );
-
-  static const NgParserWarningCode AFTER_INTERPOLATION =
-      const NgParserWarningCode(
-    'AFTER_INTERPOLATION',
-    'Unterminated mustache',
-  );
-
-  static const NgParserWarningCode BEFORE_INTERPOLATION =
-      const NgParserWarningCode(
-    'BEFORE_INTERPOLATION',
-    'Unopened mustache',
-  );
-
   static const NgParserWarningCode CANNOT_FIND_MATCHING_CLOSE =
       const NgParserWarningCode(
     'CANNOT_FIND_MATCHING_CLOSE',
@@ -124,15 +67,40 @@ class NgParserWarningCode extends ErrorCode {
     'Expected element tag name',
   );
 
-  static const NgParserWarningCode ELEMENT_END = const NgParserWarningCode(
-    'ELEMENT_END',
-    'Expected element tag close',
+  static const NgParserWarningCode EXPECTED_AFTER_ELEMENT_IDENTIFIER =
+      const NgParserWarningCode(
+    'EXPECTED_AFTER_ELEMENT_IDENTIFIER',
+    'Expected either whitespace or close tag end after element identifier',
+  );
+
+  static const NgParserWarningCode EXPECTED_EQUAL_SIGN =
+      const NgParserWarningCode(
+    'EXPECTED_EQUAL_SIGN',
+    "Expected '=' between decorator and value",
   );
 
   static const NgParserWarningCode EXPECTED_STANDALONE =
       const NgParserWarningCode(
     'EXPECTING_STANDALONE',
     'Expected standalone token',
+  );
+
+  static const NgParserWarningCode EXPECTED_TAG_CLOSE =
+      const NgParserWarningCode(
+    'EXPECTED_TAG_CLOSE',
+    "Expected tag close.",
+  );
+
+  // 'Catch-all' error code.
+  static const NgParserWarningCode UNEXPECTED_TOKEN = const NgParserWarningCode(
+    'UNEXPECTED_TOKEN',
+    'Unexpected token',
+  );
+
+  static const NgParserWarningCode EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR =
+      const NgParserWarningCode(
+    'EXPECTED_WHITESPACE_BEFORE_DECORATOR',
+    'Expected whitespace before a new decorator',
   );
 
   static const NgParserWarningCode EMPTY_INTERPOLATION =
@@ -204,10 +172,22 @@ class NgParserWarningCode extends ErrorCode {
     'Expected close quote for element decorator value',
   );
 
-  // 'Catch-all' error code.
-  static const NgParserWarningCode UNEXPECTED_TOKEN = const NgParserWarningCode(
-    'UNEXPECTED_TOKEN',
-    'Unexpected token',
+  static const NgParserWarningCode UNOPENED_MUSTACHE =
+      const NgParserWarningCode(
+    'UNOPENED_MUSTACHE',
+    'Unopened mustache',
+  );
+
+  static const NgParserWarningCode UNTERMINATED_COMMENT =
+      const NgParserWarningCode(
+    'UNTERMINATED COMMENT',
+    'Unterminated comment',
+  );
+
+  static const NgParserWarningCode UNTERMINATED_MUSTACHE =
+      const NgParserWarningCode(
+    'UNTERMINATED_MUSTACHE',
+    'Unterminated mustache',
   );
 
   static const NgParserWarningCode VOID_ELEMENT_IN_CLOSE_TAG =

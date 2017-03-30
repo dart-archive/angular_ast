@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:convert';
 import 'package:angular_ast/angular_ast.dart';
 import 'package:path/path.dart' as p;
 

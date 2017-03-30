@@ -27,7 +27,6 @@ class NgMicroScanner {
   }
 
   NgMicroScanner._(this._scanner) {
-    // Use padded whitespace to find real offset.
     _scanner.scan(_findWhitespace);
     _expressionOffset = _scanner.position;
     _expressionLength = _scanner.string.length - _expressionOffset;
