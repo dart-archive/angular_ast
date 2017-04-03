@@ -34,3 +34,34 @@ main() {
   // ]
 }
 ```
+
+Additional flags can be passed to change the behavior of the parser: 
+```
+String sourceUrl: String describing the path of the HTML string.
+bool desugar: (Default: true) Enabled desugaring of banana-syntax,
+              star syntax, and pipes.
+bool parseExpressions: (Default: true) Parses Dart expressions
+              raises exceptions if occurred.
+ExceptionHandler exceptionHandler: (Default: ThrowingExceptionHandler)
+              Switch to 'new RecoveringExceptionHandler()' to enable error
+              recovery.
+```
+
+When using RecoveringExceptionHandler, the accumulated exceptions can be
+accessed through the RecoveringExceptionHandler object.
+Refer to the following example:
+```
+void parse(String content, String sourceUrl) {
+    var exceptionHandler = new RecoveringExceptionHandler();
+    var asts = parse(
+        content,
+        sourceUrl: sourceUrl,
+        desugar: false,
+        parseExpressions: false,
+        exceptionHandler: exceptionHandler,
+    );
+    for (AngularParserException e in exceptionHandler.exceptions) {
+        // Do something with exception.
+    }
+}
+```
