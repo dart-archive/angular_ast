@@ -248,15 +248,7 @@ class RecursiveAstParser {
             }
           }
         } else if (decoratorAst is EventAst) {
-          if (isTemplateElement) {
-            exceptionHandler.handle(new AngularParserException(
-              NgParserWarningCode.INVALID_DECORATOR_IN_TEMPLATE,
-              decoratorAst.beginToken.offset,
-              decoratorAst.endToken.end - decoratorAst.beginToken.offset,
-            ));
-          } else {
-            events.add(decoratorAst);
-          }
+          events.add(decoratorAst);
         } else if (decoratorAst is PropertyAst) {
           properties.add(decoratorAst);
         } else if (decoratorAst is BananaAst) {
@@ -368,6 +360,7 @@ class RecursiveAstParser {
         closeComplement: closeElementAst,
         attributes: attributes,
         childNodes: childNodes,
+        events: events,
         properties: properties,
         references: references,
       );

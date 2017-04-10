@@ -31,6 +31,9 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
 
   @override
   visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [_]) {
+    astNode.events.forEach((event) {
+      event.accept(this);
+    });
     astNode.properties.forEach((property) {
       property.accept(this);
     });

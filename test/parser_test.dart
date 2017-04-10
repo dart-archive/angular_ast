@@ -244,7 +244,7 @@ void main() {
     );
   });
 
-  test('should parse a <template> directive with a attributes', () {
+  test('should parse a <template> directive with attributes', () {
     expect(
       parse('<template ngFor let-item let-i="index"></template>'),
       [
@@ -255,6 +255,29 @@ void main() {
             new AttributeAst('let-i', 'index'),
           ],
         ),
+      ],
+    );
+  });
+
+  test('should parse a <template> directive with events', () {
+    expect(
+      parse(
+          '<template step name="Name & Description" (jumpHere)="lastStep(false)"></template>'),
+      [
+        new EmbeddedTemplateAst(attributes: [
+          new AttributeAst('step'),
+          new AttributeAst('name', 'Name & Description'),
+        ], events: [
+          new EventAst(
+            'jumpHere',
+            'lastStep(false)',
+            new ExpressionAst.parse(
+              'lastStep(false)',
+              53,
+              sourceUrl: '/test/expression/parser_test.dart#inline',
+            ),
+          ),
+        ]),
       ],
     );
   });
