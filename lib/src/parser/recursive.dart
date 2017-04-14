@@ -187,6 +187,55 @@ class RecursiveAstParser {
         );
       }
     }
+
+    // At this point, it is a TextAttribute, but handle cases
+    // with 'on-' and 'bind-' prefix.
+    if (decoratorToken.lexeme.startsWith('on-')) {
+      var onToken = new NgToken.onPrefix(decoratorToken.offset);
+      decoratorToken = new NgToken.elementDecorator(
+        decoratorToken.offset + 'on-'.length,
+        decoratorToken.lexeme.substring('on-'.length),
+      );
+      if (decoratorToken.lexeme == '') {
+        exceptionHandler.handle(new AngularParserException(
+          NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX,
+          onToken.offset,
+          onToken.length,
+        ));
+      }
+      return new EventAst.parsed(
+        _source,
+        beginToken,
+        onToken,
+        decoratorToken,
+        null,
+        valueToken,
+        equalSignToken,
+      );
+    }
+    if (decoratorToken.lexeme.startsWith('bind-')) {
+      var bindToken = new NgToken.bindPrefix(decoratorToken.offset);
+      decoratorToken = new NgToken.elementDecorator(
+        decoratorToken.offset + 'bind-'.length,
+        decoratorToken.lexeme.substring('bind-'.length),
+      );
+      if (decoratorToken.lexeme == '') {
+        exceptionHandler.handle(new AngularParserException(
+          NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX,
+          bindToken.offset,
+          bindToken.length,
+        ));
+      }
+      return new PropertyAst.parsed(
+        _source,
+        beginToken,
+        bindToken,
+        decoratorToken,
+        null,
+        valueToken,
+        equalSignToken,
+      );
+    }
     return new AttributeAst.parsed(
       _source,
       beginToken,
@@ -248,15 +297,7 @@ class RecursiveAstParser {
             }
           }
         } else if (decoratorAst is EventAst) {
-          if (isTemplateElement) {
-            exceptionHandler.handle(new AngularParserException(
-              NgParserWarningCode.INVALID_DECORATOR_IN_TEMPLATE,
-              decoratorAst.beginToken.offset,
-              decoratorAst.endToken.end - decoratorAst.beginToken.offset,
-            ));
-          } else {
-            events.add(decoratorAst);
-          }
+          events.add(decoratorAst);
         } else if (decoratorAst is PropertyAst) {
           properties.add(decoratorAst);
         } else if (decoratorAst is BananaAst) {
@@ -368,6 +409,7 @@ class RecursiveAstParser {
         closeComplement: closeElementAst,
         attributes: attributes,
         childNodes: childNodes,
+        events: events,
         properties: properties,
         references: references,
       );

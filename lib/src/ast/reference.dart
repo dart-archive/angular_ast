@@ -73,13 +73,21 @@ abstract class ReferenceAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedReferenceAst extends TemplateAst
-    with ReferenceAst, TagOffsetInfo, SpecialOffsetInfo {
+    with ReferenceAst
+    implements ParsedDecoratorAst, TagOffsetInfo {
   /// Tokens representing the `#reference` element decorator
+  @override
   final NgToken prefixToken;
+
+  @override
   final NgToken nameToken;
+
+  @override
+  NgToken get suffixToken => null;
 
   /// [NgAttributeValueToken] that represents `identifier` in
   /// `#variable="reference"`.
+  @override
   final NgAttributeValueToken valueToken;
 
   /// [NgToken] that represents the equal sign token; may be `null` to have no

@@ -42,6 +42,7 @@ enum NgSimpleTokenType {
 enum NgTokenType {
   bananaPrefix,
   bananaSuffix,
+  bindPrefix, // Not used in NgScanner.
   beforeElementDecorator,
   beforeElementDecoratorValue,
   closeElementEnd,
@@ -61,6 +62,7 @@ enum NgTokenType {
   openElementEnd,
   openElementEndVoid,
   openElementStart,
+  onPrefix, // Not used in NgScanner.
   propertyPrefix,
   propertySuffix,
   referencePrefix,

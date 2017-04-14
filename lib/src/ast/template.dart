@@ -22,6 +22,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
   factory EmbeddedTemplateAst({
     List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
+    List<EventAst> events,
     List<PropertyAst> properties,
     List<ReferenceAst> references,
   }) = _SyntheticEmbeddedTemplateAst;
@@ -30,6 +31,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     TemplateAst origin, {
     List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
+    List<EventAst> events,
     List<PropertyAst> properties,
     List<ReferenceAst> references,
   }) = _SyntheticEmbeddedTemplateAst.from;
@@ -41,6 +43,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     CloseElementAst closeComplement,
     List<AttributeAst> attributes,
     List<StandaloneTemplateAst> childNodes,
+    List<EventAst> events,
     List<PropertyAst> properties,
     List<ReferenceAst> references,
   }) = _ParsedEmbeddedTemplateAst;
@@ -54,6 +57,11 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
   ///
   /// Within a `<template>` tag, it may be assumed that this is a directive.
   List<AttributeAst> get attributes;
+
+  /// Events.
+  ///
+  /// Within a `<template` tag, it may be assumed that this is a directive.
+  List<EventAst> get events;
 
   /// Property assignments.
   ///
@@ -76,6 +84,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     if (o is EmbeddedTemplateAst) {
       return closeComplement == o.closeComplement &&
           _listEquals.equals(attributes, o.attributes) &&
+          _listEquals.equals(events, o.events) &&
           _listEquals.equals(properties, o.properties) &&
           _listEquals.equals(childNodes, o.childNodes) &&
           _listEquals.equals(references, o.references);
@@ -88,6 +97,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     return hashObjects([
       closeComplement,
       _listEquals.hash(attributes),
+      _listEquals.hash(events),
       _listEquals.hash(childNodes),
       _listEquals.hash(properties),
       _listEquals.hash(references),
@@ -101,6 +111,12 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
       buffer
         ..write('attributes=')
         ..writeAll(attributes, ', ')
+        ..write(' ');
+    }
+    if (events.isNotEmpty) {
+      buffer
+        ..write('events=')
+        ..writeAll(events, ', ')
         ..write(' ');
     }
     if (properties.isNotEmpty) {
@@ -136,6 +152,7 @@ class _ParsedEmbeddedTemplateAst extends TemplateAst with EmbeddedTemplateAst {
     this.closeComplement,
     this.attributes: const [],
     this.childNodes: const [],
+    this.events: const [],
     this.properties: const [],
     this.references: const [],
   })
@@ -146,6 +163,9 @@ class _ParsedEmbeddedTemplateAst extends TemplateAst with EmbeddedTemplateAst {
 
   @override
   final List<StandaloneTemplateAst> childNodes;
+
+  @override
+  final List<EventAst> events;
 
   @override
   final List<PropertyAst> properties;
@@ -162,6 +182,7 @@ class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
   _SyntheticEmbeddedTemplateAst({
     this.attributes: const [],
     this.childNodes: const [],
+    this.events: const [],
     this.properties: const [],
     this.references: const [],
   })
@@ -171,6 +192,7 @@ class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
     TemplateAst origin, {
     this.attributes: const [],
     this.childNodes: const [],
+    this.events: const [],
     this.properties: const [],
     this.references: const [],
   })
@@ -181,6 +203,9 @@ class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
 
   @override
   final List<StandaloneTemplateAst> childNodes;
+
+  @override
+  final List<EventAst> events;
 
   @override
   final List<PropertyAst> properties;
