@@ -89,6 +89,8 @@ class ParsedEventAst extends TemplateAst
   /// Token representing the `(property)` element decorator.
   final NgToken prefixToken;
   final NgToken nameToken;
+
+  // [suffixToken] may be null if 'on-' is used instead of '('.
   final NgToken suffixToken;
 
   /// [NgAttributeValueToken] that represents `"expression"`; may be `null` to

@@ -116,6 +116,8 @@ class ParsedPropertyAst extends TemplateAst
   /// Tokens representing `[property]` attribute.
   final NgToken prefixToken;
   final NgToken nameToken;
+
+  // [suffixToken] may be null of 'bind-' is used instead of '['.
   final NgToken suffixToken;
 
   /// [NgAttributeValueToken] that represents `"value"`; may be `null` to
