@@ -85,14 +85,21 @@ abstract class EventAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedEventAst extends TemplateAst
-    with EventAst, TagOffsetInfo, SpecialOffsetInfo {
-  /// Token representing the `(property)` element decorator.
+    with EventAst
+    implements ParsedDecoratorAst, TagOffsetInfo {
+  @override
   final NgToken prefixToken;
+
+  @override
   final NgToken nameToken;
+
+  // [suffixToken] may be null if 'on-' is used instead of '('.
+  @override
   final NgToken suffixToken;
 
   /// [NgAttributeValueToken] that represents `"expression"`; may be `null` to
   /// have no value.
+  @override
   final NgAttributeValueToken valueToken;
 
   /// [NgToken] that represents the equal sign token; may be `null` to have no

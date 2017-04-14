@@ -165,6 +165,24 @@ void main() {
     );
   });
 
+  test("should parse an event starting with 'on-'", () {
+    expect(
+      parse('<button on-click = "onClick()" ></button>'),
+      [
+        new ElementAst('button', new CloseElementAst('button'), events: [
+          new EventAst(
+              'click',
+              'onClick()',
+              new ExpressionAst.parse(
+                'onClick()',
+                20,
+                sourceUrl: '/test/expression/parser_test.dart#inline',
+              )),
+        ]),
+      ],
+    );
+  });
+
   test('should parse a property without a value', () {
     expect(
       parse('<button [value]></button>'),
@@ -192,6 +210,22 @@ void main() {
         ]),
       ],
     );
+  });
+
+  test("should parse an event starting with 'bind-'", () {
+    expect(parse('<button bind-value="btnValue"></button>'), [
+      new ElementAst('button', new CloseElementAst('button'), properties: [
+        new PropertyAst(
+          'value',
+          'btnValue',
+          new ExpressionAst.parse(
+            'btnValue',
+            20,
+            sourceUrl: '/test/expression/parser_test.dart#inline',
+          ),
+        ),
+      ]),
+    ]);
   });
 
   test('should parse a reference', () {

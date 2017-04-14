@@ -269,6 +269,7 @@ class NgToken implements NgBaseToken<NgTokenType> {
     NgTokenType.bananaPrefix: '[(',
     NgTokenType.bananaSuffix: ')]',
     NgTokenType.beforeElementDecoratorValue: '=',
+    NgTokenType.bindPrefix: 'bind-',
     NgTokenType.closeElementEnd: '>',
     NgTokenType.closeElementStart: '</',
     NgTokenType.commentEnd: '-->',
@@ -281,6 +282,7 @@ class NgToken implements NgBaseToken<NgTokenType> {
     NgTokenType.openElementEnd: '>',
     NgTokenType.openElementEndVoid: '/>',
     NgTokenType.openElementStart: '<',
+    NgTokenType.onPrefix: 'on-',
     NgTokenType.propertyPrefix: '[',
     NgTokenType.propertySuffix: ']',
     NgTokenType.referencePrefix: '#',
@@ -321,6 +323,10 @@ class NgToken implements NgBaseToken<NgTokenType> {
 
   factory NgToken.beforeElementDecoratorValue(int offset) {
     return new NgToken._(NgTokenType.beforeElementDecoratorValue, offset);
+  }
+
+  factory NgToken.bindPrefix(int offset) {
+    return new NgToken._(NgTokenType.bindPrefix, offset);
   }
 
   factory NgToken.closeElementEnd(int offset) {
@@ -393,6 +399,10 @@ class NgToken implements NgBaseToken<NgTokenType> {
 
   factory NgToken.openElementStart(int offset) {
     return new NgToken._(NgTokenType.openElementStart, offset);
+  }
+
+  factory NgToken.onPrefix(int offset) {
+    return new NgToken._(NgTokenType.onPrefix, offset);
   }
 
   factory NgToken.propertyPrefix(int offset) {
