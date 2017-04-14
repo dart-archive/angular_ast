@@ -85,7 +85,8 @@ abstract class EventAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedEventAst extends TemplateAst
-    with EventAst, ParsedDecoratorAst, TagOffsetInfo {
+    with EventAst
+    implements ParsedDecoratorAst, TagOffsetInfo {
   @override
   final NgToken prefixToken;
 

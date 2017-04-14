@@ -112,7 +112,8 @@ abstract class PropertyAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedPropertyAst extends TemplateAst
-    with PropertyAst, ParsedDecoratorAst, TagOffsetInfo {
+    with PropertyAst
+    implements ParsedDecoratorAst, TagOffsetInfo {
   @override
   final NgToken prefixToken;
 

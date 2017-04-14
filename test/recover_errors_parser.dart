@@ -441,4 +441,32 @@ void main() {
 
     checkException(NgParserWarningCode.PROPERTY_NAME_TOO_MANY_FIXES, 6, 25);
   });
+
+  test('Should resolve on- event prefix without decorator', () {
+    var asts = parse('<div on-="someValue"></div>');
+    expect(asts.length, 1);
+
+    var element = asts[0] as ElementAst;
+    expect(element.events.length, 1);
+    var event = element.events[0] as ParsedEventAst;
+    expect(event.name, '');
+    expect(event.prefixToken.lexeme, 'on-');
+    expect(event.value, 'someValue');
+
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 3);
+  });
+
+  test('Should resolve bind- event prefix without decorator', () {
+    var asts = parse('<div bind-="someValue"></div>');
+    expect(asts.length, 1);
+
+    var element = asts[0] as ElementAst;
+    expect(element.properties.length, 1);
+    var property = element.properties[0] as ParsedPropertyAst;
+    expect(property.name, '');
+    expect(property.prefixToken.lexeme, 'bind-');
+    expect(property.value, 'someValue');
+
+    checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 5);
+  });
 }

@@ -75,7 +75,8 @@ abstract class AttributeAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedAttributeAst extends TemplateAst
-    with AttributeAst, ParsedDecoratorAst, TagOffsetInfo {
+    with AttributeAst
+    implements ParsedDecoratorAst, TagOffsetInfo {
   /// [NgToken] that represents the attribute name.
   @override
   final NgToken nameToken;

@@ -76,7 +76,8 @@ abstract class StarAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedStarAst extends TemplateAst
-    with ParsedDecoratorAst, StarAst, TagOffsetInfo {
+    with StarAst
+    implements ParsedDecoratorAst, TagOffsetInfo {
   @override
   final NgToken prefixToken;
 

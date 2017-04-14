@@ -74,7 +74,8 @@ abstract class BananaAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedBananaAst extends TemplateAst
-    with BananaAst, ParsedDecoratorAst, TagOffsetInfo {
+    with BananaAst
+    implements ParsedDecoratorAst, TagOffsetInfo {
   /// Components of element decorator representing [(banana)].
   @override
   final NgToken prefixToken;
