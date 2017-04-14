@@ -14,7 +14,12 @@ export 'package:angular_ast/src/ast/element.dart'
 export 'package:angular_ast/src/ast/event.dart' show EventAst, ParsedEventAst;
 export 'package:angular_ast/src/ast/expression.dart' show ExpressionAst;
 export 'package:angular_ast/src/ast/interface.dart'
-    show StandaloneTemplateAst, SyntheticTemplateAst, TemplateAst;
+    show
+        ParsedDecoratorAst,
+        StandaloneTemplateAst,
+        SyntheticTemplateAst,
+        TagOffsetInfo,
+        TemplateAst;
 export 'package:angular_ast/src/ast/interpolation.dart'
     show InterpolationAst, ParsedInterpolationAst;
 export 'package:angular_ast/src/ast/property.dart'
@@ -27,5 +32,3 @@ export 'package:angular_ast/src/ast/sugar/banana.dart'
     show BananaAst, ParsedBananaAst;
 export 'package:angular_ast/src/ast/sugar/star.dart'
     show StarAst, ParsedStarAst;
-export 'package:angular_ast/src/ast/offset_info.dart'
-    show TagOffsetInfo, SpecialOffsetInfo;

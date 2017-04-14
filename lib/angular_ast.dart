@@ -21,6 +21,7 @@ export 'package:angular_ast/src/ast.dart'
         ParsedAttributeAst,
         ParsedBananaAst,
         ParsedCloseElementAst,
+        ParsedDecoratorAst,
         ParsedEmbeddedContentAst,
         ParsedEventAst,
         ParsedInterpolationAst,
@@ -33,6 +34,7 @@ export 'package:angular_ast/src/ast.dart'
         StandaloneTemplateAst,
         StarAst,
         SyntheticTemplateAst,
+        TagOffsetInfo,
         TemplateAst,
         TextAst;
 export 'package:angular_ast/src/exception_handler/exception_handler.dart'

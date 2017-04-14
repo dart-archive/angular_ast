@@ -137,3 +137,28 @@ abstract class SyntheticTemplateAst implements TemplateAst {
     throw _unsupported();
   }
 }
+
+/// Mixin used to preserve offsets of tokens to be able to reproduce the same
+/// text. In addition, preserves offsets in cases where banana syntax and
+/// template syntax are desugared.
+///
+/// Clients should not extend, implement, or mix-in this class.
+abstract class TagOffsetInfo {
+  int get nameOffset;
+  int get valueOffset;
+  int get quotedValueOffset;
+  int get equalSignOffset;
+}
+
+/// Represents an interface for a parsed element decorator.
+///
+/// Clients should not extend, implement, or mix-in this class.
+abstract class ParsedDecoratorAst {
+  NgToken get prefixToken;
+  NgToken get nameToken;
+  NgToken get suffixToken;
+  NgAttributeValueToken get valueToken;
+
+  int get prefixOffset;
+  int get suffixOffset; //May be null for reference and template
+}

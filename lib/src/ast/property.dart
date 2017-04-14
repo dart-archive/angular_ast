@@ -112,16 +112,20 @@ abstract class PropertyAst implements TemplateAst {
 ///
 /// Clients should not extend, implement, or mix-in this class.
 class ParsedPropertyAst extends TemplateAst
-    with PropertyAst, TagOffsetInfo, SpecialOffsetInfo {
-  /// Tokens representing `[property]` attribute.
+    with PropertyAst, ParsedDecoratorAst, TagOffsetInfo {
+  @override
   final NgToken prefixToken;
+
+  @override
   final NgToken nameToken;
 
   // [suffixToken] may be null of 'bind-' is used instead of '['.
+  @override
   final NgToken suffixToken;
 
   /// [NgAttributeValueToken] that represents `"value"`; may be `null` to
   /// have no value.
+  @override
   final NgAttributeValueToken valueToken;
 
   /// [NgToken] that represents the equal sign token; may be `null` to have no
