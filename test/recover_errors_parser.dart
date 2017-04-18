@@ -161,14 +161,15 @@ void main() {
     expect(div.childNodes.length, 1);
 
     var ngContent = div.childNodes[0];
-    expect(ngContent, new isInstanceOf<EmbeddedContentAst>());
+    expect(ngContent, new isInstanceOf<ElementAst>());
     expect(ngContent.isSynthetic, false);
-    expect((ngContent as EmbeddedContentAst).closeComplement.isSynthetic, true);
+    expect((ngContent as ElementAst).closeComplement.isSynthetic, true);
+    expect((ngContent as ElementAst).isNgContent, true);
 
     expect(
-        astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
+        astsToString(asts), '<div><ng-content></ng-content></div>');
 
-    checkException(NgParserWarningCode.NGCONTENT_MUST_CLOSE_IMMEDIATELY, 5, 12);
+    checkException(NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE, 5, 12);
   });
 
   test('Should resolve dangling close ng-content', () {
@@ -179,55 +180,37 @@ void main() {
     expect(div.childNodes.length, 1);
 
     var ngContent = div.childNodes[0];
-    expect(ngContent, new isInstanceOf<EmbeddedContentAst>());
+    expect(ngContent, new isInstanceOf<ElementAst>());
     expect(ngContent.isSynthetic, true);
+    expect((ngContent as ElementAst).isNgContent, true);
+    expect((ngContent as ElementAst).closeComplement.isSynthetic, false);
     expect(
-        (ngContent as EmbeddedContentAst).closeComplement.isSynthetic, false);
-    expect(
-        astsToString(asts), '<div><ng-content select="*"></ng-content></div>');
+        astsToString(asts), '<div><ng-content></ng-content></div>');
 
     checkException(NgParserWarningCode.DANGLING_CLOSE_ELEMENT, 5, 13);
   });
 
   test('Should resolve ng-content with children', () {
     var asts = parse('<ng-content><div></div></ng-content>');
-    expect(asts.length, 3);
+    expect(asts.length, 1);
 
-    var ngcontent1 = asts[0];
-    var div = asts[1];
-    var ngcontent2 = asts[2];
+    var ngcontent = asts[0];
 
-    expect(ngcontent1.childNodes.length, 0);
+    expect(ngcontent.childNodes.length, 1);
+    var div = ngcontent.childNodes[0] as ParsedElementAst;
+    expect(div.name, 'div');
     expect(div.childNodes.length, 0);
-    expect(ngcontent2.childNodes.length, 0);
 
-    expect(ngcontent1, new isInstanceOf<EmbeddedContentAst>());
-    expect(div, new isInstanceOf<ElementAst>());
-    expect(ngcontent2, new isInstanceOf<EmbeddedContentAst>());
-
-    expect(ngcontent1.isSynthetic, false);
-    expect(
-        (ngcontent1 as EmbeddedContentAst).closeComplement.isSynthetic, true);
-
-    expect(ngcontent2.isSynthetic, true);
-    expect(
-        (ngcontent2 as EmbeddedContentAst).closeComplement.isSynthetic, false);
-
-    expect(astsToString(asts),
-        '<ng-content select="*"></ng-content><div></div><ng-content select="*"></ng-content>');
+    expect(ngcontent.isSynthetic, false);
+    expect((ngcontent as ElementAst).closeComplement.isSynthetic, false);
 
     var exceptions = recoveringExceptionHandler.exceptions;
-    expect(exceptions.length, 2);
+    expect(exceptions.length, 1);
 
-    var e1 = exceptions[0];
-    expect(e1.errorCode, NgParserWarningCode.NGCONTENT_MUST_CLOSE_IMMEDIATELY);
-    expect(e1.offset, 0);
-    expect(e1.length, 12);
-
-    var e2 = exceptions[1];
-    expect(e2.errorCode, NgParserWarningCode.DANGLING_CLOSE_ELEMENT);
-    expect(e2.offset, 23);
-    expect(e2.length, 13);
+    var e = exceptions[0];
+    expect(e.errorCode, NgParserWarningCode.NGCONTENT_MUST_CLOSE_IMMEDIATELY);
+    expect(e.offset, 0);
+    expect(e.length, 12);
   });
 
   test('Should handle ng-content used with void end', () {
@@ -235,8 +218,8 @@ void main() {
     expect(asts.length, 1);
 
     var ngContent = asts[0];
-    expect(ngContent, new isInstanceOf<EmbeddedContentAst>());
-    expect(astsToString(asts), '<ng-content select="*"></ng-content>');
+    expect(ngContent, new isInstanceOf<ElementAst>());
+    expect(astsToString(asts), '<ng-content></ng-content>');
 
     checkException(NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END, 11, 2);
   });
@@ -250,9 +233,9 @@ void main() {
     expect(div.childNodes.length, 1);
 
     var template = div.childNodes[0];
-    expect(template, new isInstanceOf<EmbeddedTemplateAst>());
+    expect(template, new isInstanceOf<ElementAst>());
     expect(template.isSynthetic, false);
-    expect((template as EmbeddedTemplateAst).closeComplement.isSynthetic, true);
+    expect((template as ElementAst).closeComplement.isSynthetic, true);
 
     expect(
         astsToString(asts),
@@ -270,10 +253,9 @@ void main() {
     expect(div.childNodes.length, 1);
 
     var template = div.childNodes[0];
-    expect(template, new isInstanceOf<EmbeddedTemplateAst>());
+    expect(template, new isInstanceOf<ElementAst>());
     expect(template.isSynthetic, true);
-    expect(
-        (template as EmbeddedTemplateAst).closeComplement.isSynthetic, false);
+    expect((template as ElementAst).closeComplement.isSynthetic, false);
     expect(astsToString(asts), '<div><template></template></div>');
 
     checkException(NgParserWarningCode.DANGLING_CLOSE_ELEMENT, 5, 11);
@@ -285,7 +267,7 @@ void main() {
     expect(asts.length, 1);
 
     var ngContent = asts[0];
-    expect(ngContent, new isInstanceOf<EmbeddedTemplateAst>());
+    expect(ngContent, new isInstanceOf<ElementAst>());
     expect(
         astsToString(asts),
         '<template ngFor let-item let-i="index"'
@@ -300,8 +282,11 @@ void main() {
     var asts = parse(html);
     expect(asts.length, 1);
 
-    var ngcontent = asts[0] as EmbeddedContentAst;
-    expect(ngcontent.selector, '*');
+    var ngcontent = asts[0] as ElementAst;
+    expect(ngcontent.attributes.length, 1);
+    var selectAttr = ngcontent.attributes[0] as ParsedAttributeAst;
+    expect(selectAttr.name, 'select');
+    expect(selectAttr.value, '*');
 
     var exceptions = recoveringExceptionHandler.exceptions;
     expect(exceptions.length, 3);
@@ -327,8 +312,12 @@ void main() {
     var asts = parse(html);
     expect(asts.length, 1);
 
-    var ngcontent = asts[0] as EmbeddedContentAst;
-    expect(ngcontent.selector, '*');
+    var ngcontent = asts[0] as ElementAst;
+    expect(ngcontent.attributes.length, 1);
+    var firstSelectAttr = ngcontent.attributes[0] as ParsedAttributeAst;
+    expect(firstSelectAttr.name, 'select');
+    expect(firstSelectAttr.value, '*');
+    expect(firstSelectAttr.nameToken.offset, 12);
 
     checkException(NgParserWarningCode.DUPLICATE_SELECT_DECORATOR, 24, 21);
   });
@@ -386,9 +375,9 @@ void main() {
     var asts =
         parse('<div *ngFor="["></div>', desugar: true, parseExpression: true);
     expect(asts.length, 1);
-    expect(asts[0], new isInstanceOf<EmbeddedTemplateAst>());
+    expect(asts[0], new isInstanceOf<ElementAst>());
 
-    var template = asts[0] as EmbeddedTemplateAst;
+    var template = asts[0] as ElementAst;
     expect(template.properties.length, 1);
     expect(template.properties[0].expression, null);
 

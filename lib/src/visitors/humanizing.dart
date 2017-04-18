@@ -91,51 +91,6 @@ class HumanizingTemplateAstVisitor
   }
 
   @override
-  String visitEmbeddedContent(
-    EmbeddedContentAst astNode, [
-    StringBuffer context,
-  ]) {
-    context ??= new StringBuffer();
-    if (astNode.selector != null) {
-      context.write('<ng-content select="${astNode.selector}">');
-    } else {
-      context.write('<ng-content>');
-    }
-    context.write('</ng-content>');
-    return context.toString();
-  }
-
-  @override
-  String visitEmbeddedTemplate(
-    EmbeddedTemplateAst astNode, [
-    StringBuffer context,
-  ]) {
-    context ??= new StringBuffer();
-    context..write('<template');
-    if (astNode.attributes.isNotEmpty) {
-      context
-        ..write(' ')
-        ..writeAll(astNode.attributes.map(visitAttribute), ' ');
-    }
-    if (astNode.properties.isNotEmpty) {
-      context
-        ..write(' ')
-        ..writeAll(astNode.properties.map(visitProperty), ' ');
-    }
-    if (astNode.references.isNotEmpty) {
-      context
-        ..write(' ')
-        ..writeAll(astNode.references.map(visitReference), ' ');
-    }
-    context.write('>');
-    if (astNode.childNodes.isNotEmpty) {
-      context.writeAll(astNode.childNodes.map((c) => c.accept(this)));
-    }
-    context..write('</template>');
-    return context.toString();
-  }
-
-  @override
   String visitEvent(EventAst astNode, [StringBuffer context]) {
     context ??= new StringBuffer();
     context.write('(${astNode.name}');
