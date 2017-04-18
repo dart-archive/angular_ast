@@ -8,6 +8,43 @@ part of angular_ast.src.exceptions;
 /// to indicate the problem that caused the error code to be generated
 /// and for the error message to explain what is wrong, and when appropriate,
 /// how the problem can be corrected.
+///
+const List<NgParserWarningCode> angularAstWarningCodes = const [
+  NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE,
+  NgParserWarningCode.DANGLING_CLOSE_ELEMENT,
+  NgParserWarningCode.DUPLICATE_STAR_DIRECTIVE,
+  NgParserWarningCode.DUPLICATE_SELECT_DECORATOR,
+  NgParserWarningCode.ELEMENT_DECORATOR,
+  NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX,
+  NgParserWarningCode.ELEMENT_DECORATOR_SUFFIX_BEFORE_PREFIX,
+  NgParserWarningCode.ELEMENT_DECORATOR_VALUE,
+  NgParserWarningCode.ELEMENT_IDENTIFIER,
+  NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER,
+  NgParserWarningCode.EXPECTED_EQUAL_SIGN,
+  NgParserWarningCode.EXPECTED_STANDALONE,
+  NgParserWarningCode.EXPECTED_TAG_CLOSE,
+  NgParserWarningCode.UNEXPECTED_TOKEN,
+  NgParserWarningCode.EXPECTED_WHITESPACE_BEFORE_NEW_DECORATOR,
+  NgParserWarningCode.EMPTY_INTERPOLATION,
+  NgParserWarningCode.EVENT_NAME_TOO_MANY_FIXES,
+  NgParserWarningCode.INVALID_DECORATOR_IN_NGCONTENT,
+  NgParserWarningCode.INVALID_DECORATOR_IN_TEMPLATE,
+  NgParserWarningCode.INVALID_MICRO_EXPRESSION,
+  NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END,
+  NgParserWarningCode.NGCONTENT_MUST_CLOSE_IMMEDIATELY,
+  NgParserWarningCode.PIPE_INVALID_IDENTIFIER,
+  NgParserWarningCode.PROPERTY_NAME_TOO_MANY_FIXES,
+  NgParserWarningCode.SUFFIX_BANANA,
+  NgParserWarningCode.SUFFIX_EVENT,
+  NgParserWarningCode.SUFFIX_PROPERTY,
+  NgParserWarningCode.UNCLOSED_QUOTE,
+  NgParserWarningCode.UNOPENED_MUSTACHE,
+  NgParserWarningCode.UNTERMINATED_COMMENT,
+  NgParserWarningCode.UNTERMINATED_MUSTACHE,
+  NgParserWarningCode.VOID_ELEMENT_IN_CLOSE_TAG,
+  NgParserWarningCode.VOID_CLOSE_IN_CLOSE_TAG,
+];
+
 class NgParserWarningCode extends ErrorCode {
   static const NgParserWarningCode CANNOT_FIND_MATCHING_CLOSE =
       const NgParserWarningCode(
