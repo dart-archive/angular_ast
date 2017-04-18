@@ -166,8 +166,7 @@ void main() {
     expect((ngContent as ElementAst).closeComplement.isSynthetic, true);
     expect((ngContent as ElementAst).isNgContent, true);
 
-    expect(
-        astsToString(asts), '<div><ng-content></ng-content></div>');
+    expect(astsToString(asts), '<div><ng-content></ng-content></div>');
 
     checkException(NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE, 5, 12);
   });
@@ -184,8 +183,7 @@ void main() {
     expect(ngContent.isSynthetic, true);
     expect((ngContent as ElementAst).isNgContent, true);
     expect((ngContent as ElementAst).closeComplement.isSynthetic, false);
-    expect(
-        astsToString(asts), '<div><ng-content></ng-content></div>');
+    expect(astsToString(asts), '<div><ng-content></ng-content></div>');
 
     checkException(NgParserWarningCode.DANGLING_CLOSE_ELEMENT, 5, 13);
   });
