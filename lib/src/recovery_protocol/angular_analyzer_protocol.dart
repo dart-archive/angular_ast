@@ -429,7 +429,9 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.dash ||
         type == NgSimpleTokenType.forwardSlash ||
         type == NgSimpleTokenType.period ||
-        type == NgSimpleTokenType.unexpectedChar) {
+        type == NgSimpleTokenType.unexpectedChar ||
+        type == NgSimpleTokenType.percent ||
+        type == NgSimpleTokenType.backSlash) {
       return new RecoverySolution.skip();
     }
     reader.putBack(current);
@@ -449,7 +451,9 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
         type == NgSimpleTokenType.forwardSlash ||
-        type == NgSimpleTokenType.unexpectedChar) {
+        type == NgSimpleTokenType.unexpectedChar ||
+        type == NgSimpleTokenType.percent ||
+        type == NgSimpleTokenType.backSlash) {
       return new RecoverySolution.skip();
     }
     reader.putBack(current);
@@ -469,7 +473,9 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
         type == NgSimpleTokenType.forwardSlash ||
-        type == NgSimpleTokenType.unexpectedChar) {
+        type == NgSimpleTokenType.unexpectedChar ||
+        type == NgSimpleTokenType.percent ||
+        type == NgSimpleTokenType.backSlash) {
       return new RecoverySolution.skip();
     }
     reader.putBack(current);
@@ -489,7 +495,9 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.dash ||
         type == NgSimpleTokenType.forwardSlash ||
-        type == NgSimpleTokenType.unexpectedChar) {
+        type == NgSimpleTokenType.unexpectedChar ||
+        type == NgSimpleTokenType.percent ||
+        type == NgSimpleTokenType.backSlash) {
       return new RecoverySolution.skip();
     }
     reader.putBack(current);
@@ -515,7 +523,9 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.forwardSlash ||
         type == NgSimpleTokenType.dash ||
-        type == NgSimpleTokenType.unexpectedChar) {
+        type == NgSimpleTokenType.unexpectedChar ||
+        type == NgSimpleTokenType.percent ||
+        type == NgSimpleTokenType.backSlash) {
       return new RecoverySolution.skip();
     }
     reader.putBack(current);
@@ -535,7 +545,9 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.forwardSlash ||
         type == NgSimpleTokenType.dash ||
-        type == NgSimpleTokenType.unexpectedChar) {
+        type == NgSimpleTokenType.unexpectedChar ||
+        type == NgSimpleTokenType.percent ||
+        type == NgSimpleTokenType.backSlash) {
       return new RecoverySolution.skip();
     }
     reader.putBack(current);
@@ -555,7 +567,9 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
     if (type == NgSimpleTokenType.bang ||
         type == NgSimpleTokenType.forwardSlash ||
         type == NgSimpleTokenType.dash ||
-        type == NgSimpleTokenType.unexpectedChar) {
+        type == NgSimpleTokenType.unexpectedChar ||
+        type == NgSimpleTokenType.percent ||
+        type == NgSimpleTokenType.backSlash) {
       return new RecoverySolution.skip();
     }
 

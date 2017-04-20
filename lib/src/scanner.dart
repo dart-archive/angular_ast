@@ -493,7 +493,9 @@ class NgScanner {
     sb.write(_current.lexeme);
     while (_reader.peekType() == NgSimpleTokenType.period ||
         _reader.peekType() == NgSimpleTokenType.identifier ||
-        _reader.peekType() == NgSimpleTokenType.dash) {
+        _reader.peekType() == NgSimpleTokenType.dash ||
+        _reader.peekType() == NgSimpleTokenType.percent ||
+        _reader.peekType() == NgSimpleTokenType.backSlash) {
       _moveNext();
       sb.write(_current.lexeme);
     }
