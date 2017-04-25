@@ -25,13 +25,6 @@ class IdentityTemplateAstVisitor<C>
   TemplateAst visitComment(CommentAst astNode, [_]) => astNode;
 
   @override
-  TemplateAst visitEmbeddedContent(EmbeddedContentAst astNode, [_]) => astNode;
-
-  @override
-  TemplateAst visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [_]) =>
-      astNode;
-
-  @override
   TemplateAst visitElement(ElementAst astNode, [_]) => astNode;
 
   @override

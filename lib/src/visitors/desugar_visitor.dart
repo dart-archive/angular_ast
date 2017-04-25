@@ -58,6 +58,10 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
 
   @override
   TemplateAst visitElement(ElementAst astNode, [_]) {
+    if (astNode.isTemplate || astNode.isNgContent) {
+      return astNode;
+    }
+
     var newChildren = <StandaloneTemplateAst>[];
     astNode.childNodes.forEach((child) {
       newChildren.add(child.accept(this) as StandaloneTemplateAst);
@@ -83,7 +87,7 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
       var expressionOffset =
           (starAst as ParsedStarAst).valueToken.innerValue.offset;
       var directiveName = starAst.name;
-      EmbeddedTemplateAst newAst;
+      ElementAst newAst;
       var propertiesToAdd = <PropertyAst>[];
       var referencesToAdd = <ReferenceAst>[];
 
@@ -105,8 +109,10 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
           referencesToAdd.addAll(micro.assignments);
         }
 
-        newAst = new EmbeddedTemplateAst.from(
+        newAst = new ElementAst.from(
           origin,
+          'template',
+          new CloseElementAst('template'),
           childNodes: [
             astNode,
           ],
@@ -121,8 +127,10 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
           directiveName,
           starExpression,
         ));
-        newAst = new EmbeddedTemplateAst.from(
+        newAst = new ElementAst.from(
           origin,
+          'template',
+          new CloseElementAst('template'),
           childNodes: [
             astNode,
           ],
@@ -136,13 +144,6 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
 
     return astNode;
   }
-
-  @override
-  TemplateAst visitEmbeddedContent(EmbeddedContentAst astNode, [_]) => astNode;
-
-  @override
-  TemplateAst visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [_]) =>
-      astNode;
 
   @override
   TemplateAst visitEvent(EventAst astNode, [_]) => astNode;

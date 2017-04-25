@@ -255,7 +255,7 @@ void main() {
     expect(
       parse('<ng-content></ng-content>'),
       [
-        new EmbeddedContentAst(),
+        new ElementAst('ng-content', new CloseElementAst('ng-content')),
       ],
     );
   });
@@ -264,7 +264,13 @@ void main() {
     expect(
       parse('<ng-content select="tab"></ng-content>'),
       [
-        new EmbeddedContentAst('tab'),
+        new ElementAst(
+          'ng-content',
+          new CloseElementAst('ng-content'),
+          attributes: [
+            new AttributeAst('select', 'tab'),
+          ],
+        )
       ],
     );
   });
@@ -273,7 +279,7 @@ void main() {
     expect(
       parse('<template></template>'),
       [
-        new EmbeddedTemplateAst(),
+        new ElementAst('template', new CloseElementAst('template')),
       ],
     );
   });
@@ -282,7 +288,9 @@ void main() {
     expect(
       parse('<template ngFor let-item let-i="index"></template>'),
       [
-        new EmbeddedTemplateAst(
+        new ElementAst(
+          'template',
+          new CloseElementAst('template'),
           attributes: [
             new AttributeAst('ngFor'),
             new AttributeAst('let-item'),
@@ -298,20 +306,22 @@ void main() {
       parse(
           '<template step name="Name & Description" (jumpHere)="lastStep(false)"></template>'),
       [
-        new EmbeddedTemplateAst(attributes: [
-          new AttributeAst('step'),
-          new AttributeAst('name', 'Name & Description'),
-        ], events: [
-          new EventAst(
-            'jumpHere',
-            'lastStep(false)',
-            new ExpressionAst.parse(
-              'lastStep(false)',
-              53,
-              sourceUrl: '/test/expression/parser_test.dart#inline',
-            ),
-          ),
-        ]),
+        new ElementAst('template', new CloseElementAst('template'),
+            attributes: [
+              new AttributeAst('step'),
+              new AttributeAst('name', 'Name & Description'),
+            ],
+            events: [
+              new EventAst(
+                'jumpHere',
+                'lastStep(false)',
+                new ExpressionAst.parse(
+                  'lastStep(false)',
+                  53,
+                  sourceUrl: '/test/expression/parser_test.dart#inline',
+                ),
+              ),
+            ]),
       ],
     );
   });
@@ -320,7 +330,9 @@ void main() {
     expect(
       parse('<template [ngIf]="someValue"></template>'),
       [
-        new EmbeddedTemplateAst(
+        new ElementAst(
+          'template',
+          new CloseElementAst('template'),
           properties: [
             new PropertyAst(
                 'ngIf',
@@ -340,7 +352,9 @@ void main() {
     expect(
       parse('<template #named ></template>'),
       [
-        new EmbeddedTemplateAst(
+        new ElementAst(
+          'template',
+          new CloseElementAst('template'),
           references: [
             new ReferenceAst('named'),
           ],
@@ -353,7 +367,9 @@ void main() {
     expect(
       parse('<template>Hello World</template>'),
       [
-        new EmbeddedTemplateAst(
+        new ElementAst(
+          'template',
+          new CloseElementAst('template'),
           childNodes: [
             new TextAst('Hello World'),
           ],
@@ -423,7 +439,9 @@ void main() {
     expect(
       parse('<a *ngFor="let item of items; trackBy: byId; let i = index"></a>'),
       [
-        new EmbeddedTemplateAst(
+        new ElementAst(
+          'template',
+          new CloseElementAst('template'),
           attributes: [
             new AttributeAst('ngFor'),
           ],
@@ -510,7 +528,9 @@ void main() {
     var templateString = '''
 <div *ngFor="let x of items.where(filter)"></div>''';
     expect(parse(templateString), [
-      new EmbeddedTemplateAst(
+      new ElementAst(
+        'template',
+        new CloseElementAst('template'),
         attributes: [
           new AttributeAst('ngFor'),
         ],

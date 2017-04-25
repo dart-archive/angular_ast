@@ -97,6 +97,12 @@ abstract class ElementAst implements StandaloneTemplateAst {
   /// Determines whether the element tag name is void element.
   bool get isVoidElement;
 
+  /// Determines if the element tag name is 'template'.
+  bool get isTemplate;
+
+  /// Determines if the element tag name is 'ng-content'.
+  bool get isNgContent;
+
   /// CloseElement complement
   ///
   /// If [closeComplement] == null, then [isVoidElement] is true.
@@ -238,6 +244,14 @@ class ParsedElementAst extends TemplateAst with ElementAst {
   /// Star assignments.
   @override
   final List<StarAst> stars;
+
+  /// Indicates if 'template'.
+  @override
+  bool get isTemplate => name == 'template';
+
+  /// Indicates if 'ng-content'.
+  @override
+  bool get isNgContent => name == 'ng-content';
 }
 
 class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
@@ -296,4 +310,10 @@ class _SyntheticElementAst extends SyntheticTemplateAst with ElementAst {
 
   @override
   final List<StarAst> stars;
+
+  @override
+  bool get isTemplate => name == 'template';
+
+  @override
+  bool get isNgContent => name == 'ng-content';
 }

@@ -27,23 +27,6 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
   visitComment(CommentAst astNode, [_]) => null;
 
   @override
-  visitEmbeddedContent(EmbeddedContentAst astNode, [_]) => null;
-
-  @override
-  visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [_]) {
-    astNode.events.forEach((event) {
-      event.accept(this);
-    });
-    astNode.properties.forEach((property) {
-      property.accept(this);
-    });
-    astNode.childNodes.forEach((child) {
-      child.accept(this);
-    });
-    return null;
-  }
-
-  @override
   visitElement(ElementAst astNode, [_]) {
     astNode.events.forEach((event) {
       event.accept(this);
