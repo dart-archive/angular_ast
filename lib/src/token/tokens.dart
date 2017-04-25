@@ -21,6 +21,7 @@ abstract class NgBaseToken<TokenType> {
 /// Clients should not extend, implement, or mix-in this class.
 class NgSimpleToken implements NgBaseToken<NgSimpleTokenType> {
   static final Map<NgSimpleTokenType, String> lexemeMap = const {
+    NgSimpleTokenType.backSlash: '\\',
     NgSimpleTokenType.bang: '!',
     NgSimpleTokenType.closeBanana: ')]',
     NgSimpleTokenType.closeBracket: ']',
@@ -41,6 +42,7 @@ class NgSimpleToken implements NgBaseToken<NgSimpleTokenType> {
     NgSimpleTokenType.openBanana: '[(',
     NgSimpleTokenType.openBracket: '[',
     NgSimpleTokenType.openParen: '(',
+    NgSimpleTokenType.percent: '%',
     NgSimpleTokenType.period: '.',
     NgSimpleTokenType.star: '*',
     NgSimpleTokenType.text: '',
@@ -48,6 +50,10 @@ class NgSimpleToken implements NgBaseToken<NgSimpleTokenType> {
     NgSimpleTokenType.voidCloseTag: '/>',
     NgSimpleTokenType.whitespace: ' ',
   };
+
+  factory NgSimpleToken.backSlash(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.bang, offset);
+  }
 
   factory NgSimpleToken.bang(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.bang, offset);
@@ -128,6 +134,10 @@ class NgSimpleToken implements NgBaseToken<NgSimpleTokenType> {
 
   factory NgSimpleToken.openParen(int offset) {
     return new NgSimpleToken._(NgSimpleTokenType.openParen, offset);
+  }
+
+  factory NgSimpleToken.percent(int offset) {
+    return new NgSimpleToken._(NgSimpleTokenType.percent, offset);
   }
 
   factory NgSimpleToken.period(int offset) {

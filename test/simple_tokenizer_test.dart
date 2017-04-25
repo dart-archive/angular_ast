@@ -160,6 +160,26 @@ void main() {
     ]);
   });
 
+  test(
+      'should tokenize an HTML element with bracket, period, percentage, and backSlash',
+      () {
+    expect(tokenize(r'''<div [style.he\ight.%>'''), [
+      new NgSimpleToken.openTagStart(0),
+      new NgSimpleToken.identifier(1, 'div'),
+      new NgSimpleToken.whitespace(4, ' '),
+      new NgSimpleToken.openBracket(5),
+      new NgSimpleToken.identifier(6, 'style'),
+      new NgSimpleToken.period(11),
+      new NgSimpleToken.identifier(12, 'he'),
+      new NgSimpleToken.backSlash(14),
+      new NgSimpleToken.identifier(15, 'ight'),
+      new NgSimpleToken.period(19),
+      new NgSimpleToken.percent(20),
+      new NgSimpleToken.tagEnd(21),
+      new NgSimpleToken.EOF(22),
+    ]);
+  });
+
   test('should tokenize an HTML element with banana open and close', () {
     expect(tokenize('''<my-tag [(banana)]>'''), [
       new NgSimpleToken.openTagStart(0),

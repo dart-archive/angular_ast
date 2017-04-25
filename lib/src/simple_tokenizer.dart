@@ -46,7 +46,9 @@ class NgSimpleScanner {
       r'(=)|' //17 =
       r'(\*)|' //18 *
       r'(\#)|' //19 #
-      r'(\.)'); //20 .
+      r'(\.)|' //20 .
+      r'(\%)|' //21 %
+      r'(\\)'); //22 \
   static final _commentEnd = new RegExp('-->');
   static final _mustaches = new RegExp(r'({{)|(}})');
   static final _newline = new RegExp('\n');
@@ -221,6 +223,12 @@ class NgSimpleScanner {
       }
       if (matchesGroup(match, 20)) {
         return new NgSimpleToken.period(offset);
+      }
+      if (matchesGroup(match, 21)) {
+        return new NgSimpleToken.percent(offset);
+      }
+      if (matchesGroup(match, 22)) {
+        return new NgSimpleToken.backSlash(offset);
       }
     }
     return new NgSimpleToken.unexpectedChar(

@@ -11,7 +11,7 @@ import 'package:angular_ast/angular_ast.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 
 final int generationCount = 10000;
-final int iterationCount = 50;
+final int iterationCount = 100;
 
 final String dir = p.join('test', 'random_generator_test');
 String incorrectFilename = 'incorrect.html';
@@ -32,6 +32,7 @@ enum State {
 String genericExpression = ' + 1 + 2';
 
 List<NgSimpleTokenType> elementMap = <NgSimpleTokenType>[
+  NgSimpleTokenType.backSlash,
   NgSimpleTokenType.bang,
   NgSimpleTokenType.closeBanana,
   NgSimpleTokenType.closeBracket,
@@ -48,6 +49,7 @@ List<NgSimpleTokenType> elementMap = <NgSimpleTokenType>[
   NgSimpleTokenType.openBanana,
   NgSimpleTokenType.openBracket,
   NgSimpleTokenType.openParen,
+  NgSimpleTokenType.percent,
   NgSimpleTokenType.period,
   NgSimpleTokenType.singleQuote, //Special
   NgSimpleTokenType.star,
