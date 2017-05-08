@@ -30,7 +30,7 @@ abstract class InterpolationAst implements StandaloneTemplateAst {
   ) = ParsedInterpolationAst;
 
   @override
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) {
     return visitor.visitInterpolation(this, context);
   }
 

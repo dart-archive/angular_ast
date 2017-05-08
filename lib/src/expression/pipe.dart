@@ -52,7 +52,7 @@ class PipeExpression extends ExpressionImpl implements BinaryExpression {
   }
 
   @override
-  /*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) {
+  E accept<E>(AstVisitor<E> visitor) {
     return visitor.visitBinaryExpression(this);
   }
 

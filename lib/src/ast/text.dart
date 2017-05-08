@@ -33,7 +33,7 @@ abstract class TextAst implements StandaloneTemplateAst {
   int get hashCode => value.hashCode;
 
   @override
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) {
     return visitor.visitText(this, context);
   }
 

@@ -47,7 +47,7 @@ abstract class ReferenceAst implements TemplateAst {
   int get hashCode => hash2(identifier, variable);
 
   @override
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) {
     return visitor.visitReference(this, context);
   }
 
