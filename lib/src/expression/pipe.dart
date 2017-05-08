@@ -29,15 +29,14 @@ class PipeExpression extends ExpressionImpl implements BinaryExpression {
   final Expression value;
 
   /// Token.
-  @override
-  final Token operator;
+  final Token _operator;
 
   PipeExpression(
     this.beginToken,
     this.endToken,
     this.end,
     this.name,
-    this.operator,
+    this._operator,
     this.value,
     this.parameters,
   );
@@ -103,4 +102,7 @@ class PipeExpression extends ExpressionImpl implements BinaryExpression {
   set operator(Token token) {
     throw new UnsupportedError('Cannot be modified');
   }
+
+  @override
+  Token get operator => _operator;
 }
