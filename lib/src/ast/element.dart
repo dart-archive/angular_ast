@@ -90,7 +90,7 @@ abstract class ElementAst implements StandaloneTemplateAst {
   }
 
   @override
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) {
     return visitor.visitElement(this, context);
   }
 

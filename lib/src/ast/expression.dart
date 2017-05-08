@@ -42,7 +42,7 @@ class ExpressionAst implements TemplateAst {
   int get hashCode => expression.hashCode;
 
   @override
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) {
     return visitor.visitExpression(this, context);
   }
 

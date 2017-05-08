@@ -37,7 +37,7 @@ abstract class AttributeAst implements TemplateAst {
   ]) = ParsedAttributeAst;
 
   @override
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) {
     return visitor.visitAttribute(this, context);
   }
 

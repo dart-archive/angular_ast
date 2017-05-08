@@ -35,7 +35,7 @@ abstract class TemplateAstVisitor<R, C> {
   R visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [C context]) {
     astNode
       ..attributes.forEach((a) => visitAttribute(a, context))
-      ..childNodes.forEach((c) => c.accept/*<R, C>*/(this, context))
+      ..childNodes.forEach((c) => c.accept<R, C>(this, context))
       ..properties.forEach((p) => visitProperty(p, context))
       ..references.forEach((r) => visitReference(r, context));
     return null;
@@ -45,7 +45,7 @@ abstract class TemplateAstVisitor<R, C> {
   R visitElement(ElementAst astNode, [C context]) {
     astNode
       ..attributes.forEach((a) => visitAttribute(a, context))
-      ..childNodes.forEach((c) => c.accept/*<R, C>*/(this, context))
+      ..childNodes.forEach((c) => c.accept<R, C>(this, context))
       ..events.forEach((e) => visitEvent(e, context))
       ..properties.forEach((p) => visitProperty(p, context))
       ..references.forEach((r) => visitReference(r, context));

@@ -40,7 +40,7 @@ abstract class BananaAst implements TemplateAst {
   ) = ParsedBananaAst;
 
   @override
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) {
     return visitor.visitBanana(this, context);
   }
 

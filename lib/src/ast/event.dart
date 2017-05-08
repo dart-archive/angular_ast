@@ -52,7 +52,7 @@ abstract class EventAst implements TemplateAst {
   int get hashCode => hash3(name, expression, postfix);
 
   @override
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) {
     return visitor.visitEvent(this, context);
   }
 

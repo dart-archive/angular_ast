@@ -41,7 +41,7 @@ abstract class TemplateAst {
   }
 
   /// Have the [visitor] start visiting this node.
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]);
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]);
 
   /// Whether this node is capable of containing children and does.
   ///

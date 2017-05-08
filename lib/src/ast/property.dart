@@ -58,7 +58,7 @@ abstract class PropertyAst implements TemplateAst {
   int get hashCode => hash4(expression, name, postfix, unit);
 
   @override
-  /*=R*/ accept/*<R, C>*/(TemplateAstVisitor/*<R, C>*/ visitor, [C context]) {
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) {
     return visitor.visitProperty(this, context);
   }
 
