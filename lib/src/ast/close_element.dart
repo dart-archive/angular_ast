@@ -43,8 +43,8 @@ abstract class CloseElementAst implements TemplateAst {
   int get hashCode => name.hashCode;
 
   @override
-  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) =>
-      visitor.visitCloseElement(this, context);
+  R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) => visitor
+      .visitCloseElement(this, context);
 
   /// Whether this is a `</template>` tag and should be directly rendered.
   bool get isEmbeddedTemplate => name == 'template';
