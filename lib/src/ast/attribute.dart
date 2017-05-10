@@ -9,7 +9,7 @@ import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
-final _listEquals = const ListEquality<dynamic>();
+const _listEquals = const ListEquality<dynamic>();
 
 /// Represents a static attribute assignment (i.e. not bound to an expression).
 ///
