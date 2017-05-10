@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
-// TODO: Interpolation within the value
+final _listEquals = const ListEquality<dynamic>();
 
 /// Represents a static attribute assignment (i.e. not bound to an expression).
 ///
@@ -18,6 +19,7 @@ abstract class AttributeAst implements TemplateAst {
   factory AttributeAst(
     String name, [
     String value,
+    List<InterpolationAst> mustaches,
   ]) = _SyntheticAttributeAst;
 
   /// Create a new synthetic [AttributeAst] that originated from node [origin].
@@ -25,6 +27,7 @@ abstract class AttributeAst implements TemplateAst {
     TemplateAst origin,
     String name, [
     String value,
+    List<InterpolationAst> mustaches,
   ]) = _SyntheticAttributeAst.from;
 
   /// Create a new [AttributeAst] parsed from tokens from [sourceFile].
@@ -34,6 +37,7 @@ abstract class AttributeAst implements TemplateAst {
     NgToken nameToken, [
     NgAttributeValueToken valueToken,
     NgToken equalSignToken,
+    List<ParsedInterpolationAst> mustaches,
   ]) = ParsedAttributeAst;
 
   @override
@@ -44,7 +48,9 @@ abstract class AttributeAst implements TemplateAst {
   @override
   bool operator ==(Object o) {
     if (o is AttributeAst) {
-      return name == o.name && value == o.value;
+      return name == o.name &&
+          value == o.value &&
+          _listEquals.equals(mustaches, o.mustaches);
     }
     return false;
   }
@@ -57,6 +63,10 @@ abstract class AttributeAst implements TemplateAst {
 
   /// Static attribute value; may be `null` to have no value.
   String get value;
+
+  /// Mustaches found within value; may be `null` if value is null.
+  /// If value exists but has no mustaches, will be empty list.
+  List<InterpolationAst> mustaches;
 
   /// Static attribute value with quotes attached;
   /// may be `null` to have no value.
@@ -96,6 +106,7 @@ class ParsedAttributeAst extends TemplateAst
     this.nameToken, [
     this.valueToken,
     this.equalSignToken,
+    this.mustaches,
   ])
       : super.parsed(
           beginToken,
@@ -118,6 +129,10 @@ class ParsedAttributeAst extends TemplateAst
   /// Static attribute value; may be `null` to have no value.
   @override
   String get value => valueToken?.innerValue?.lexeme;
+
+  /// Parsed static attribute parts that are mustache-expressions.
+  @override
+  final List<InterpolationAst> mustaches;
 
   /// Static attribute value including quotes; may be `null` to have no value.
   @override
@@ -153,14 +168,18 @@ class _SyntheticAttributeAst extends SyntheticTemplateAst with AttributeAst {
   final String value;
 
   @override
+  final List<InterpolationAst> mustaches;
+
+  @override
   String get quotedValue => value == null ? null : '"$value"';
 
-  _SyntheticAttributeAst(this.name, [this.value]);
+  _SyntheticAttributeAst(this.name, [this.value, this.mustaches]);
 
   _SyntheticAttributeAst.from(
     TemplateAst origin,
     this.name, [
     this.value,
+    this.mustaches,
   ])
       : super.from(origin);
 }

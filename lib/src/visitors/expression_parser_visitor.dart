@@ -15,7 +15,13 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
       : exceptionHandler = exceptionHandler ?? new ThrowingExceptionHandler();
 
   @override
-  visitAttribute(AttributeAst astNode, [_]) => null;
+  visitAttribute(AttributeAst astNode, [_]) {
+    if (astNode.mustaches != null) {
+      astNode.mustaches.forEach((mustache) {
+        mustache.accept(this);
+      });
+    }
+  }
 
   @override
   visitBanana(BananaAst astNode, [_]) => null;
@@ -45,6 +51,9 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
 
   @override
   visitElement(ElementAst astNode, [_]) {
+    astNode.attributes.forEach((attribute) {
+      attribute.accept(this);
+    });
     astNode.events.forEach((event) {
       event.accept(this);
     });

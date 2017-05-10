@@ -81,7 +81,7 @@ class NgParser {
         sourceUrl,
         exceptionHandler: exceptionHandler,
       );
-      asts.map((t) => t.accept(expressionParserVisitor)).toList();
+      asts.forEach((t) => t.accept(expressionParserVisitor));
     }
     return asts;
   }

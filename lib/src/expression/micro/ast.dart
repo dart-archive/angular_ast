@@ -7,7 +7,7 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:quiver/core.dart';
 
-final _listEquals = const ListEquality();
+final _listEquals = const ListEquality<dynamic>();
 
 /// A de-sugared form of longer pseudo expression.
 class NgMicroAst {
