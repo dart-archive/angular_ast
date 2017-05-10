@@ -539,6 +539,10 @@ class RecursiveAstParser {
     );
   }
 
+  /// Helper function that, given a plain attribute value,
+  /// parses it and generates a list of [InterpolationAst].
+  /// Upon mustache errors, either throws or recovers based on
+  /// [ExceptionHandler] used.
   List<InterpolationAst> _parseMustacheInPlainAttributeValue(
       NgToken innerValue) {
     var text = innerValue.lexeme;
