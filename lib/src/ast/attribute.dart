@@ -37,7 +37,7 @@ abstract class AttributeAst implements TemplateAst {
     NgToken nameToken, [
     NgAttributeValueToken valueToken,
     NgToken equalSignToken,
-    List<ParsedInterpolationAst> mustaches,
+    List<InterpolationAst> mustaches,
   ]) = ParsedAttributeAst;
 
   @override

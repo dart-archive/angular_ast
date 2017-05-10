@@ -238,7 +238,7 @@ class RecursiveAstParser {
       );
     }
 
-    List<ParsedInterpolationAst> parsedMustaches;
+    List<InterpolationAst> parsedMustaches;
     if (valueToken != null) {
       parsedMustaches =
           _parseMustacheInPlainAttributeValue(valueToken.innerValue);
