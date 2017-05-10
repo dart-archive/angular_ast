@@ -619,9 +619,9 @@ class RecursiveAstParser {
             ));
           }
         }
-        scanner.position = position + match.end;
+        scanner.position += match.end;
       } else {
-        scanner.position = scanner.position + scanner.rest.length;
+        scanner.position += scanner.rest.length;
       }
     }
     // Dangling '{{' and hit end of value-text

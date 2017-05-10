@@ -515,9 +515,7 @@ void main() {
     expect(interpolation.expression, isNotNull);
   });
 
-  test(
-      'should parse, parse expressions, and preserve strict offsets for interpolations in values',
-      () {
+  test('should parse expressions in attr-value interpolations', () {
     var templateString = '''
 <div someAttr="{{ 1 + 2 }} nonmustache {{ 3 + 4 }}"></div>''';
     var asts = parse(templateString);
@@ -531,20 +529,20 @@ void main() {
     expect(attr.mustaches.length, 2);
     var mustache1 = attr.mustaches[0] as ParsedInterpolationAst;
     var mustache2 = attr.mustaches[1] as ParsedInterpolationAst;
-    expect(mustache1.beginToken.offset, 15);
+    expect(mustache1.beginToken.offset, templateString.indexOf('{{ 1 + 2 }}'));
     expect(mustache1.beginToken.lexeme, '{{');
     expect(mustache1.beginToken.errorSynthetic, false);
-    expect(mustache1.valueToken.offset, 17);
+    expect(mustache1.valueToken.offset, templateString.indexOf(' 1 + 2 '));
     expect(mustache1.valueToken.lexeme, ' 1 + 2 ');
     expect(mustache1.endToken.offset, 24);
     expect(mustache1.endToken.lexeme, '}}');
     expect(mustache1.endToken.errorSynthetic, false);
     expect(mustache1.expression.expression.toString(), '1 + 2');
 
-    expect(mustache2.beginToken.offset, 39);
+    expect(mustache2.beginToken.offset, templateString.indexOf('{{ 3 + 4 }}'));
     expect(mustache2.beginToken.lexeme, '{{');
     expect(mustache2.beginToken.errorSynthetic, false);
-    expect(mustache2.valueToken.offset, 41);
+    expect(mustache2.valueToken.offset, templateString.indexOf(' 3 + 4 '));
     expect(mustache2.valueToken.lexeme, ' 3 + 4 ');
     expect(mustache2.endToken.offset, 48);
     expect(mustache2.endToken.lexeme, '}}');
