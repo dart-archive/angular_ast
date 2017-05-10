@@ -134,7 +134,7 @@ void main() {
       parse('<button title="Submit"></button>'),
       [
         new ElementAst('button', new CloseElementAst('button'), attributes: [
-          new AttributeAst('title', 'Submit', []),
+          new AttributeAst('title', 'Submit', <InterpolationAst>[]),
         ]),
       ],
     );
@@ -145,7 +145,7 @@ void main() {
       parse('<div title="Hello {{myName}}"></div>'),
       [
         new ElementAst('div', new CloseElementAst('div'), attributes: [
-          new AttributeAst('title', 'Hello {{myName}}', [
+          new AttributeAst('title', 'Hello {{myName}}', <InterpolationAst>[
             new InterpolationAst(
                 'myName',
                 new ExpressionAst.parse(
@@ -298,7 +298,7 @@ void main() {
           attributes: [
             new AttributeAst('ngFor'),
             new AttributeAst('let-item'),
-            new AttributeAst('let-i', 'index', []),
+            new AttributeAst('let-i', 'index', <InterpolationAst>[]),
           ],
         ),
       ],
@@ -312,7 +312,7 @@ void main() {
       [
         new EmbeddedTemplateAst(attributes: [
           new AttributeAst('step'),
-          new AttributeAst('name', 'Name & Description', []),
+          new AttributeAst('name', 'Name & Description', <InterpolationAst>[]),
         ], events: [
           new EventAst(
             'jumpHere',

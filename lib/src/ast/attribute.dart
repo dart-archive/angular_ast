@@ -66,7 +66,7 @@ abstract class AttributeAst implements TemplateAst {
 
   /// Mustaches found within value; may be `null` if value is null.
   /// If value exists but has no mustaches, will be empty list.
-  List<InterpolationAst> mustaches;
+  List<InterpolationAst> get mustaches;
 
   /// Static attribute value with quotes attached;
   /// may be `null` to have no value.
