@@ -7,7 +7,7 @@ import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/visitor.dart';
 
-class ExpressionParserVisitor implements TemplateAstVisitor<Null, Null> {
+class ExpressionParserVisitor implements TemplateAstVisitor<dynamic, Null> {
   final ExceptionHandler exceptionHandler;
   final String sourceUrl;
 
@@ -17,7 +17,9 @@ class ExpressionParserVisitor implements TemplateAstVisitor<Null, Null> {
   @override
   visitAttribute(AttributeAst astNode, [_]) {
     if (astNode.mustaches != null) {
-      astNode.mustaches.forEach((mustache) => mustache.accept(this));
+      astNode.mustaches.forEach((mustache) {
+        mustache.accept(this);
+      });
     }
     return null;
   }
@@ -50,10 +52,18 @@ class ExpressionParserVisitor implements TemplateAstVisitor<Null, Null> {
 
   @override
   visitElement(ElementAst astNode, [_]) {
-    astNode.attributes.forEach((attribute) => attribute.accept(this));
-    astNode.events.forEach((event) => event.accept(this));
-    astNode.properties.forEach((property) => property.accept(this));
-    astNode.childNodes.forEach((child) => child.accept(this));
+    astNode.attributes.forEach((attribute) {
+      attribute.accept(this);
+    });
+    astNode.events.forEach((event) {
+      event.accept(this);
+    });
+    astNode.properties.forEach((property) {
+      property.accept(this);
+    });
+    astNode.childNodes.forEach((child) {
+      child.accept(this);
+    });
     return null;
   }
 
