@@ -15,29 +15,28 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
       : exceptionHandler = exceptionHandler ?? new ThrowingExceptionHandler();
 
   @override
-  Null visitAttribute(AttributeAst astNode, [_]) {
+  visitAttribute(AttributeAst astNode, [_]) {
     if (astNode.mustaches != null) {
       astNode.mustaches.forEach((mustache) {
         mustache.accept(this);
       });
     }
-    return null;
   }
 
   @override
-  Null visitBanana(BananaAst astNode, [_]) => null;
+  visitBanana(BananaAst astNode, [_]) => null;
 
   @override
-  Null visitCloseElement(CloseElementAst astNode, [_]) => null;
+  visitCloseElement(CloseElementAst astNode, [_]) => null;
 
   @override
-  Null visitComment(CommentAst astNode, [_]) => null;
+  visitComment(CommentAst astNode, [_]) => null;
 
   @override
-  Null visitEmbeddedContent(EmbeddedContentAst astNode, [_]) => null;
+  visitEmbeddedContent(EmbeddedContentAst astNode, [_]) => null;
 
   @override
-  Null visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [_]) {
+  visitEmbeddedTemplate(EmbeddedTemplateAst astNode, [_]) {
     astNode.events.forEach((event) {
       event.accept(this);
     });
@@ -51,7 +50,7 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
   }
 
   @override
-  Null visitElement(ElementAst astNode, [_]) {
+  visitElement(ElementAst astNode, [_]) {
     astNode.attributes.forEach((attribute) {
       attribute.accept(this);
     });
@@ -68,7 +67,7 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
   }
 
   @override
-  Null visitEvent(EventAst astNode, [_]) {
+  visitEvent(EventAst astNode, [_]) {
     ExpressionAst expression;
     if (astNode is ParsedEventAst && astNode.valueToken != null) {
       var innerValue = astNode.valueToken.innerValue;
@@ -81,10 +80,10 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
   }
 
   @override
-  Null visitExpression(ExpressionAst astNode, [_]) => null;
+  visitExpression(ExpressionAst astNode, [_]) => null;
 
   @override
-  Null visitInterpolation(InterpolationAst astNode, [_]) {
+  visitInterpolation(InterpolationAst astNode, [_]) {
     ExpressionAst expression;
     if (astNode is ParsedInterpolationAst && astNode.value != null) {
       expression = _parseExpression(
@@ -97,7 +96,7 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
   }
 
   @override
-  Null visitProperty(PropertyAst astNode, [_]) {
+  visitProperty(PropertyAst astNode, [_]) {
     ExpressionAst expression;
     if (astNode is ParsedPropertyAst && astNode.valueToken != null) {
       var valueToken = astNode.valueToken.innerValue;
@@ -113,13 +112,13 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
   }
 
   @override
-  Null visitReference(ReferenceAst astNode, [_]) => null;
+  visitReference(ReferenceAst astNode, [_]) => null;
 
   @override
-  Null visitStar(StarAst astNode, [_]) => null;
+  visitStar(StarAst astNode, [_]) => null;
 
   @override
-  Null visitText(TextAst astNode, [_]) => null;
+  visitText(TextAst astNode, [_]) => null;
 
   /// Parse expression
   ExpressionAst _parseExpression(String expression, int offset) {
