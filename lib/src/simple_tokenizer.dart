@@ -309,7 +309,7 @@ class NgSimpleScanner {
         var newlineStart = offset + newlineMatch.start;
         var newlineEnd = offset + newlineMatch.end;
 
-        // If text precedes it, return text.
+        // If text precedes EOL, return text from dangling open to EOL.
         if (newlineStart != offset) {
           _scanner.position = newlineStart;
           return new NgSimpleToken.text(offset, _scanner.substring(offset));
@@ -319,7 +319,7 @@ class NgSimpleScanner {
         _scanner.position = newlineEnd;
         return new NgSimpleToken.whitespace(offset, _scanner.substring(offset));
       }
-
+      // No new-line encountered, but EOF hit instead.
       // Simply scan text until EOF hit.
       _scanner.position = offset + text.length;
       _state = _NgSimpleScannerState.text;
