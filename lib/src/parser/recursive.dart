@@ -197,7 +197,7 @@ class RecursiveAstParser {
         decoratorToken.offset + 'on-'.length,
         decoratorToken.lexeme.substring('on-'.length),
       );
-      if (decoratorToken.lexeme.isEmpty) {
+      if (decoratorToken.lexeme == '') {
         exceptionHandler.handle(new AngularParserException(
           NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX,
           onToken.offset,
@@ -220,7 +220,7 @@ class RecursiveAstParser {
         decoratorToken.offset + 'bind-'.length,
         decoratorToken.lexeme.substring('bind-'.length),
       );
-      if (decoratorToken.lexeme.isEmpty) {
+      if (decoratorToken.lexeme == '') {
         exceptionHandler.handle(new AngularParserException(
           NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX,
           bindToken.offset,
@@ -570,21 +570,18 @@ class RecursiveAstParser {
               firstMustacheBegin,
               '{{'.length,
             ));
-            var innerText =
-                text.substring(seenOpenMustache + '{{'.length, matchPosition);
-            if (innerText.trim().isEmpty) {
-              mustaches.add(new InterpolationAst.parsed(
-                _source,
-                new NgToken.interpolationStart(firstMustacheBegin),
-                new NgToken.interpolationValue(
+
+            mustaches.add(new InterpolationAst.parsed(
+              _source,
+              new NgToken.interpolationStart(firstMustacheBegin),
+              new NgToken.interpolationValue(
                   firstMustacheBegin + '{{'.length,
-                  innerText,
-                ),
-                new NgToken.generateErrorSynthetic(
-                    absoluteTextOffset + matchPosition,
-                    NgTokenType.interpolationEnd),
-              ));
-            }
+                  text.substring(
+                      seenOpenMustache + '{{'.length, matchPosition)),
+              new NgToken.generateErrorSynthetic(
+                  absoluteTextOffset + matchPosition,
+                  NgTokenType.interpolationEnd),
+            ));
             seenOpenMustache = matchPosition;
           }
         }
@@ -612,16 +609,14 @@ class RecursiveAstParser {
               mustacheEnd,
               '}}'.length,
             ));
-            var innerText = text.substring(position, matchPosition);
-            if (innerText.trim().isEmpty) {
-              mustaches.add(new InterpolationAst.parsed(
-                _source,
-                new NgToken.generateErrorSynthetic(
-                    mustacheBegin, NgTokenType.interpolationStart),
-                new NgToken.interpolationValue(mustacheBegin, innerText),
-                new NgToken.interpolationEnd(mustacheEnd),
-              ));
-            }
+            mustaches.add(new InterpolationAst.parsed(
+              _source,
+              new NgToken.generateErrorSynthetic(
+                  mustacheBegin, NgTokenType.interpolationStart),
+              new NgToken.interpolationValue(
+                  mustacheBegin, text.substring(position, matchPosition)),
+              new NgToken.interpolationEnd(mustacheEnd),
+            ));
           }
         }
         scanner.position += match.end;
@@ -637,18 +632,14 @@ class RecursiveAstParser {
         mustacheBegin,
         '{{'.length,
       ));
-      var innerText =
-          text.substring(seenOpenMustache + '{{'.length, text.length);
-      if (innerText.trim().isEmpty) {
-        mustaches.add(new InterpolationAst.parsed(
-          _source,
-          new NgToken.interpolationStart(mustacheBegin),
-          new NgToken.interpolationValue(
-              mustacheBegin + '{{'.length, innerText),
-          new NgToken.generateErrorSynthetic(
-              absoluteTextOffset + text.length, NgTokenType.interpolationEnd),
-        ));
-      }
+      mustaches.add(new InterpolationAst.parsed(
+        _source,
+        new NgToken.interpolationStart(mustacheBegin),
+        new NgToken.interpolationValue(mustacheBegin + '{{'.length,
+            text.substring(seenOpenMustache + '{{'.length, text.length)),
+        new NgToken.generateErrorSynthetic(
+            absoluteTextOffset + text.length, NgTokenType.interpolationEnd),
+      ));
     }
     return mustaches;
   }
@@ -680,31 +671,15 @@ class RecursiveAstParser {
   }
 
   /// Returns and parses an interpolation AST.
-  ///
-  /// If either begin or end is synthetic, an [InterpolationAst]
-  /// is returned if and only if the value is whitespace.
-  /// Otherwise, a [TextAst] is returned containing a text
-  /// representation of interpolation. (Error has already been raised)
-  StandaloneTemplateAst parseInterpolation(NgToken beginToken) {
-    var valueToken = _reader.next() as NgToken;
-    var endToken = _reader.next() as NgToken;
-    var realBegin = !beginToken.errorSynthetic;
-    var realEnd = !endToken.errorSynthetic;
-
-    if ((realBegin && realEnd) || valueToken.lexeme.trim().isEmpty) {
-      return new InterpolationAst.parsed(
-        _source,
-        beginToken,
-        valueToken,
-        endToken,
-      );
-    }
-    var newTextOffset = realBegin ? beginToken.offset : valueToken.offset;
-    var newText = (realBegin ? beginToken.lexeme : '') +
-        valueToken.lexeme +
-        (realEnd ? endToken.lexeme : '');
-    var newValueToken = new NgToken.text(newTextOffset, newText);
-    return new TextAst.parsed(_source, newValueToken);
+  InterpolationAst parseInterpolation(NgToken beginToken) {
+    var valueToken = _reader.next();
+    var endToken = _reader.next();
+    return new InterpolationAst.parsed(
+      _source,
+      beginToken,
+      valueToken,
+      endToken,
+    );
   }
 
   /// Returns and parses a top-level AST structure.
