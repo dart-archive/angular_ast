@@ -9,7 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:quiver/core.dart';
 import 'package:source_span/source_span.dart';
 
-const _listEquals = const ListEquality();
+const _listEquals = const ListEquality<dynamic>();
 
 /// Represents an embedded template (i.e. is not directly rendered in DOM).
 ///

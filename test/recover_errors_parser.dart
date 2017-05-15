@@ -469,4 +469,94 @@ void main() {
 
     checkException(NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX, 5, 5);
   });
+
+  test('Should resolve unterminated mustache in attr value', () {
+    var asts = parse('<div someAttr="{{mustache1 {{ mustache2"></div>');
+    expect(asts.length, 1);
+
+    var element = asts[0] as ElementAst;
+    expect(element.attributes.length, 1);
+    var attr = element.attributes[0] as ParsedAttributeAst;
+    expect(attr.value, '{{mustache1 {{ mustache2');
+
+    expect(attr.mustaches.length, 2);
+    var mustache1 = attr.mustaches[0] as ParsedInterpolationAst;
+    var mustache2 = attr.mustaches[1] as ParsedInterpolationAst;
+
+    expect(mustache1.beginToken.offset, 15);
+    expect(mustache1.beginToken.lexeme, '{{');
+    expect(mustache1.beginToken.errorSynthetic, false);
+    expect(mustache1.valueToken.offset, 17);
+    expect(mustache1.valueToken.lexeme, 'mustache1 ');
+    expect(mustache1.endToken.offset, 27);
+    expect(mustache1.endToken.lexeme, '}}');
+    expect(mustache1.endToken.errorSynthetic, true);
+
+    expect(mustache2.beginToken.offset, 27);
+    expect(mustache2.beginToken.lexeme, '{{');
+    expect(mustache2.beginToken.errorSynthetic, false);
+    expect(mustache2.valueToken.offset, 29);
+    expect(mustache2.valueToken.lexeme, ' mustache2');
+    expect(mustache2.endToken.offset, 39);
+    expect(mustache2.endToken.lexeme, '}}');
+    expect(mustache2.endToken.errorSynthetic, true);
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 2);
+    var e1 = exceptions[0];
+    var e2 = exceptions[1];
+
+    expect(e1.errorCode, NgParserWarningCode.UNTERMINATED_MUSTACHE);
+    expect(e1.offset, 15);
+    expect(e1.length, 2);
+
+    expect(e2.errorCode, NgParserWarningCode.UNTERMINATED_MUSTACHE);
+    expect(e2.offset, 27);
+    expect(e2.length, 2);
+  });
+
+  test('Should resolve unopened mustache in attr value', () {
+    var asts = parse('<div someAttr="mustache1 }} mustache2 }}"></div>');
+    expect(asts.length, 1);
+
+    var element = asts[0] as ElementAst;
+    expect(element.attributes.length, 1);
+    var attr = element.attributes[0] as ParsedAttributeAst;
+    expect(attr.value, 'mustache1 }} mustache2 }}');
+
+    expect(attr.mustaches.length, 2);
+    var mustache1 = attr.mustaches[0] as ParsedInterpolationAst;
+    var mustache2 = attr.mustaches[1] as ParsedInterpolationAst;
+
+    expect(mustache1.beginToken.offset, 15);
+    expect(mustache1.beginToken.lexeme, '{{');
+    expect(mustache1.beginToken.errorSynthetic, true);
+    expect(mustache1.valueToken.offset, 15);
+    expect(mustache1.valueToken.lexeme, 'mustache1 ');
+    expect(mustache1.endToken.offset, 25);
+    expect(mustache1.endToken.lexeme, '}}');
+    expect(mustache1.endToken.errorSynthetic, false);
+
+    expect(mustache2.beginToken.offset, 27);
+    expect(mustache2.beginToken.lexeme, '{{');
+    expect(mustache2.beginToken.errorSynthetic, true);
+    expect(mustache2.valueToken.offset, 27);
+    expect(mustache2.valueToken.lexeme, ' mustache2 ');
+    expect(mustache2.endToken.offset, 38);
+    expect(mustache2.endToken.lexeme, '}}');
+    expect(mustache2.endToken.errorSynthetic, false);
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 2);
+    var e1 = exceptions[0];
+    var e2 = exceptions[1];
+
+    expect(e1.errorCode, NgParserWarningCode.UNOPENED_MUSTACHE);
+    expect(e1.offset, 25);
+    expect(e1.length, 2);
+
+    expect(e2.errorCode, NgParserWarningCode.UNOPENED_MUSTACHE);
+    expect(e2.offset, 38);
+    expect(e2.length, 2);
+  });
 }

@@ -12,12 +12,14 @@ import 'package:source_span/source_span.dart';
 abstract class InterpolationAst implements StandaloneTemplateAst {
   /// Create a new synthetic [InterpolationAst] with a bound [expression].
   factory InterpolationAst(
+    String value,
     ExpressionAst expression,
   ) = _SyntheticInterpolationAst;
 
   /// Create a new synthetic [InterpolationAst] that originated from [origin].
   factory InterpolationAst.from(
     TemplateAst origin,
+    String value,
     ExpressionAst expression,
   ) = _SyntheticInterpolationAst.from;
 
@@ -43,7 +45,9 @@ abstract class InterpolationAst implements StandaloneTemplateAst {
 
   @override
   bool operator ==(Object o) {
-    return o is InterpolationAst && o.expression == expression;
+    return o is InterpolationAst &&
+        o.value == value &&
+        o.expression == expression;
   }
 
   @override
@@ -76,14 +80,15 @@ class _SyntheticInterpolationAst extends SyntheticTemplateAst
   @override
   ExpressionAst expression;
 
-  _SyntheticInterpolationAst(this.expression);
+  _SyntheticInterpolationAst(this.value, this.expression);
 
   _SyntheticInterpolationAst.from(
     TemplateAst origin,
+    this.value,
     this.expression,
   )
       : super.from(origin);
 
   @override
-  String get value => expression.expression.toString();
+  final String value;
 }

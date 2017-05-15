@@ -70,11 +70,13 @@ void main() {
     expect(
       parse('{{ name }}'),
       [
-        new InterpolationAst(new ExpressionAst.parse(
-          'name',
-          3,
-          sourceUrl: '/test/expression/parser_test.dart#inline',
-        )),
+        new InterpolationAst(
+            ' name ',
+            new ExpressionAst.parse(
+              'name',
+              3,
+              sourceUrl: '/test/expression/parser_test.dart#inline',
+            )),
       ],
     );
   });
@@ -86,11 +88,13 @@ void main() {
         new TextAst('Hello'),
         new ElementAst('div', new CloseElementAst('div')),
         new CommentAst('Goodbye'),
-        new InterpolationAst(new ExpressionAst.parse(
-          'name',
-          32,
-          sourceUrl: '/test/expression/parser_test.dart#inline',
-        )),
+        new InterpolationAst(
+            'name',
+            new ExpressionAst.parse(
+              'name',
+              32,
+              sourceUrl: '/test/expression/parser_test.dart#inline',
+            )),
       ],
     );
   });
@@ -130,7 +134,7 @@ void main() {
       parse('<button title="Submit"></button>'),
       [
         new ElementAst('button', new CloseElementAst('button'), attributes: [
-          new AttributeAst('title', 'Submit'),
+          new AttributeAst('title', 'Submit', <InterpolationAst>[]),
         ]),
       ],
     );
@@ -141,7 +145,15 @@ void main() {
       parse('<div title="Hello {{myName}}"></div>'),
       [
         new ElementAst('div', new CloseElementAst('div'), attributes: [
-          new AttributeAst('title', 'Hello {{myName}}'),
+          new AttributeAst('title', 'Hello {{myName}}', <InterpolationAst>[
+            new InterpolationAst(
+                'myName',
+                new ExpressionAst.parse(
+                  'myName',
+                  20,
+                  sourceUrl: '/test/expression/parser_test.dart#inline',
+                )),
+          ]),
         ]),
       ],
     );
@@ -286,7 +298,7 @@ void main() {
           attributes: [
             new AttributeAst('ngFor'),
             new AttributeAst('let-item'),
-            new AttributeAst('let-i', 'index'),
+            new AttributeAst('let-i', 'index', <InterpolationAst>[]),
           ],
         ),
       ],
@@ -300,7 +312,7 @@ void main() {
       [
         new EmbeddedTemplateAst(attributes: [
           new AttributeAst('step'),
-          new AttributeAst('name', 'Name & Description'),
+          new AttributeAst('name', 'Name & Description', <InterpolationAst>[]),
         ], events: [
           new EventAst(
             'jumpHere',
@@ -501,6 +513,41 @@ void main() {
     expect(interpolation.value.length, 15);
     expect(interpolation.endToken.offset, 22);
     expect(interpolation.expression, isNotNull);
+  });
+
+  test('should parse expressions in attr-value interpolations', () {
+    var templateString = '''
+<div someAttr="{{ 1 + 2 }} nonmustache {{ 3 + 4 }}"></div>''';
+    var asts = parse(templateString);
+    var element = asts[0] as ElementAst;
+
+    expect(element.attributes.length, 1);
+    var attr = element.attributes[0] as ParsedAttributeAst;
+    expect(attr, new isInstanceOf<ParsedAttributeAst>());
+    expect(attr.value, '{{ 1 + 2 }} nonmustache {{ 3 + 4 }}');
+
+    expect(attr.mustaches.length, 2);
+    var mustache1 = attr.mustaches[0] as ParsedInterpolationAst;
+    var mustache2 = attr.mustaches[1] as ParsedInterpolationAst;
+    expect(mustache1.beginToken.offset, templateString.indexOf('{{ 1 + 2 }}'));
+    expect(mustache1.beginToken.lexeme, '{{');
+    expect(mustache1.beginToken.errorSynthetic, false);
+    expect(mustache1.valueToken.offset, templateString.indexOf(' 1 + 2 '));
+    expect(mustache1.valueToken.lexeme, ' 1 + 2 ');
+    expect(mustache1.endToken.offset, 24);
+    expect(mustache1.endToken.lexeme, '}}');
+    expect(mustache1.endToken.errorSynthetic, false);
+    expect(mustache1.expression.expression.toString(), '1 + 2');
+
+    expect(mustache2.beginToken.offset, templateString.indexOf('{{ 3 + 4 }}'));
+    expect(mustache2.beginToken.lexeme, '{{');
+    expect(mustache2.beginToken.errorSynthetic, false);
+    expect(mustache2.valueToken.offset, templateString.indexOf(' 3 + 4 '));
+    expect(mustache2.valueToken.lexeme, ' 3 + 4 ');
+    expect(mustache2.endToken.offset, 48);
+    expect(mustache2.endToken.lexeme, '}}');
+    expect(mustache2.endToken.errorSynthetic, false);
+    expect(mustache2.expression.expression.toString(), '3 + 4');
   });
 
   // Moved from expression/micro/parser_test.dart

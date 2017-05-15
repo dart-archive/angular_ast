@@ -9,6 +9,7 @@ import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/parser/reader.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:source_span/source_span.dart';
+import 'package:string_scanner/string_scanner.dart';
 
 /// A recursive descent AST parser from a series of tokens.
 class RecursiveAstParser {
@@ -236,12 +237,19 @@ class RecursiveAstParser {
         equalSignToken,
       );
     }
+
+    List<InterpolationAst> parsedMustaches;
+    if (valueToken != null) {
+      parsedMustaches =
+          _parseMustacheInPlainAttributeValue(valueToken.innerValue);
+    }
     return new AttributeAst.parsed(
       _source,
       beginToken,
       decoratorToken,
       valueToken,
       equalSignToken,
+      parsedMustaches,
     );
   }
 
@@ -529,6 +537,111 @@ class RecursiveAstParser {
       equalSign,
       valueToken,
     );
+  }
+
+  /// Helper function that, given a plain attribute value,
+  /// parses it and generates a list of [InterpolationAst].
+  /// Upon mustache errors, either throws or recovers based on
+  /// [ExceptionHandler] used.
+  List<InterpolationAst> _parseMustacheInPlainAttributeValue(
+      NgToken innerValue) {
+    var text = innerValue.lexeme;
+    var absoluteTextOffset = innerValue.offset;
+    var tokens = new RegExp(r'({{)|(}})');
+    var mustaches = <InterpolationAst>[];
+    int seenOpenMustache;
+
+    var scanner = new StringScanner(text);
+    while (!scanner.isDone) {
+      var position = scanner.position;
+      var match = tokens.firstMatch(scanner.rest);
+      if (match != null) {
+        var matchPosition = position + match.start;
+
+        if (match.group(1) != null) {
+          // '{{' found.
+          if (seenOpenMustache == null) {
+            seenOpenMustache = matchPosition;
+          } else {
+            // Second '{{' found before '}}' closes it.
+            var firstMustacheBegin = absoluteTextOffset + seenOpenMustache;
+            exceptionHandler.handle(new AngularParserException(
+              NgParserWarningCode.UNTERMINATED_MUSTACHE,
+              firstMustacheBegin,
+              '{{'.length,
+            ));
+
+            mustaches.add(new InterpolationAst.parsed(
+              _source,
+              new NgToken.interpolationStart(firstMustacheBegin),
+              new NgToken.interpolationValue(
+                  firstMustacheBegin + '{{'.length,
+                  text.substring(
+                      seenOpenMustache + '{{'.length, matchPosition)),
+              new NgToken.generateErrorSynthetic(
+                  absoluteTextOffset + matchPosition,
+                  NgTokenType.interpolationEnd),
+            ));
+            seenOpenMustache = matchPosition;
+          }
+        }
+
+        if (match.group(2) != null) {
+          if (seenOpenMustache != null) {
+            var mustacheBegin = absoluteTextOffset + seenOpenMustache;
+            var mustacheEnd = absoluteTextOffset + matchPosition;
+            mustaches.add(new InterpolationAst.parsed(
+              _source,
+              new NgToken.interpolationStart(mustacheBegin),
+              new NgToken.interpolationValue(
+                  mustacheBegin + '{{'.length,
+                  text.substring(
+                      seenOpenMustache + '{{'.length, matchPosition)),
+              new NgToken.interpolationEnd(mustacheEnd),
+            ));
+            seenOpenMustache = null;
+          } else {
+            // Found '}}' before any '{{'
+            var mustacheBegin = absoluteTextOffset + position;
+            var mustacheEnd = absoluteTextOffset + matchPosition;
+            exceptionHandler.handle(new AngularParserException(
+              NgParserWarningCode.UNOPENED_MUSTACHE,
+              mustacheEnd,
+              '}}'.length,
+            ));
+            mustaches.add(new InterpolationAst.parsed(
+              _source,
+              new NgToken.generateErrorSynthetic(
+                  mustacheBegin, NgTokenType.interpolationStart),
+              new NgToken.interpolationValue(
+                  mustacheBegin, text.substring(position, matchPosition)),
+              new NgToken.interpolationEnd(mustacheEnd),
+            ));
+          }
+        }
+        scanner.position += match.end;
+      } else {
+        scanner.position += scanner.rest.length;
+      }
+    }
+    // Dangling '{{' and hit end of value-text
+    if (seenOpenMustache != null) {
+      var mustacheBegin = absoluteTextOffset + seenOpenMustache;
+      exceptionHandler.handle(new AngularParserException(
+        NgParserWarningCode.UNTERMINATED_MUSTACHE,
+        mustacheBegin,
+        '{{'.length,
+      ));
+      mustaches.add(new InterpolationAst.parsed(
+        _source,
+        new NgToken.interpolationStart(mustacheBegin),
+        new NgToken.interpolationValue(mustacheBegin + '{{'.length,
+            text.substring(seenOpenMustache + '{{'.length, text.length)),
+        new NgToken.generateErrorSynthetic(
+            absoluteTextOffset + text.length, NgTokenType.interpolationEnd),
+      ));
+    }
+    return mustaches;
   }
 
   /// Helper function that accumulates all parts of attribute-value variant

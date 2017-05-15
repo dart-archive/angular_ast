@@ -7,7 +7,7 @@ import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:angular_ast/src/visitor.dart';
 
-class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
+class ExpressionParserVisitor implements TemplateAstVisitor<dynamic, Null> {
   final ExceptionHandler exceptionHandler;
   final String sourceUrl;
 
@@ -15,7 +15,14 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
       : exceptionHandler = exceptionHandler ?? new ThrowingExceptionHandler();
 
   @override
-  visitAttribute(AttributeAst astNode, [_]) => null;
+  visitAttribute(AttributeAst astNode, [_]) {
+    if (astNode.mustaches != null) {
+      astNode.mustaches.forEach((mustache) {
+        mustache.accept(this);
+      });
+    }
+    return null;
+  }
 
   @override
   visitBanana(BananaAst astNode, [_]) => null;
@@ -45,6 +52,9 @@ class ExpressionParserVisitor<C> implements TemplateAstVisitor<Null, C> {
 
   @override
   visitElement(ElementAst astNode, [_]) {
+    astNode.attributes.forEach((attribute) {
+      attribute.accept(this);
+    });
     astNode.events.forEach((event) {
       event.accept(this);
     });

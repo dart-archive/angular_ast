@@ -9,7 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
-const _listEquals = const ListEquality();
+const _listEquals = const ListEquality<dynamic>();
 
 /// Represents a DOM element that was parsed, that could be upgraded.
 ///
