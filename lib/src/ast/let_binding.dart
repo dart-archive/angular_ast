@@ -18,26 +18,30 @@ abstract class LetBindingAst implements TemplateAst {
   /// [value] is an optional parameter, which indicates that the variable is
   /// bound to a the value '$implicit'.
   factory LetBindingAst(
-    String name, [
-    String value,
-  ]) = _SyntheticLetBindingAst;
+      String name, [
+        String value,
+      ]) = _SyntheticLetBindingAst;
 
   /// Create a new synthetic [LetBindingAst] that originated from [origin].
   factory LetBindingAst.from(
-    TemplateAst oriign,
-    String name, [
-    String value,
-  ]) = _SyntheticLetBindingAst.from;
+      TemplateAst oriign,
+      String name, [
+        String value,
+      ]) = _SyntheticLetBindingAst.from;
 
   /// Create a new [LetBindingAst] parsed from tokens in [sourceFile].
   /// The [prefixToken] is the 'let-' component, the [elementDecoratorToken]
   /// is the variable name, and [valueToken] is the value bound to the
   /// variable.
   factory LetBindingAst.parsed(
-    SourceFile sourceFile,
-    NgToken beginToken,
-    NgToken prefixToken,
-    NgToken elementDecoratorToken,[
-    NgAttributeValueToken valueToken,
-  ])
+      SourceFile sourceFile,
+      NgToken beginToken,
+      NgToken prefixToken,
+      NgToken elementDecoratorToken,[
+        NgAttributeValueToken valueToken,
+      ]) = ParsedLetBindingAst;
+
+  @override
+  bool operator ==(Object o) =>
+      o is LetBindingAst
 }
