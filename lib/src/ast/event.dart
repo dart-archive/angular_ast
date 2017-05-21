@@ -139,7 +139,7 @@ class ParsedEventAst extends TemplateAst
 
   /// Offset of equal sign; may be `null` if no value.
   @override
-  int get equalSignOffset => equalSignToken.offset;
+  int get equalSignOffset => equalSignToken?.offset;
 
   /// Expression value as [String] bound to event; may be `null` if no value.
   @override

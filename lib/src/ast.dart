@@ -22,6 +22,8 @@ export 'package:angular_ast/src/ast/interface.dart'
         TemplateAst;
 export 'package:angular_ast/src/ast/interpolation.dart'
     show InterpolationAst, ParsedInterpolationAst;
+export 'package:angular_ast/src/ast/let_binding.dart'
+    show LetBindingAst, ParsedLetBindingAst;
 export 'package:angular_ast/src/ast/property.dart'
     show PropertyAst, ParsedPropertyAst;
 export 'package:angular_ast/src/ast/reference.dart'
