@@ -29,6 +29,7 @@ const List<NgParserWarningCode> angularAstWarningCodes = const [
   NgParserWarningCode.EVENT_NAME_TOO_MANY_FIXES,
   NgParserWarningCode.INVALID_DECORATOR_IN_NGCONTENT,
   NgParserWarningCode.INVALID_DECORATOR_IN_TEMPLATE,
+  NgParserWarningCode.INVALID_LET_BINDING_IN_NONTEMPLATE,
   NgParserWarningCode.INVALID_MICRO_EXPRESSION,
   NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END,
   NgParserWarningCode.NGCONTENT_MUST_CLOSE_IMMEDIATELY,
