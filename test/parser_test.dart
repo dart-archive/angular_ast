@@ -304,6 +304,20 @@ void main() {
     );
   });
 
+  test('should parse a <template> directive with let-binding and hashref', () {
+    expect(
+      parse('<template let-foo="bar" let-baz #tempRef></template>'),
+      [
+        new EmbeddedTemplateAst(references: [
+          new ReferenceAst('tempRef'),
+        ], letBindings: [
+          new LetBindingAst('foo', 'bar'),
+          new LetBindingAst('baz'),
+        ]),
+      ],
+    );
+  });
+
   test('should parse a <template> directive with events', () {
     expect(
       parse(
