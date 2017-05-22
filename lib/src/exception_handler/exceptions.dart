@@ -162,6 +162,10 @@ class NgParserWarningCode extends ErrorCode {
       const NgParserWarningCode('INVALID_DECORATOR_IN_TEMPLATE',
           "Invalid decorator in 'template' element");
 
+  static const NgParserWarningCode INVALID_LET_BINDING_IN_NONTEMPLATE =
+      const NgParserWarningCode('INVALID_LET_BINDING_IN_NONTEMPLATE',
+          "'let-' binding can only be used in 'template' element");
+
   // TODO: Max: Split this error into more smaller, detailed messages.
   static const NgParserWarningCode INVALID_MICRO_EXPRESSION =
       const NgParserWarningCode(

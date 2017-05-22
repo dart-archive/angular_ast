@@ -256,8 +256,8 @@ void main() {
 
     expect(
         astsToString(asts),
-        '<div><template ngFor let-item let-i="index"'
-        ' [ngForOf]="items"></template></div>');
+        '<div><template ngFor [ngForOf]="items" let-item let-i="index">'
+        '</template></div>');
 
     checkException(NgParserWarningCode.CANNOT_FIND_MATCHING_CLOSE, 5, 57);
   });
@@ -288,8 +288,8 @@ void main() {
     expect(ngContent, new isInstanceOf<EmbeddedTemplateAst>());
     expect(
         astsToString(asts),
-        '<template ngFor let-item let-i="index"'
-        ' [ngForOf]="items"></template>');
+        '<template ngFor [ngForOf]="items" let-item let-i="index">'
+        '</template>');
 
     checkException(NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END, 56, 2);
   });
@@ -513,6 +513,38 @@ void main() {
     expect(e2.errorCode, NgParserWarningCode.UNTERMINATED_MUSTACHE);
     expect(e2.offset, 27);
     expect(e2.length, 2);
+  });
+
+  test('Should flag invalid usage of let-binding and drop', () {
+    var asts = parse('<div let-someVar></div>');
+    expect(asts.length, 1);
+
+    var element = asts[0] as ElementAst;
+    expect(element.attributes.length, 0);
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 1);
+    var e = exceptions[0];
+
+    expect(e.errorCode, NgParserWarningCode.INVALID_LET_BINDING_IN_NONTEMPLATE);
+    expect(e.offset, 4);
+    expect(e.length, 12);
+  });
+
+  test('Should flag let- binding without variable name', () {
+    var asts = parse('<template let-></template>');
+    expect(asts.length, 1);
+
+    var element = asts[0] as EmbeddedTemplateAst;
+    expect(element.letBindings.length, 0);
+
+    var exceptions = recoveringExceptionHandler.exceptions;
+    expect(exceptions.length, 1);
+    var e = exceptions[0];
+
+    expect(e.errorCode, NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX);
+    expect(e.offset, 10);
+    expect(e.length, 4);
   });
 
   test('Should resolve unopened mustache in attr value', () {

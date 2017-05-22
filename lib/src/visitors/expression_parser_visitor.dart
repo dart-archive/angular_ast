@@ -97,6 +97,9 @@ class ExpressionParserVisitor implements TemplateAstVisitor<dynamic, Null> {
   }
 
   @override
+  visitLetBinding(LetBindingAst astNode, [_]) => null;
+
+  @override
   visitProperty(PropertyAst astNode, [_]) {
     ExpressionAst expression;
     if (astNode is ParsedPropertyAst && astNode.valueToken != null) {

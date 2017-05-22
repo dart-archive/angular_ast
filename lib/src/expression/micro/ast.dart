@@ -12,21 +12,21 @@ final _listEquals = const ListEquality<dynamic>();
 /// A de-sugared form of longer pseudo expression.
 class NgMicroAst {
   /// What variable assignments were made.
-  final List<ReferenceAst> assignments;
+  final List<LetBindingAst> letBindings;
 
   /// What properties are bound.
   final List<PropertyAst> properties;
 
   @literal
   const NgMicroAst({
-    @required this.assignments,
+    @required this.letBindings,
     @required this.properties,
   });
 
   @override
   bool operator ==(Object o) {
     if (o is NgMicroAst) {
-      return _listEquals.equals(assignments, o.assignments) &&
+      return _listEquals.equals(letBindings, o.letBindings) &&
           _listEquals.equals(properties, o.properties);
     }
     return false;
@@ -34,9 +34,9 @@ class NgMicroAst {
 
   @override
   int get hashCode {
-    return hash2(_listEquals.hash(assignments), _listEquals.hash(properties));
+    return hash2(_listEquals.hash(letBindings), _listEquals.hash(properties));
   }
 
   @override
-  String toString() => '#$NgMicroAst <$assignments $properties>';
+  String toString() => '#$NgMicroAst <$letBindings $properties>';
 }

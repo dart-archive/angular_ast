@@ -85,7 +85,7 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
       var directiveName = starAst.name;
       EmbeddedTemplateAst newAst;
       var propertiesToAdd = <PropertyAst>[];
-      var referencesToAdd = <ReferenceAst>[];
+      var letBindingsToAdd = <LetBindingAst>[];
 
       if (isMicroExpression(starExpression)) {
         NgMicroAst micro;
@@ -102,7 +102,7 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
         }
         if (micro != null) {
           propertiesToAdd.addAll(micro.properties);
-          referencesToAdd.addAll(micro.assignments);
+          letBindingsToAdd.addAll(micro.letBindings);
         }
 
         newAst = new EmbeddedTemplateAst.from(
@@ -114,7 +114,7 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
             new AttributeAst(directiveName),
           ],
           properties: propertiesToAdd,
-          references: referencesToAdd,
+          letBindings: letBindingsToAdd,
         );
       } else {
         propertiesToAdd.add(new PropertyAst(
@@ -152,6 +152,9 @@ class DesugarVisitor implements TemplateAstVisitor<TemplateAst, String> {
 
   @override
   TemplateAst visitInterpolation(InterpolationAst astNode, [_]) => astNode;
+
+  @override
+  TemplateAst visitLetBinding(LetBindingAst astNode, [_]) => astNode;
 
   @override
   TemplateAst visitProperty(PropertyAst astNode, [_]) => astNode;

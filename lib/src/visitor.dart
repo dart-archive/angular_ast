@@ -61,6 +61,9 @@ abstract class TemplateAstVisitor<R, C> {
   /// Visits all interpolation ASTs.
   R visitInterpolation(InterpolationAst astNode, [C context]);
 
+  /// Visits all let-binding ASTs.
+  R visitLetBinding(LetBindingAst astNode, [C context]);
+
   /// Visits all property ASTs.
   R visitProperty(PropertyAst astNode, [C context]);
 

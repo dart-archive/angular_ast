@@ -25,6 +25,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     List<EventAst> events,
     List<PropertyAst> properties,
     List<ReferenceAst> references,
+    List<LetBindingAst> letBindings,
   }) = _SyntheticEmbeddedTemplateAst;
 
   factory EmbeddedTemplateAst.from(
@@ -34,6 +35,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     List<EventAst> events,
     List<PropertyAst> properties,
     List<ReferenceAst> references,
+    List<LetBindingAst> letBindings,
   }) = _SyntheticEmbeddedTemplateAst.from;
 
   factory EmbeddedTemplateAst.parsed(
@@ -46,6 +48,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
     List<EventAst> events,
     List<PropertyAst> properties,
     List<ReferenceAst> references,
+    List<LetBindingAst> letBindings,
   }) = _ParsedEmbeddedTemplateAst;
 
   @override
@@ -60,7 +63,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
 
   /// Events.
   ///
-  /// Within a `<template` tag, it may be assumed that this is a directive.
+  /// Within a `<template>` tag, it may be assumed that this is a directive.
   List<EventAst> get events;
 
   /// Property assignments.
@@ -75,6 +78,9 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
   /// Unlike a reference to a DOM element, this will be a `TemplateRef`.
   List<ReferenceAst> get references;
 
+  /// `let-` binding defined within a template.
+  List<LetBindingAst> get letBindings;
+
   /// </template> that is paired to this <template>.
   CloseElementAst get closeComplement;
   set closeComplement(CloseElementAst closeComplement);
@@ -87,7 +93,8 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
           _listEquals.equals(events, o.events) &&
           _listEquals.equals(properties, o.properties) &&
           _listEquals.equals(childNodes, o.childNodes) &&
-          _listEquals.equals(references, o.references);
+          _listEquals.equals(references, o.references) &&
+          _listEquals.equals(letBindings, o.letBindings);
     }
     return false;
   }
@@ -101,6 +108,7 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
       _listEquals.hash(childNodes),
       _listEquals.hash(properties),
       _listEquals.hash(references),
+      _listEquals.hash(letBindings),
     ]);
   }
 
@@ -131,6 +139,12 @@ abstract class EmbeddedTemplateAst implements StandaloneTemplateAst {
         ..writeAll(references, ', ')
         ..write(' ');
     }
+    if (letBindings.isNotEmpty) {
+      buffer
+        ..write('letBindings=')
+        ..writeAll(letBindings, ', ')
+        ..write(' ');
+    }
     if (childNodes.isNotEmpty) {
       buffer
         ..write('childNodes=')
@@ -155,6 +169,7 @@ class _ParsedEmbeddedTemplateAst extends TemplateAst with EmbeddedTemplateAst {
     this.events: const [],
     this.properties: const [],
     this.references: const [],
+    this.letBindings: const [],
   })
       : super.parsed(beginToken, endToken, sourceFile);
 
@@ -174,6 +189,9 @@ class _ParsedEmbeddedTemplateAst extends TemplateAst with EmbeddedTemplateAst {
   final List<ReferenceAst> references;
 
   @override
+  final List<LetBindingAst> letBindings;
+
+  @override
   CloseElementAst closeComplement;
 }
 
@@ -185,6 +203,7 @@ class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
     this.events: const [],
     this.properties: const [],
     this.references: const [],
+    this.letBindings: const [],
   })
       : closeComplement = new CloseElementAst('template');
 
@@ -195,6 +214,7 @@ class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
     this.events: const [],
     this.properties: const [],
     this.references: const [],
+    this.letBindings: const [],
   })
       : closeComplement = new CloseElementAst('template');
 
@@ -212,6 +232,9 @@ class _SyntheticEmbeddedTemplateAst extends SyntheticTemplateAst
 
   @override
   final List<ReferenceAst> references;
+
+  @override
+  final List<LetBindingAst> letBindings;
 
   @override
   CloseElementAst closeComplement;
