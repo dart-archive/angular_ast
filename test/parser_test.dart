@@ -294,13 +294,26 @@ void main() {
     expect(
       parse('<template ngFor let-item let-i="index"></template>'),
       [
-        new EmbeddedTemplateAst(
-          attributes: [
-            new AttributeAst('ngFor'),
-            new AttributeAst('let-item'),
-            new AttributeAst('let-i', 'index', <InterpolationAst>[]),
-          ],
-        ),
+        new EmbeddedTemplateAst(attributes: [
+          new AttributeAst('ngFor'),
+        ], letBindings: [
+          new LetBindingAst('item'),
+          new LetBindingAst('i', 'index'),
+        ]),
+      ],
+    );
+  });
+
+  test('should parse a <template> directive with let-binding and hashref', () {
+    expect(
+      parse('<template let-foo="bar" let-baz #tempRef></template>'),
+      [
+        new EmbeddedTemplateAst(references: [
+          new ReferenceAst('tempRef'),
+        ], letBindings: [
+          new LetBindingAst('foo', 'bar'),
+          new LetBindingAst('baz'),
+        ]),
       ],
     );
   });
@@ -462,14 +475,9 @@ void main() {
               ),
             ),
           ],
-          references: [
-            new ReferenceAst(
-              'item',
-            ),
-            new ReferenceAst(
-              'i',
-              'index',
-            ),
+          letBindings: [
+            new LetBindingAst('item'),
+            new LetBindingAst('i', 'index'),
           ],
         )
       ],
@@ -575,8 +583,8 @@ void main() {
             ),
           ),
         ],
-        references: [
-          new ReferenceAst('x'),
+        letBindings: [
+          new LetBindingAst('x'),
         ],
       )
     ]);

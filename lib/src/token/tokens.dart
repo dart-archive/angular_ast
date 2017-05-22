@@ -289,6 +289,7 @@ class NgToken implements NgBaseToken<NgTokenType> {
     NgTokenType.eventSuffix: ')',
     NgTokenType.interpolationEnd: '}}',
     NgTokenType.interpolationStart: '{{',
+    NgTokenType.letPrefix: 'let-',
     NgTokenType.openElementEnd: '>',
     NgTokenType.openElementEndVoid: '/>',
     NgTokenType.openElementStart: '<',
@@ -397,6 +398,10 @@ class NgToken implements NgBaseToken<NgTokenType> {
 
   factory NgToken.interpolationValue(int offset, String string) {
     return new _LexemeNgToken(offset, string, NgTokenType.interpolationValue);
+  }
+
+  factory NgToken.letPrefix(int offset) {
+    return new NgToken._(NgTokenType.letPrefix, offset);
   }
 
   factory NgToken.openElementEnd(int offset) {

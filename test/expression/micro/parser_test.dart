@@ -21,8 +21,8 @@ void main() {
     expect(
       parse('ngThing', 'let foo', 0),
       new NgMicroAst(
-        assignments: [
-          new ReferenceAst('foo'),
+        letBindings: [
+          new LetBindingAst('foo'),
         ],
         properties: [],
       ),
@@ -33,9 +33,9 @@ void main() {
     expect(
       parse('ngThing', 'let foo = bar;let baz', 0),
       new NgMicroAst(
-        assignments: [
-          new ReferenceAst('foo', 'bar'),
-          new ReferenceAst('baz'),
+        letBindings: [
+          new LetBindingAst('foo', 'bar'),
+          new LetBindingAst('baz'),
         ],
         properties: [],
       ),
@@ -46,8 +46,8 @@ void main() {
     expect(
       parse('ngFor', 'let x of items.where(filter)', 0),
       new NgMicroAst(
-        assignments: [
-          new ReferenceAst('x'),
+        letBindings: [
+          new LetBindingAst('x'),
         ],
         properties: [
           new PropertyAst(
@@ -63,8 +63,8 @@ void main() {
     expect(
       parse('ngFor', 'let item of items; trackBy: byId', 0),
       new NgMicroAst(
-        assignments: [
-          new ReferenceAst('item'),
+        letBindings: [
+          new LetBindingAst('item'),
         ],
         properties: [
           new PropertyAst(

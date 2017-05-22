@@ -237,6 +237,21 @@ class RecursiveAstParser {
         equalSignToken,
       );
     }
+    if (decoratorToken.lexeme.startsWith('let-')) {
+      var letToken = new NgToken.letPrefix(decoratorToken.offset);
+      decoratorToken = new NgToken.elementDecorator(
+        decoratorToken.offset + 'let-'.length,
+        decoratorToken.lexeme.substring('let-'.length),
+      );
+      return new LetBindingAst.parsed(
+        _source,
+        beginToken,
+        letToken,
+        decoratorToken,
+        valueToken,
+        equalSignToken,
+      );
+    }
 
     List<InterpolationAst> parsedMustaches;
     if (valueToken != null) {
@@ -277,6 +292,7 @@ class RecursiveAstParser {
     var references = <ReferenceAst>[];
     var bananas = <BananaAst>[];
     var stars = <StarAst>[];
+    var letBindings = <LetBindingAst>[];
     NgToken nextToken;
 
     // Start looping and get all of the decorators within the element.
@@ -286,6 +302,24 @@ class RecursiveAstParser {
         var decoratorAst = parseDecorator(nextToken);
         if (decoratorAst is AttributeAst) {
           attributes.add(decoratorAst);
+        } else if (decoratorAst is LetBindingAst) {
+          if (!isTemplateElement) {
+            // 'let-' binding can only exist in <template>.
+            exceptionHandler.handle(new AngularParserException(
+              NgParserWarningCode.INVALID_LET_BINDING_IN_NONTEMPLATE,
+              decoratorAst.beginToken.offset,
+              decoratorAst.endToken.end - decoratorAst.beginToken.offset,
+            ));
+          } else if (decoratorAst.name.isEmpty) {
+            var letToken = (decoratorAst as ParsedLetBindingAst).prefixToken;
+            exceptionHandler.handle(new AngularParserException(
+              NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX,
+              letToken.offset,
+              letToken.length,
+            ));
+          } else {
+            letBindings.add(decoratorAst);
+          }
         } else if (decoratorAst is StarAst) {
           if (isTemplateElement) {
             exceptionHandler.handle(new AngularParserException(
@@ -420,6 +454,7 @@ class RecursiveAstParser {
         events: events,
         properties: properties,
         references: references,
+        letBindings: letBindings,
       );
     } else {
       return new ElementAst.parsed(

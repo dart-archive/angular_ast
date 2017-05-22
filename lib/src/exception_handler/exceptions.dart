@@ -29,6 +29,7 @@ const List<NgParserWarningCode> angularAstWarningCodes = const [
   NgParserWarningCode.EVENT_NAME_TOO_MANY_FIXES,
   NgParserWarningCode.INVALID_DECORATOR_IN_NGCONTENT,
   NgParserWarningCode.INVALID_DECORATOR_IN_TEMPLATE,
+  NgParserWarningCode.INVALID_LET_BINDING_IN_NONTEMPLATE,
   NgParserWarningCode.INVALID_MICRO_EXPRESSION,
   NgParserWarningCode.NONVOID_ELEMENT_USING_VOID_END,
   NgParserWarningCode.NGCONTENT_MUST_CLOSE_IMMEDIATELY,
@@ -161,6 +162,10 @@ class NgParserWarningCode extends ErrorCode {
   static const NgParserWarningCode INVALID_DECORATOR_IN_TEMPLATE =
       const NgParserWarningCode('INVALID_DECORATOR_IN_TEMPLATE',
           "Invalid decorator in 'template' element");
+
+  static const NgParserWarningCode INVALID_LET_BINDING_IN_NONTEMPLATE =
+      const NgParserWarningCode('INVALID_LET_BINDING_IN_NONTEMPLATE',
+          "'let-' binding can only be used in 'template' element");
 
   // TODO: Max: Split this error into more smaller, detailed messages.
   static const NgParserWarningCode INVALID_MICRO_EXPRESSION =

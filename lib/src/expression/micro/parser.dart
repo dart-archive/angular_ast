@@ -39,7 +39,7 @@ class _RecursiveMicroAstParser {
 //  final String _sourceUrl;
   final Iterator<NgMicroToken> _tokens;
 
-  final references = <ReferenceAst>[];
+  final letBindings = <LetBindingAst>[];
   final properties = <PropertyAst>[];
 
   _RecursiveMicroAstParser(
@@ -60,7 +60,7 @@ class _RecursiveMicroAstParser {
         throw _unexpected(token);
       }
     }
-    return new NgMicroAst(assignments: references, properties: properties);
+    return new NgMicroAst(letBindings: letBindings, properties: properties);
   }
 
   void _parseBind() {
@@ -90,13 +90,13 @@ class _RecursiveMicroAstParser {
     if (!_tokens.moveNext() ||
         !_tokens.moveNext() ||
         _tokens.current.type == NgMicroTokenType.endExpression) {
-      references.add(new ReferenceAst(identifier));
+      letBindings.add(new LetBindingAst(identifier));
       return;
     }
     if (_tokens.current.type == NgMicroTokenType.letAssignment) {
-      references.add(new ReferenceAst(identifier, _tokens.current.lexeme));
+      letBindings.add(new LetBindingAst(identifier, _tokens.current.lexeme));
     } else {
-      references.add(new ReferenceAst(identifier));
+      letBindings.add(new LetBindingAst(identifier));
       if (_tokens.current.type != NgMicroTokenType.bindIdentifier) {
         throw _unexpected();
       }

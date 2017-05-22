@@ -61,6 +61,7 @@ enum NgTokenType {
   interpolationEnd,
   interpolationStart,
   interpolationValue,
+  letPrefix,
   openElementEnd,
   openElementEndVoid,
   openElementStart,

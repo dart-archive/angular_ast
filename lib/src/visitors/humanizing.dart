@@ -44,6 +44,7 @@ class HumanizingTemplateAstVisitor
   String visitElement(ElementAst astNode, [StringBuffer context]) {
     context ??= new StringBuffer();
     context..write('<')..write(astNode.name);
+
     if (astNode.attributes.isNotEmpty) {
       context
         ..write(' ')
@@ -127,6 +128,11 @@ class HumanizingTemplateAstVisitor
         ..write(' ')
         ..writeAll(astNode.references.map(visitReference), ' ');
     }
+    if (astNode.letBindings.isNotEmpty) {
+      context
+        ..write(' ')
+        ..writeAll(astNode.letBindings.map(visitLetBinding), ' ');
+    }
     context.write('>');
     if (astNode.childNodes.isNotEmpty) {
       context.writeAll(astNode.childNodes.map((c) => c.accept(this)));
@@ -157,6 +163,14 @@ class HumanizingTemplateAstVisitor
   @override
   String visitInterpolation(InterpolationAst astNode, [_]) {
     return '{{${astNode.value}}}';
+  }
+
+  @override
+  String visitLetBinding(LetBindingAst astNode, [_]) {
+    if (astNode.value == null) {
+      return 'let-${astNode.name}';
+    }
+    return 'let-${astNode.name}="${astNode.value}"';
   }
 
   @override

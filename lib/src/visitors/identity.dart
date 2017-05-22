@@ -44,6 +44,9 @@ class IdentityTemplateAstVisitor<C>
   TemplateAst visitInterpolation(InterpolationAst astNode, [_]) => astNode;
 
   @override
+  TemplateAst visitLetBinding(LetBindingAst astNode, [_]) => astNode;
+
+  @override
   TemplateAst visitProperty(PropertyAst astNode, [_]) => astNode;
 
   @override
