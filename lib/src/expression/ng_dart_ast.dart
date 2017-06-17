@@ -232,6 +232,8 @@ abstract class PipeInvocationExpression extends Expression {
   /// Set the element associated with the pipe being invoked based on static
   /// type information to the given [element].
   set staticElement(ExecutableElement element);
+
+  String asFunctionLikeString();
 }
 
 class PipeInvocationExpressionImpl extends ExpressionImpl
@@ -324,5 +326,18 @@ class PipeInvocationExpressionImpl extends ExpressionImpl
         ? ''
         : pipeOptionalArgumentList.toSource();
     return '${requiredArgument.toSource()} ${bar.toString()} ${pipe.toSource()}${args}';
+  }
+
+  @override
+  String asFunctionLikeString() {
+    var args = requiredArgument is PipeInvocationExpression
+        ? '${(requiredArgument as PipeInvocationExpression).asFunctionLikeString()}'
+        : requiredArgument.toSource();
+    if (pipeOptionalArgumentList != null) {
+      args += pipeOptionalArgumentList.arguments
+          .map((e) => ', ${e.toSource()}')
+          .join();
+    }
+    return '${pipe.toString()}($args)';
   }
 }
