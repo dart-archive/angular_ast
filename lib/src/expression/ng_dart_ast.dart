@@ -161,7 +161,11 @@ class PipeOptionalArgumentListImpl extends AstNodeImpl
   }
 
   @override
-  String toSource() => arguments.map((e) => ':${e.toSource()}').join();
+  String toSource() => arguments.map((e) {
+        final visitor = new NgToSourceVisitor();
+        e.accept(visitor);
+        return ':${visitor.toString()}';
+      }).join();
 }
 
 /// A pipe invocation in a PipedExpression
@@ -228,8 +232,6 @@ abstract class PipeInvocationExpression extends Expression {
   /// Set the element associated with the pipe being invoked based on static
   /// type information to the given [element].
   set staticElement(ExecutableElement element);
-
-  String asFunctionLikeString();
 }
 
 class PipeInvocationExpressionImpl extends ExpressionImpl
@@ -322,18 +324,5 @@ class PipeInvocationExpressionImpl extends ExpressionImpl
         ? ''
         : pipeOptionalArgumentList.toSource();
     return '${requiredArgument.toSource()} ${bar.toString()} ${pipe.toSource()}${args}';
-  }
-
-  @override
-  String asFunctionLikeString() {
-    var args = requiredArgument is PipeInvocationExpression
-        ? '${(requiredArgument as PipeInvocationExpression).asFunctionLikeString()}'
-        : requiredArgument.toSource();
-    if (pipeOptionalArgumentList != null) {
-      args += pipeOptionalArgumentList.arguments
-          .map((e) => ', ${e.toSource()}')
-          .join();
-    }
-    return '${pipe.toString()}($args)';
   }
 }

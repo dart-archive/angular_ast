@@ -70,16 +70,9 @@ void main() {
         r"foo | date:'YY/MM/DD':false");
   });
 
-  test('should parse chained pipes', () {
-    final expression = parseExpression(
-      r" foo | date:'YY/MM/DD':false | marioPipe:yoshi:5 ",
-      sourceUrl: '/test/expression/parser_test.dart#inline',
-    );
-    expect(
-      expression.toSource(),
-      r"foo | date:'YY/MM/DD':false | marioPipe:yoshi:5",
-    );
-    expect((expression as PipeInvocationExpression).asFunctionLikeString(),
-        r"marioPipe(date(foo, 'YY/MM/DD', false), yoshi, 5)");
+  test('should parse complex nested pipes', () {
+    final expressionText =
+        r"foo | pipe1:(bar | pipe2:10:true | pipe3):true | pipe4:true";
+    expect(generateStringFromExpression(expressionText), expressionText);
   });
 }
