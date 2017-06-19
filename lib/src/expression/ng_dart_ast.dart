@@ -9,11 +9,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-
-abstract class AngularDartAstVisitor<R> extends AstVisitor<R> {
-  R visitPipeOptionalArgumentList(PipeOptionalArgumentList node);
-  R visitPipeInvocation(PipeInvocationExpression node);
-}
+import 'package:angular_ast/src/expression/visitor.dart';
 
 /// A list of arguments in the invocation of a pipe.
 ///
@@ -182,7 +178,7 @@ abstract class PipeInvocationExpression extends Expression {
           bar, pipe, requiredArgument, pipeOptionalArgumentList);
 
   /// Set the required argument to the pipe to the given [requiredArgument].
-  set requiredArgument(Expression requiredArgument);
+  Expression get requiredArgument;
 
   /// Set the required static parameter to the pipe to the given
   /// [requiredStaticParameter].
@@ -196,8 +192,7 @@ abstract class PipeInvocationExpression extends Expression {
   /// Set the list of arguments to the pipe to the given
   /// [pipeOptionalArgumentList].
   /// This may be null if no optional arguments were used.
-  set pipeOptionalArgumentList(
-      PipeOptionalArgumentList pipeOptionalArgumentList);
+  PipeOptionalArgumentList get pipeOptionalArgumentList;
 
   /// Set the '|' token.
   Token get bar;

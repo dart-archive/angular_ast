@@ -73,12 +73,6 @@ class _NgExpressionParser extends Parser {
       expression = parseBitwiseXorExpression();
     }
     while (currentToken.type == TokenType.BAR) {
-//      expression = new BinaryExpression(
-//        expression,
-//        getAndAdvance(),
-//        parseBitwiseXorExpression(),
-//      );
-//      expression = parseAndTransformPipeExpression(expression);
       final bar = getAndAdvance();
       final pipeName = parseSimpleIdentifier();
       final optArgs = parsePipeParameters();
