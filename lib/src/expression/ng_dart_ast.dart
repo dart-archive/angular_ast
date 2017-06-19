@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:angular_ast/src/expression/visitor.dart';
+import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 
 /// A list of arguments in the invocation of a pipe.
 ///
@@ -102,7 +103,7 @@ class PipeOptionalArgumentListImpl extends AstNodeImpl
       return (visitor as AngularDartAstVisitor)
           .visitPipeOptionalArgumentList(this);
     }
-    return null;
+    throw NgParserWarningCode.WRONG_VISITOR;
   }
 
   @override
@@ -296,7 +297,7 @@ class PipeInvocationExpressionImpl extends ExpressionImpl
     if (visitor is AngularDartAstVisitor) {
       return (visitor as AngularDartAstVisitor).visitPipeInvocation(this);
     }
-    return null;
+    throw NgParserWarningCode.WRONG_VISITOR;
   }
 
   @override

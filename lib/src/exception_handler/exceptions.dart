@@ -44,6 +44,7 @@ const List<NgParserWarningCode> angularAstWarningCodes = const [
   NgParserWarningCode.UNTERMINATED_MUSTACHE,
   NgParserWarningCode.VOID_ELEMENT_IN_CLOSE_TAG,
   NgParserWarningCode.VOID_CLOSE_IN_CLOSE_TAG,
+  NgParserWarningCode.WRONG_VISITOR,
 ];
 
 class NgParserWarningCode extends ErrorCode {
@@ -241,6 +242,10 @@ class NgParserWarningCode extends ErrorCode {
   static const NgParserWarningCode VOID_CLOSE_IN_CLOSE_TAG =
       const NgParserWarningCode('VOID_CLOSE_IN_CLOSE_TAG',
           "Void close '/>' cannot be used in a close element");
+
+  static const NgParserWarningCode WRONG_VISITOR = const NgParserWarningCode(
+      'WRONG_VISITOR',
+      'Pure-Dart visitor was used in Angular-based Expression node.');
 
   /// Initialize a newly created erorr code to have the given [name].
   /// The message associated with the error will be created from the
