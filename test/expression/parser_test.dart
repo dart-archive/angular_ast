@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular_ast/src/expression/parser.dart';
-import 'package:angular_ast/src/expression/ng_dart_ast.dart';
 import 'package:angular_ast/src/expression/visitor.dart';
 import 'package:test/test.dart';
 
