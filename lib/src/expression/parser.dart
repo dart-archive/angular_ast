@@ -5,6 +5,7 @@
 import 'package:angular_ast/src/exception_handler/exception_handler.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -68,12 +69,12 @@ class _NgExpressionParser extends Parser {
     Expression expression;
     if (currentToken.keyword == Keyword.SUPER &&
         currentToken.next.type == TokenType.BAR) {
-      expression = new SuperExpression(getAndAdvance());
+      expression = new SuperExpressionImpl(getAndAdvance());
     } else {
       expression = parseBitwiseXorExpression();
     }
     while (currentToken.type == TokenType.BAR) {
-      expression = new BinaryExpression(
+      expression = new BinaryExpressionImpl(
         expression,
         getAndAdvance(),
         parseBitwiseXorExpression(),
