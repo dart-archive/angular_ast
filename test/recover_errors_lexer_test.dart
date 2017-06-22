@@ -1058,8 +1058,9 @@ void elementDecoratorValue() {
     checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
     expect(untokenize(tokenize('<div attr=#ref>')), '<div attr="" #ref>');
     checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
-    expect(untokenize(tokenize('<div attr=attr2>')), '<div attr="" attr2>');
-    checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
+    expect(untokenize(tokenize('<div attr=attr2>')), '<div attr="attr2">');
+    checkException(
+        NgParserWarningCode.ELEMENT_DECORATOR_VALUE_MISSING_QUOTES, 10, 5);
     expect(untokenize(tokenize('<div attr=*temp>')), '<div attr="" *temp>');
     checkException(NgParserWarningCode.ELEMENT_DECORATOR_VALUE, 9, 1);
 
