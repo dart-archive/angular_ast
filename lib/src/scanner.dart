@@ -620,6 +620,14 @@ class NgScanner {
       return new NgToken.whitespace(_current.offset, _current.lexeme);
     }
 
+    if (type == NgSimpleTokenType.identifier) {
+      return handleError(
+        NgParserWarningCode.ELEMENT_DECORATOR_VALUE_MISSING_QUOTES,
+        _current.offset,
+        _current.length,
+      );
+    }
+
     if (type == NgSimpleTokenType.openBracket ||
         type == NgSimpleTokenType.openParen ||
         type == NgSimpleTokenType.openBanana ||
@@ -634,7 +642,6 @@ class NgScanner {
         type == NgSimpleTokenType.EOF ||
         type == NgSimpleTokenType.equalSign ||
         type == NgSimpleTokenType.hash ||
-        type == NgSimpleTokenType.identifier ||
         type == NgSimpleTokenType.star) {
       return handleError(
         NgParserWarningCode.ELEMENT_DECORATOR_VALUE,

@@ -302,7 +302,6 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
         type == NgSimpleTokenType.EOF ||
         type == NgSimpleTokenType.equalSign ||
         type == NgSimpleTokenType.hash ||
-        type == NgSimpleTokenType.identifier ||
         type == NgSimpleTokenType.star) {
       reader.putBack(current);
       returnState = NgScannerState.scanAfterElementDecoratorValue;
@@ -313,6 +312,16 @@ class NgAnalyzerRecoveryProtocol extends RecoveryProtocol {
           offset, NgTokenType.elementDecoratorValue);
       var right =
           new NgToken.generateErrorSynthetic(offset, NgTokenType.doubleQuote);
+
+      returnToken = new NgAttributeValueToken.generate(left, value, right);
+    }
+    if (type == NgSimpleTokenType.identifier) {
+      returnState = NgScannerState.scanAfterElementDecoratorValue;
+      var left =
+          new NgToken.generateErrorSynthetic(offset, NgTokenType.doubleQuote);
+      var value = new NgToken.elementDecoratorValue(offset, current.lexeme);
+      var right = new NgToken.generateErrorSynthetic(
+          offset + current.length, NgTokenType.doubleQuote);
 
       returnToken = new NgAttributeValueToken.generate(left, value, right);
     }

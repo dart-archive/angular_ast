@@ -18,6 +18,7 @@ const List<NgParserWarningCode> angularAstWarningCodes = const [
   NgParserWarningCode.ELEMENT_DECORATOR_AFTER_PREFIX,
   NgParserWarningCode.ELEMENT_DECORATOR_SUFFIX_BEFORE_PREFIX,
   NgParserWarningCode.ELEMENT_DECORATOR_VALUE,
+  NgParserWarningCode.ELEMENT_DECORATOR_VALUE_MISSING_QUOTES,
   NgParserWarningCode.ELEMENT_IDENTIFIER,
   NgParserWarningCode.EXPECTED_AFTER_ELEMENT_IDENTIFIER,
   NgParserWarningCode.EXPECTED_EQUAL_SIGN,
@@ -97,6 +98,12 @@ class NgParserWarningCode extends ErrorCode {
       const NgParserWarningCode(
     'ELEMENT_DECORATOR_VALUE',
     "Expected quoted value following '='",
+  );
+
+  static const NgParserWarningCode ELEMENT_DECORATOR_VALUE_MISSING_QUOTES =
+      const NgParserWarningCode(
+    'ELEMENT_DECORATOR_VALUE_MISSING_QUOTES',
+    'Decorator values must contain quotes',
   );
 
   static const NgParserWarningCode ELEMENT_IDENTIFIER =
