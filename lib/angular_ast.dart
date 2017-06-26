@@ -41,6 +41,9 @@ export 'package:angular_ast/src/ast.dart'
         TextAst;
 export 'package:angular_ast/src/exception_handler/exception_handler.dart'
     show ExceptionHandler, RecoveringExceptionHandler, ThrowingExceptionHandler;
+export 'package:angular_ast/src/expression/parser.dart';
+export 'package:angular_ast/src/expression/ng_dart_ast.dart';
+export 'package:angular_ast/src/expression/visitor.dart';
 export 'package:angular_ast/src/lexer.dart' show NgLexer;
 export 'package:angular_ast/src/parser.dart' show NgParser;
 export 'package:angular_ast/src/token/tokens.dart'

@@ -13,7 +13,7 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:angular_ast/src/expression/pipe.dart';
+import 'package:angular_ast/src/expression/ng_dart_ast.dart';
 import 'package:meta/meta.dart';
 
 final _resourceProvider = new MemoryResourceProvider();
@@ -74,45 +74,27 @@ class _NgExpressionParser extends Parser {
       expression = parseBitwiseXorExpression();
     }
     while (currentToken.type == TokenType.BAR) {
-      expression = new BinaryExpressionImpl(
-        expression,
-        getAndAdvance(),
-        parseBitwiseXorExpression(),
-      );
-      expression = parseAndTransformPipeExpression(expression);
+      final bar = getAndAdvance();
+      final pipeName = parseSimpleIdentifier();
+      final optArgs = parsePipeParameters();
+      expression =
+          new PipeInvocationExpression(bar, pipeName, expression, optArgs);
     }
     return expression;
   }
 
-  /// Given an expression of `{expression} | {pipe}`, returns an expression.
-  ///
-  /// For example, will return:
-  /// ```
-  /// $$ng.pipe({pipe}, {expression}, [{args}])
-  /// ```
-  ///
-  /// With the expectation the compiler will optimize further.
-  Expression parseAndTransformPipeExpression(BinaryExpression expression) {
+  AstNode parsePipeParameters() {
+    Token argsStart;
+    if (currentToken.lexeme != ':') {
+      return null;
+    } else {
+      argsStart = currentToken;
+    }
     var pipeArgs = <Expression>[];
     while (currentToken.lexeme == ':') {
       currentToken = currentToken.next;
-      pipeArgs.add(this.parseExpression2());
+      pipeArgs.add(this.parseBitwiseXorExpression());
     }
-    if (expression.rightOperand is! Identifier) {
-      throw new AngularParserException(
-        NgParserWarningCode.PIPE_INVALID_IDENTIFIER,
-        expression.rightOperand.offset,
-        expression.toSource().length,
-      );
-    }
-    return new PipeExpression(
-      expression.beginToken,
-      expression.endToken,
-      expression.end,
-      expression.rightOperand,
-      expression.operator,
-      expression.leftOperand,
-      pipeArgs,
-    );
+    return new PipeOptionalArgumentList(argsStart, pipeArgs);
   }
 }
