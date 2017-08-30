@@ -133,13 +133,15 @@ class RecursiveAstParser {
           equalSignToken,
         );
       } else if (prefixType == NgTokenType.eventPrefix) {
-        if (decoratorToken.lexeme.split('.').length > 2) {
-          exceptionHandler.handle(new AngularParserException(
-            NgParserWarningCode.EVENT_NAME_TOO_MANY_FIXES,
-            decoratorToken.offset,
-            decoratorToken.length,
-          ));
-        }
+        // Disabling: event names can be as long as keyup.ctrl.shift.alt.mod.+
+        // Should this be limited to 6 then? Or should it be left open?
+        //if (decoratorToken.lexeme.split('.').length > 2) {
+        //  exceptionHandler.handle(new AngularParserException(
+        //    NgParserWarningCode.EVENT_NAME_TOO_MANY_FIXES,
+        //    decoratorToken.offset,
+        //    decoratorToken.length,
+        //  ));
+        //}
 
         return new EventAst.parsed(
           _source,

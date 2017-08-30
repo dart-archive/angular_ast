@@ -171,7 +171,8 @@ void main() {
                 'onClick()',
                 19,
                 sourceUrl: '/test/expression/parser_test.dart#inline',
-              )),
+              ),
+              []),
         ]),
       ],
     );
