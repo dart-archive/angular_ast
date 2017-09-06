@@ -5,10 +5,13 @@
 import 'package:angular_ast/src/ast.dart';
 import 'package:angular_ast/src/token/tokens.dart';
 import 'package:angular_ast/src/visitor.dart';
+import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 import 'package:quiver/core.dart';
 
-/// Represents an event listener `(eventName.postfix)="expression"` on an
+const _listEquals = const ListEquality<dynamic>();
+
+/// Represents an event listener `(eventName.reductions)="expression"` on an
 /// element.
 ///
 /// Clients should not extend, implement, or mix-in this class.
@@ -18,7 +21,7 @@ abstract class EventAst implements TemplateAst {
     String name,
     String value, [
     ExpressionAst expression,
-    String postfix,
+    List<String> reductions,
   ]) = _SyntheticEventAst;
 
   /// Create a new synthetic [EventAst] that originated from [origin].
@@ -27,7 +30,7 @@ abstract class EventAst implements TemplateAst {
     String name,
     String value, [
     ExpressionAst expression,
-    String postfix,
+    List<String> reductions,
   ]) = _SyntheticEventAst.from;
 
   /// Create a new [EventAst] parsed from tokens in [sourceFile].
@@ -46,10 +49,10 @@ abstract class EventAst implements TemplateAst {
       o is EventAst &&
       name == o.name &&
       expression == o.expression &&
-      postfix == o.postfix;
+      _listEquals.equals(reductions, o.reductions);
 
   @override
-  int get hashCode => hash3(name, expression, postfix);
+  int get hashCode => hash3(name, expression, reductions);
 
   @override
   R accept<R, C>(TemplateAstVisitor<R, C> visitor, [C context]) {
@@ -66,15 +69,15 @@ abstract class EventAst implements TemplateAst {
   /// Unquoted value being bound to event.
   String get value;
 
-  /// An optional postfix used to filter events that support it.
+  /// An optional list of postfixes used to filter events that support it.
   ///
-  /// For example `(keydown.space)`.
-  String get postfix;
+  /// For example `(keydown.ctrl.space)`.
+  List<String> get reductions;
 
   @override
   String toString() {
-    if (postfix != null) {
-      return '$EventAst {$name.$postfix="$value", Expression=$expression}';
+    if (reductions.isNotEmpty) {
+      return '$EventAst {$name.${reductions.join(',')}="$value", Expression=$expression}';
     }
     return '$EventAst {$name=$value, Expression=$expression}';
   }
@@ -129,7 +132,7 @@ class ParsedEventAst extends TemplateAst
   @override
   ExpressionAst expression;
 
-  /// Name `eventName` in `(eventName.postfix)`.
+  /// Name `eventName` in `(eventName.reductions)`.
   @override
   String get name => _nameWithoutParentheses.split('.').first;
 
@@ -153,20 +156,19 @@ class ParsedEventAst extends TemplateAst
   @override
   int get quotedValueOffset => valueToken?.leftQuote?.offset;
 
-  /// Offset of `(` prefix in `(eventName.postfix)`.
+  /// Offset of `(` prefix in `(eventName.reductions)`.
   @override
   int get prefixOffset => prefixToken.offset;
 
-  /// Offset of `)` suffix in `(eventName.postfix)`.
+  /// Offset of `)` suffix in `(eventName.reductions)`.
   @override
   int get suffixOffset => suffixToken.offset;
 
-  /// Name `postfix` in `(eventName.postfix)`; may be `null` to have no value.
+  /// Name `reductions` in `(eventName.ctrl.shift.a)`; may be empty.
   @override
-  String get postfix {
+  List<String> get reductions {
     final split = _nameWithoutParentheses.split('.');
-    assert(split.length < 2);
-    return split.length > 1 ? split[1] : null;
+    return split.sublist(1);
   }
 }
 
@@ -181,13 +183,13 @@ class _SyntheticEventAst extends SyntheticTemplateAst with EventAst {
   ExpressionAst expression;
 
   @override
-  final String postfix;
+  final List<String> reductions;
 
   _SyntheticEventAst(
     this.name,
     this.value, [
     this.expression,
-    this.postfix,
+    this.reductions = const [],
   ]);
 
   _SyntheticEventAst.from(
@@ -195,7 +197,7 @@ class _SyntheticEventAst extends SyntheticTemplateAst with EventAst {
     this.name,
     this.value, [
     this.expression,
-    this.postfix,
+    this.reductions = const [],
   ])
       : super.from(origin);
 }
