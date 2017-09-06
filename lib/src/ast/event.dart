@@ -69,7 +69,7 @@ abstract class EventAst implements TemplateAst {
   /// Unquoted value being bound to event.
   String get value;
 
-  /// An optional set of postfixes used to filter events that support it.
+  /// An optional list of postfixes used to filter events that support it.
   ///
   /// For example `(keydown.ctrl.space)`.
   List<String> get reductions;
@@ -77,7 +77,7 @@ abstract class EventAst implements TemplateAst {
   @override
   String toString() {
     if (reductions.isNotEmpty) {
-      return '$EventAst {$name.$reductions="$value", Expression=$expression}';
+      return '$EventAst {$name.${reductions.join(',')}="$value", Expression=$expression}';
     }
     return '$EventAst {$name=$value, Expression=$expression}';
   }
@@ -164,11 +164,11 @@ class ParsedEventAst extends TemplateAst
   @override
   int get suffixOffset => suffixToken.offset;
 
-  /// Name `filters` in `(eventName.ctrl.shift.a)`; may be empty.
+  /// Name `reductions` in `(eventName.ctrl.shift.a)`; may be empty.
   @override
   List<String> get reductions {
     final split = _nameWithoutParentheses.split('.');
-    return split.getRange(1, split.length).toList();
+    return split.sublist(1);
   }
 }
 
