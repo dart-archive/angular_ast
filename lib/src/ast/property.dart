@@ -191,7 +191,6 @@ class ParsedPropertyAst extends TemplateAst
   @override
   String get postfix {
     final split = _nameWithoutBrackets.split('.');
-    assert(split.length < 3);
     return split.length > 1 ? split[1] : null;
   }
 
@@ -199,7 +198,6 @@ class ParsedPropertyAst extends TemplateAst
   @override
   String get unit {
     final split = _nameWithoutBrackets.split('.');
-    assert(split.length < 3);
     return split.length > 2 ? split[2] : null;
   }
 }
