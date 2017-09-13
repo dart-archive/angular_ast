@@ -192,6 +192,27 @@ void main() {
     );
   });
 
+  test('should tokenize an element with a namespaced attribute', () {
+    expect(
+      tokenize('<use xlink:href="foo"></use>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'use'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.elementDecorator(5, 'xlink:href'),
+        new NgToken.beforeElementDecoratorValue(15),
+        new NgAttributeValueToken.generate(
+            new NgToken.doubleQuote(16),
+            new NgToken.elementDecoratorValue(17, 'foo'),
+            new NgToken.doubleQuote(20)),
+        new NgToken.openElementEnd(21),
+        new NgToken.closeElementStart(22),
+        new NgToken.elementIdentifier(24, 'use'),
+        new NgToken.closeElementEnd(27),
+      ],
+    );
+  });
+
   // This is both easier to write than a large Iterable<NgToken> assertion and
   // also verifies that the tokenizing is stable - that is, you can reproduce
   // the original parsed string from the tokens.
@@ -287,6 +308,29 @@ void main() {
         new NgToken.closeElementStart(47),
         new NgToken.elementIdentifier(49, 'div'),
         new NgToken.closeElementEnd(52)
+      ],
+    );
+  });
+
+  test('should tokenize an HTML element with a namespaced attr binding', () {
+    expect(
+      tokenize('<use [attr.xlink:href]="foo"></use>'),
+      [
+        new NgToken.openElementStart(0),
+        new NgToken.elementIdentifier(1, 'use'),
+        new NgToken.beforeElementDecorator(4, ' '),
+        new NgToken.propertyPrefix(5),
+        new NgToken.elementDecorator(6, 'attr.xlink:href'),
+        new NgToken.propertySuffix(21),
+        new NgToken.beforeElementDecoratorValue(22),
+        new NgAttributeValueToken.generate(
+            new NgToken.doubleQuote(23),
+            new NgToken.elementDecoratorValue(24, 'foo'),
+            new NgToken.doubleQuote(27)),
+        new NgToken.openElementEnd(28),
+        new NgToken.closeElementStart(29),
+        new NgToken.elementIdentifier(31, 'use'),
+        new NgToken.closeElementEnd(34)
       ],
     );
   });
